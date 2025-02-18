@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context=".Activity.AllFilePermissionActivity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        style="@style/Toolbar"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent">
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginVertical="@dimen/_50sdp"
+            android:adjustViewBounds="true"
+            android:padding="@dimen/_30sdp"
+            android:src="@drawable/ic_file_permission" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="#FFFFFF"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:fontFamily="@font/sans_bold"
+            android:gravity="center"
+            android:paddingTop="@dimen/_5sdp"
+            android:text="Access To\nFiles Permission"
+            android:textColor="#000000"
+            android:textSize="@dimen/_25sdp" />
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_20sdp"
+            android:layout_marginBottom="@dimen/_20sdp"
+            android:fontFamily="@font/sans_bold"
+            android:gravity="center"
+            android:padding="@dimen/_3sdp"
+            android:text="Grant permission to the app to access,\nmodify, and manage files on your\ndevice to streamline content organization"
+            android:textColor="#68483E"
+            android:textSize="@dimen/_12sdp" />
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/_55sdp"
+            android:layout_alignParentBottom="true"
+            android:layout_centerInParent="true"
+            android:layout_gravity="center"
+            android:layout_marginHorizontal="@dimen/_5sdp"
+            android:layout_marginVertical="@dimen/_15sdp">
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btnGrant"
+                style="@style/Widget.Material3.CardView.Filled"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_45sdp"
+                android:layout_centerVertical="true"
+                android:layout_marginHorizontal="@dimen/_15sdp"
+                app:cardBackgroundColor="#FF5722"
+                app:cardCornerRadius="@dimen/_60sdp">
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:fontFamily="@font/sans_bold"
+                    android:gravity="center"
+                    android:text="Grant Access"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/_16sdp" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <View
+                android:id="@+id/shine"
+                android:layout_width="@dimen/_20sdp"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_shine"
+                android:rotation="20" />
+
+        </RelativeLayout>
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+</RelativeLayout>

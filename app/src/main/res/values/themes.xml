@@ -1,0 +1,61 @@
+<resources>
+    <!-- Base application theme. -->
+    <style name="Base.Theme.GalleryEkta" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+
+        <item name="android:statusBarColor">@android:color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+        <item name="android:navigationBarColor">@color/white</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="cardBackgroundColor">@color/white</item>
+    </style>
+
+    <style name="Theme.GalleryEkta" parent="Base.Theme.GalleryEkta" />
+
+
+    <style name="AppTheme.TransparentWindow" parent="@style/Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowDisablePreview">true</item>
+        <item name="android:colorBackgroundCacheHint">@null</item>
+        <item name="android:statusBarColor">#aa000000</item>
+        <item name="backgroundColor">@android:color/transparent</item>
+    </style>
+
+    <style name="ContactsPopupTextViewStyle" parent="TextAppearance.AppCompat">
+        <item name="android:textSize">@dimen/_15ssp</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:fontFamily">@font/sans_bold</item>
+
+    </style>
+
+    <style name="Toolbar">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">?actionBarSize</item>
+        <!-- This needs to be set so that we can tint the toolbar and not change the background
+         resource. This is mainly so that QkReplyActivity can call setClipToOutline -->
+        <item name="android:background">?attr/colorPrimary</item>
+        <item name="android:gravity">center_vertical</item>
+    </style>
+
+    <style name="BottomDialog">
+<!--        <item name="android:windowBackground">@android:color/transparent</item>-->
+
+    </style>
+
+    <style name="SettingsSectionLabelStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
+        <!--        <item name="android:textAllCaps">true</item>-->
+        <item name="android:layout_marginStart">25dp</item>
+        <item name="android:layout_marginEnd">25dp</item>
+    </style>
+
+</resources>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical"
+    tools:context=".Activity.SearchAct">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/_5sdp"
+        android:background="@drawable/rounded_shape"
+        android:backgroundTint="#E9E9E9"
+        android:orientation="horizontal"
+        android:padding="@dimen/_3sdp">
+
+        <EditText
+            android:id="@+id/search_menu"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@null"
+            android:fontFamily="@font/sans_regular"
+            android:hint="Enter the name"
+            android:padding="@dimen/_3sdp"
+            android:textColor="@color/black"
+            android:textSize="@dimen/_15sdp" />
+
+        <androidx.constraintlayout.utils.widget.ImageFilterView
+            android:layout_width="@dimen/_20sdp"
+            android:layout_height="@dimen/_20sdp"
+            android:layout_gravity="center"
+            android:layout_marginEnd="@dimen/_5sdp"
+            android:adjustViewBounds="true"
+            android:background="#7E7E7E"
+            android:padding="@dimen/_3sdp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_baseline_close"
+            android:tint="@color/white"
+            app:round="@dimen/_50sdp" />
+
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvSearch"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/selectedcontainerid"
+        android:layout_below="@+id/rlTop"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        app:spanCount="4"
+        tools:listitem="@layout/item_search_media" />
+
+</LinearLayout>
