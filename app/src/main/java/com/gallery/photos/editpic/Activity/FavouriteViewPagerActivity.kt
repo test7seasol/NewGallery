@@ -3,6 +3,8 @@ package com.gallery.photos.editpic.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -14,6 +16,7 @@ import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.name.getMediaDatabase
 import com.gallery.photos.editpic.Extensions.onClick
 import com.gallery.photos.editpic.Extensions.shareFile
+import com.gallery.photos.editpic.Extensions.tos
 import com.gallery.photos.editpic.Model.DeleteMediaModel
 import com.gallery.photos.editpic.Model.FavouriteMediaModel
 import com.gallery.photos.editpic.Model.HideMediaModel
@@ -25,13 +28,14 @@ import com.gallery.photos.editpic.RoomDB.Dao.HideMediaDao
 import com.gallery.photos.editpic.Utils.DeleteMediaStoreSingleton.deleteselectedPosition
 import com.gallery.photos.editpic.Utils.FavouriteMediaStoreSingleton
 import com.gallery.photos.editpic.Utils.FavouriteMediaStoreSingleton.favouriteimageList
-import com.gallery.photos.editpic.Utils.MediaStoreSingleton.imageList
 import com.gallery.photos.editpic.databinding.ActivityFavouriteviewPagerBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
+import java.util.Timer
+import java.util.TimerTask
 
 class FavouriteViewPagerActivity : AppCompatActivity() {
 
@@ -44,11 +48,14 @@ class FavouriteViewPagerActivity : AppCompatActivity() {
     var favouriteMediaDao: FavouriteMediaDao? = null
     var hideMediaDao: HideMediaDao? = null
     var hideMediaModel: HideMediaModel? = null
+    var isFromSlideShow: Boolean = false
+    var secoundSlideShow: Int = 1
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityFavouriteviewPagerBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        applyStatusBarColor()
         imageListFavourite = FavouriteMediaStoreSingleton.favouriteimageList
         viewpagerselectedPosition = FavouriteMediaStoreSingleton.favouriteselectedPosition
         hideMediaDao = getMediaDatabase(this).hideMediaDao()
@@ -59,6 +66,9 @@ class FavouriteViewPagerActivity : AppCompatActivity() {
         favouriteMediaDao = getMediaDatabase(this).favouriteMediaDao()
         deleteMediaDao = getMediaDatabase(this).deleteMediaDao()
 
+        isFromSlideShow = intent?.extras?.getBoolean("slideshow", false) == true
+        secoundSlideShow = intent?.extras?.getInt("secoundSlideShow", 1) ?: 1
+
         ("Favourite onPageSelected: $viewpagerselectedPosition").log()
 
         setupViewPager(imageListFavourite, viewpagerselectedPosition)
@@ -66,7 +76,6 @@ class FavouriteViewPagerActivity : AppCompatActivity() {
         binding.ivBack.setOnClickListener {
             finish()
         }
-
 
         binding.apply {
             ivMore.onClick {
@@ -120,7 +129,6 @@ class FavouriteViewPagerActivity : AppCompatActivity() {
                 }
             }
 
-
             bottomActions.bottomShare.onClick {
                 shareFile(
                     this@FavouriteViewPagerActivity,
@@ -141,7 +149,53 @@ class FavouriteViewPagerActivity : AppCompatActivity() {
                 }
             }
         }
+
+        if (isFromSlideShow) {
+            isOneTimeVisibleTools = !isOneTimeVisibleTools
+            binding.bottomActions.root.visibility = View.INVISIBLE
+            binding.rltop.visibility = View.INVISIBLE
+            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN // Hide status bar
+            ("Slide start $secoundSlideShow sec").log()
+            startTimerTask()
+        }
     }
+
+    var isOneTimeVisibleTools = false
+
+    private fun startTimerTask() {
+        timer = Timer()
+        timer?.schedule(object : TimerTask() {
+            override fun run() {
+                handler.post {
+                    val position = binding.viewPager.currentItem
+                    if (position < favouriteimageList.size - 1) {
+                        binding.viewPager.currentItem = (position + 1)
+                        updateImageTitle(position + 1)
+                    } else {
+                        ("Slide end").tos(this@FavouriteViewPagerActivity)
+                        sliderstop()
+                    }
+//                    isRunning = !isRunning
+                }
+            }
+        }, 0, secoundSlideShow * 1000L) // 5 seconds interval
+    }
+
+
+    private fun sliderstop() {
+        println("Stop method called")
+        timer?.cancel()
+        // Your stop logic
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        timer?.cancel() // Stop the timer when activity is destroyed
+    }
+
+
+    private var timer: Timer? = null
+    private val handler = Handler(Looper.getMainLooper())
 
     fun renameAndHidePhoto(originalFilePath: String): Boolean {
         val originalFile = File(originalFilePath)
@@ -262,8 +316,24 @@ class FavouriteViewPagerActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupViewPager(imageList: ArrayList<FavouriteMediaModel>, currentPosition: Int) {
-        viewPagerAdapter = FavouriteViewPagerAdapter(this, imageList)
+    private fun setupViewPager(favimageList: ArrayList<FavouriteMediaModel>, currentPosition: Int) {
+        viewPagerAdapter = FavouriteViewPagerAdapter(this, favimageList) {
+            isOneTimeVisibleTools = !isOneTimeVisibleTools
+            if (isOneTimeVisibleTools) {
+                binding.bottomActions.root.visibility = View.INVISIBLE
+                binding.rltop.visibility = View.INVISIBLE
+                window.decorView.systemUiVisibility =
+                    View.SYSTEM_UI_FLAG_FULLSCREEN // Hide status bar
+            } else {
+                if (isFromSlideShow) {
+                    sliderstop()
+                }
+                binding.bottomActions.root.visibility = View.VISIBLE
+                binding.rltop.visibility = View.VISIBLE
+                window.decorView.systemUiVisibility =
+                    View.SYSTEM_UI_FLAG_VISIBLE // Show status bar & navbar
+            }
+        }
         binding.viewPager.adapter = viewPagerAdapter
         binding.viewPager.setCurrentItem(currentPosition, false)
 
@@ -279,7 +349,7 @@ class FavouriteViewPagerActivity : AppCompatActivity() {
                 ("Delete onPageSelected: $position").log()
                 viewpagerselectedPosition = position
                 deleteselectedPosition = position
-                imageList[position].apply {
+                favimageList[position].apply {
                     deleteMediaModel!!.mediaId = mediaId
                     deleteMediaModel!!.mediaName = mediaName
                     deleteMediaModel!!.mediaPath = mediaPath
@@ -300,5 +370,11 @@ class FavouriteViewPagerActivity : AppCompatActivity() {
         binding.bottomActions.bottomFavorite.setImageResource(if (fileName.isFav) R.drawable.fillfavourite else R.drawable.unfillfavourite)
         binding.bottomActions.bottomEdit.visibility =
             if (isVideoFile(fileName.mediaPath)) View.GONE else View.VISIBLE
+    }
+    private fun applyStatusBarColor() {
+        window.statusBarColor =
+            resources.getColor(android.R.color.black, theme) // Set black status bar
+        window.decorView.systemUiVisibility = 0 // Ensures white text/icons
+        window.navigationBarColor = resources.getColor(android.R.color.black, theme)
     }
 }

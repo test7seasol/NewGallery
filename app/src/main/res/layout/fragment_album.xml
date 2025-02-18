@@ -22,7 +22,7 @@
             android:gravity="start"
             android:text="Albums"
             android:textColor="@color/black"
-            android:textSize="@dimen/_18sdp" />
+            android:textSize="@dimen/_17sdp" />
 
 
 

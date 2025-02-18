@@ -1,0 +1,26 @@
+com.andrognito.patternlockview
+attr aspectRatio
+attr aspectRatioEnabled
+attr correctStateColor
+attr dotAnimationDuration
+attr dotCount
+attr dotNormalSize
+attr dotSelectedSize
+attr normalStateColor
+attr pathEndAnimationDuration
+attr pathWidth
+attr wrongStateColor
+color pomegranate
+color white
+dimen pattern_lock_dot_selected_size
+dimen pattern_lock_dot_size
+dimen pattern_lock_path_width
+id height_bias
+id square
+id width_bias
+string lib_name
+string message_pattern_cleared
+string message_pattern_detected
+string message_pattern_dot_added
+string message_pattern_started
+styleable PatternLockView aspectRatio aspectRatioEnabled correctStateColor dotAnimationDuration dotCount dotNormalSize dotSelectedSize normalStateColor pathEndAnimationDuration pathWidth wrongStateColor

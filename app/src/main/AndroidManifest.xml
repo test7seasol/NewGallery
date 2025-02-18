@@ -41,7 +41,15 @@
         android:theme="@style/Theme.GalleryEkta"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".Activity.PatternAct"
+            android:exported="false" />
+        <activity
             android:name=".Activity.SearchAct"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".Activity.PrivacyPolicyAct"
             android:configChanges="uiMode"
             android:exported="false"
             android:screenOrientation="portrait" />

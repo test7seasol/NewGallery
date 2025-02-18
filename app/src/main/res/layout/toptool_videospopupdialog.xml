@@ -168,6 +168,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:background="?selectableItemBackground"
+            android:visibility="gone"
             android:gravity="center"
             android:orientation="horizontal">
 

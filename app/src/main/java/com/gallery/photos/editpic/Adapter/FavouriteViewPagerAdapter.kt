@@ -10,6 +10,7 @@ import com.bumptech.glide.Glide
 import com.gallery.photos.editpic.Adapter.HideViewPagerAdapter.ImageViewHolder
 import com.gallery.photos.editpic.Adapter.HideViewPagerAdapter.VideoViewHolder
 import com.gallery.photos.editpic.Extensions.beVisible
+import com.gallery.photos.editpic.Extensions.onClick
 import com.gallery.photos.editpic.Model.FavouriteMediaModel
 import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.databinding.ItemViewPagerImageBinding
@@ -17,7 +18,8 @@ import com.gallery.photos.editpic.databinding.ItemViewPagerVideoBinding
 import java.io.File
 
 class FavouriteViewPagerAdapter(
-    private val context: Context, private val imageList: ArrayList<FavouriteMediaModel>
+    private val context: Context, private val imageList: ArrayList<FavouriteMediaModel>,
+    var onClick: () -> Unit
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     companion object {
@@ -61,6 +63,9 @@ class FavouriteViewPagerAdapter(
                 .into(binding.photoView)
 
             binding.photoView.beVisible()
+            binding.photoView.onClick {
+                onClick.invoke()
+            }
         }
     }
 
@@ -84,7 +89,9 @@ class FavouriteViewPagerAdapter(
                 isPlaying = true
                 updateSeekBar()
             }
-
+            binding.root.onClick {
+                onClick.invoke()
+            }
             // Play/Pause logic
             binding.btnPlayPause.setOnClickListener {
                 if (isPlaying) {

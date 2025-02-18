@@ -57,6 +57,7 @@ android {
 
 dependencies {
 
+    implementation(project(":patternlockview"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -106,8 +107,5 @@ dependencies {
 
     //Editing Modul
     implementation("com.burhanrashid52:photoeditor:3.0.2")
-
-    //FastScroll Lib
-    implementation("com.quiph.ui:recyclerviewfastscroller:1.0.0")
 
 }

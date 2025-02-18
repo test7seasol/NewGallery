@@ -1,51 +1,4 @@
 <resources>
-    <string name="app_name">Gallery Fenil</string>
-    <string name="image">image</string>
-
-    <string name="photos">Photos</string>
-    <string name="folders">Folders</string>
-    <string name="videos">Videos</string>
-
-    <string name="app_name1">#Gallery</string>
-    <string name="allow_overlay_access">Allow Overlay Access</string>
-    <string name="find_messages_and_allow_permission">Find Messages and allow permission</string>
-
-    <string name="select_all">Select all</string>
-    <string name="copy_to_folder">Copy to folder</string>
-    <string name="move_to_folder">Move to folder</string>
-    <string name="albums">Albums</string>
-    <string name="pictures">Pictures</string>
-    <string name="favorites">Favourite</string>
-    <string name="recent">Recent</string>
-    <string name="recycle_bin">Recyclebin</string>
-    <string name="settings">Settings</string>
-    <string name="language">Language</string>
-    <string name="delete">Delete</string>
-    <string name="brightness">Brightness</string>
-    <string name="volume">Volume</string>
-
-
-
-    <string name="label_brush">Brush</string>
-    <string name="label_shape">Shape</string>
-    <string name="label_oval">Oval</string>
-    <string name="label_rectangle">Rectangle</string>
-    <string name="label_line">Line</string>
-    <string name="label_arrow">Arrow</string>
-    <string name="label_emoji">Emoji</string>
-    <string name="label_sticker">Sticker</string>
-    <string name="label_eraser">Eraser</string>
-    <string name="label_eraser_mode">Eraser Mode</string>
-    <string name="label_text">Text</string>
-    <string name="label_filter">Filter</string>
-    <string name="label_adjust">Adjust</string>
-    <string name="msg_save_image">Are you want to exit without saving image ?</string>
-    <string name="app_intent_name">PhotoEditor</string>
-    <string name="msg_save_image_to_share">Please save image to share</string>
-    <string name="msg_share_image">Share Image</string>
-
-
-
     <string-array name="photo_editor_emoji">
 
         <!-- Smiles -->
@@ -452,5 +405,56 @@
         <item>u+1f4cd</item>
         <item>u+1f6a9</item>
     </string-array>
+
+
+    <string name="app_name">Gallery Fenil</string>
+    <string name="image">image</string>
+
+    <string name="photos">Photos</string>
+    <string name="folders">Folders</string>
+    <string name="videos">Videos</string>
+
+    <string name="app_name1">#Gallery</string>
+    <string name="allow_overlay_access">Allow Overlay Access</string>
+    <string name="find_messages_and_allow_permission">Find Messages and allow permission</string>
+
+    <string name="select_all">Select all</string>
+    <string name="copy_to_folder">Copy to folder</string>
+    <string name="move_to_folder">Move to folder</string>
+    <string name="albums">Albums</string>
+    <string name="pictures">Pictures</string>
+    <string name="favorites">Favourite</string>
+    <string name="recent">Recent</string>
+    <string name="recycle_bin">Recyclebin</string>
+    <string name="settings">Settings</string>
+    <string name="language">Language</string>
+    <string name="delete">Delete</string>
+    <string name="brightness">Brightness</string>
+    <string name="volume">Volume</string>
+
+    <string name="privacy_policy">Privacy policy</string>
+
+
+    <string name="label_brush">Brush</string>
+    <string name="label_shape">Shape</string>
+    <string name="label_oval">Oval</string>
+    <string name="label_rectangle">Rectangle</string>
+    <string name="label_line">Line</string>
+    <string name="label_arrow">Arrow</string>
+    <string name="label_emoji">Emoji</string>
+    <string name="label_sticker">Sticker</string>
+    <string name="label_eraser">Eraser</string>
+    <string name="label_eraser_mode">Eraser Mode</string>
+    <string name="label_text">Text</string>
+    <string name="label_filter">Filter</string>
+    <string name="label_adjust">Adjust</string>
+    <string name="msg_save_image">Are you want to exit without saving image ?</string>
+    <string name="app_intent_name">PhotoEditor</string>
+    <string name="msg_save_image_to_share">Please save image to share</string>
+    <string name="msg_share_image">Share Image</string>
+    <string name="access_to_nfiles_permission">Access To\nFiles Permission</string>
+    <string name="grant_permission_to_the_app_to_access_nmodify_and_manage_files_on_your_ndevice_to_streamline_content_organization">Grant permission to the app to access,\nmodify, and manage files on your\ndevice to streamline content organization</string>
+    <string name="grant_access">Grant Access</string>
+
 
 </resources>

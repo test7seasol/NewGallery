@@ -15,17 +15,15 @@ import com.gallery.photos.editpic.Activity.PictureActivity
 import com.gallery.photos.editpic.Extensions.gone
 import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.visible
-import com.gallery.photos.editpic.Model.MediaListItem
 import com.gallery.photos.editpic.Model.MediaModel
 import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.databinding.ItemPictureBinding
-import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
 
 class PictureAdapter(
     var activity: Activity,
     private val onLongItemClick: (Boolean) -> Unit
 ) :
-    ListAdapter<MediaModel, PictureAdapter.PictureViewHolder>(DiffCallback()), RecyclerViewFastScroller.OnPopupViewUpdate  {
+    ListAdapter<MediaModel, PictureAdapter.PictureViewHolder>(DiffCallback()) {
 
     var onItemClick: ((MediaModel) -> Unit)? = null
 
@@ -198,8 +196,5 @@ class PictureAdapter(
         override fun areContentsTheSame(oldItem: MediaModel, newItem: MediaModel): Boolean {
             return oldItem == newItem
         }
-    }
-    override fun onUpdate(position: Int, popupTextView: TextView) {
-
     }
 }

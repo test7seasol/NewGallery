@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.gallery.photos.editpic.Adapter.FavouriteAdapter
 import com.gallery.photos.editpic.Dialogs.DeleteWithRememberDialog
+import com.gallery.photos.editpic.Dialogs.SlideShowDialog
 import com.gallery.photos.editpic.Extensions.gone
 import com.gallery.photos.editpic.Extensions.handleBackPress
 import com.gallery.photos.editpic.Extensions.log
@@ -29,6 +30,7 @@ import com.gallery.photos.editpic.PopupDialog.FavouriteBottomPopup
 import com.gallery.photos.editpic.PopupDialog.TopMenuFavouriteCustomPopup
 import com.gallery.photos.editpic.RoomDB.Dao.DeleteMediaDao
 import com.gallery.photos.editpic.RoomDB.Dao.FavouriteMediaDao
+import com.gallery.photos.editpic.Utils.FavouriteMediaStoreSingleton
 import com.gallery.photos.editpic.Utils.SelectionAlLPhotos.selectionArrayList
 import com.gallery.photos.editpic.databinding.ActivityFavoriteBinding
 import kotlinx.coroutines.CoroutineScope
@@ -307,7 +309,29 @@ class FavoriteAct : AppCompatActivity() {
                 val topcustomtopcustompopup = TopMenuFavouriteCustomPopup(this@FavoriteAct) {
                     when (it) {
                         "llStartSlide" -> {
+                            SlideShowDialog(this@FavoriteAct) {
+                                when (it) {
+                                    "lloneSec" -> {
+                                        openViewPagerSlideShowActivity(0, 1)
+                                    }
 
+                                    "lltwoSec" -> {
+                                        openViewPagerSlideShowActivity(0, 2)
+                                    }
+
+                                    "llthreeSec" -> {
+                                        openViewPagerSlideShowActivity(0, 3)
+                                    }
+
+                                    "llfourSec" -> {
+                                        openViewPagerSlideShowActivity(0, 4)
+                                    }
+
+                                    "llfiveSec" -> {
+                                        openViewPagerSlideShowActivity(0, 5)
+                                    }
+                                }
+                            }
                         }
 
                         "llSelectAll" -> {
@@ -412,5 +436,15 @@ class FavoriteAct : AppCompatActivity() {
             e.printStackTrace()
             false
         }
+    }
+
+    private fun openViewPagerSlideShowActivity(position: Int, sec: Int) {
+        FavouriteMediaStoreSingleton.favouriteimageList = favouriteList
+        FavouriteMediaStoreSingleton.favouriteselectedPosition = position
+
+        val intent = Intent(this, FavouriteViewPagerActivity::class.java)
+        intent.putExtra("slideshow", true)
+        intent.putExtra("secoundSlideShow", sec)
+        startActivity(intent)
     }
 }

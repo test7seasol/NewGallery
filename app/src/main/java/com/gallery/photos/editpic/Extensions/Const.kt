@@ -23,6 +23,12 @@ import java.util.Locale
 val DATE_LIMIT = 1000
 var FOLDER_MAKER_NAME = ""
 
+var PIN_LOCK = "PIN_LOCK"
+var SECURITY_ADD = "SECURITY_ADD"
+var QUESATION = "QUESATION"
+var ANSWER = "ANSWER"
+
+
 fun isVideoFile(filePath: String): Boolean {
     val videoExtensions = listOf("mp4", "mkv", "avi", "mov", "wmv", "flv", "3gp", "webm")
     return videoExtensions.any { filePath.endsWith(".$it", ignoreCase = true) }

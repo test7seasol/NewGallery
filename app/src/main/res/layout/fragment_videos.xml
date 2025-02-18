@@ -37,7 +37,7 @@
             android:gravity="start"
             android:text="Videos"
             android:textColor="@color/black"
-            android:textSize="@dimen/_18sdp" />
+            android:textSize="@dimen/_17sdp" />
 
         <androidx.constraintlayout.utils.widget.ImageFilterView
             android:id="@+id/ivSearch"
@@ -69,12 +69,15 @@
 
     </LinearLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
+    <com.gallery.photos.editpic.Views.FastScrollRecyclerView
         android:id="@+id/recyclerViewVideos"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/rlTop"
         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        app:bubbleColor="@color/blue_color_picker"
+        app:bubbleTextColor="@color/black"
+        app:handleColor="#999999"
         app:spanCount="4"
         tools:listitem="@layout/item_video" />
 

@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.gallery.photos.editpic.Adapter.PictureAdapter
 import com.gallery.photos.editpic.Dialogs.DeleteWithRememberDialog
+import com.gallery.photos.editpic.Dialogs.SlideShowDialog
 import com.gallery.photos.editpic.Extensions.gone
 import com.gallery.photos.editpic.Extensions.handleBackPress
 import com.gallery.photos.editpic.Extensions.log
@@ -250,7 +251,29 @@ class PictureActivity : AppCompatActivity() {
                 val topPict = TopMenuPicturesCustomPopup(this@PictureActivity) {
                     when (it) {
                         "llStartSlide" -> {
+                            SlideShowDialog(this@PictureActivity) {
+                                when (it) {
+                                    "lloneSec" -> {
+                                        openViewPagerSlideShowActivity(0, 1)
+                                    }
 
+                                    "lltwoSec" -> {
+                                        openViewPagerSlideShowActivity(0, 2)
+                                    }
+
+                                    "llthreeSec" -> {
+                                        openViewPagerSlideShowActivity(0, 3)
+                                    }
+
+                                    "llfourSec" -> {
+                                        openViewPagerSlideShowActivity(0, 4)
+                                    }
+
+                                    "llfiveSec" -> {
+                                        openViewPagerSlideShowActivity(0, 5)
+                                    }
+                                }
+                            }
                         }
 
                         "llSelectAll" -> {
@@ -365,6 +388,16 @@ class PictureActivity : AppCompatActivity() {
         MediaStoreSingleton.selectedPosition = pictureAdapter!!.currentList.indexOf(selectedMedia)
 
         val intent = Intent(this, ViewPagerActivity::class.java)
+        startActivity(intent)
+    }
+    private fun openViewPagerSlideShowActivity(
+        position: Int, secound: Int
+    ) {
+        MediaStoreSingleton.imageList = ArrayList(pictureAdapter!!.currentList)
+        MediaStoreSingleton.selectedPosition = position
+        val intent = Intent(this, ViewPagerActivity::class.java)
+        intent.putExtra("slideshow", true)
+        intent.putExtra("secoundSlideShow", secound)
         startActivity(intent)
     }
 }

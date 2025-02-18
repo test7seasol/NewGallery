@@ -30,6 +30,14 @@
     <dimen name="directory_picker_dialog_min_height">180dp</dimen>
     <dimen name="smaller_icon_size">36dp</dimen>
 
+    <dimen name="default_text_size">16sp</dimen>
+    <dimen name="default_button_size">60dp</dimen>
+    <dimen name="default_delete_button_size">16dp</dimen>
+    <dimen name="default_horizontal_spacing">32dp</dimen>
+    <dimen name="default_vertical_spacing">0dp</dimen>
+
+    <dimen name="default_dot_diameter">8dp</dimen>
+    <dimen name="default_dot_spacing">8dp</dimen>
 
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="editor_size">35dp</dimen>
@@ -164,5 +172,26 @@
 
     <!--Swipe-->
     <dimen name="swipe_width">180dp</dimen>
+
+    <dimen name="fastscroll_bubble_radius">44dp</dimen>
+    <dimen name="fastscroll_bubble_size">88dp</dimen>
+    <dimen name="fastscroll_bubble_text_size">48sp</dimen>
+    <dimen name="fastscroll_bubble_padding">16dp</dimen>
+
+    <dimen name="fastscroll_bubble_radius_small">32dp</dimen>
+    <dimen name="fastscroll_bubble_size_small">64dp</dimen>
+    <dimen name="fastscroll_bubble_text_size_small">36sp</dimen>
+    <dimen name="fastscroll_bubble_padding_small">12dp</dimen>
+
+    <dimen name="fastscroll_handle_height">40dp</dimen>
+    <dimen name="fastscroll_handle_width">4dp</dimen>
+    <dimen name="fastscroll_handle_radius">2dp</dimen>
+
+    <dimen name="fastscroll_track_width">1dp</dimen>
+
+    <dimen name="fastscroll_scrollbar_margin_top">8dp</dimen>
+    <dimen name="fastscroll_scrollbar_margin_bottom">8dp</dimen>
+    <dimen name="fastscroll_scrollbar_padding_start">8dp</dimen>
+    <dimen name="fastscroll_scrollbar_padding_end">8dp</dimen>
 
 </resources>

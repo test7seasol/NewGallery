@@ -19,6 +19,7 @@ import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.name.getMediaDatabase
 import com.gallery.photos.editpic.Extensions.onClick
 import com.gallery.photos.editpic.Extensions.shareFile
+import com.gallery.photos.editpic.Extensions.tos
 import com.gallery.photos.editpic.Model.DeleteMediaModel
 import com.gallery.photos.editpic.Model.FavouriteMediaModel
 import com.gallery.photos.editpic.Model.HideMediaModel
@@ -102,7 +103,12 @@ class ViewPagerActivity : AppCompatActivity() {
         setupViewPager(imageList, viewpagerselectedPosition)
 
         binding.ivBack.setOnClickListener {
-            onBackPressedDispatcher.onBackPressed()
+            if (isFromSlideShow) {
+                sliderstop()
+                finish()
+            } else {
+                finish()
+            }
         }
 
         binding.apply {
@@ -148,9 +154,16 @@ class ViewPagerActivity : AppCompatActivity() {
                 PropertiesDialog(this@ViewPagerActivity, imageList[viewpagerselectedPosition]) {}
             }
 
+            ivOrientation.onClick {
+
+            }
+
             ivMore.onClick {
                 val topcustomtopcustompopup = ViewPagerPopupManager(this@ViewPagerActivity) {
                     when (it) {
+                        "tvSlideShow" -> {
+
+                        }
                         "hiddentoid" -> {
                             renameAndHidePhoto(deleteMediaModel!!.mediaPath)
                             imageList.removeAt(viewpagerselectedPosition)
@@ -213,6 +226,7 @@ class ViewPagerActivity : AppCompatActivity() {
                         binding.viewPager.currentItem = (position + 1)
                         updateImageTitle(position + 1)
                     } else {
+                        ("Slide end").tos(this@ViewPagerActivity)
                         sliderstop()
                     }
 //                    isRunning = !isRunning
@@ -221,10 +235,6 @@ class ViewPagerActivity : AppCompatActivity() {
         }, 0, secoundSlideShow * 1000L) // 5 seconds interval
     }
 
-    private fun sliderstart() {
-        println("Start method called")
-        // Your start logic
-    }
 
     private fun sliderstop() {
         println("Stop method called")

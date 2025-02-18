@@ -23,4 +23,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Gallery Ekta"
 include(":app")
- 
+include(":patternlockview")

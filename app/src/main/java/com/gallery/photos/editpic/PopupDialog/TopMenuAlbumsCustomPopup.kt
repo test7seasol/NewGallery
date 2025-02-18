@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.gallery.photos.editpic.Extensions.beGone
 import com.gallery.photos.editpic.Extensions.onClick
+import com.gallery.photos.editpic.databinding.ToptoolAlbumspopupdialogBinding
 import com.gallery.photos.editpic.databinding.ToptoolFavouritepopupdialogBinding
 import com.gallery.photos.editpic.databinding.ToptoolRecyclepopupdialogBinding
 import com.labo.kaji.relativepopupwindow.RelativePopupWindow
@@ -15,8 +16,8 @@ class TopMenuAlbumsCustomPopup(
     private val activity: Activity, var onClick: (String) -> Unit
 ) {
     private var popupWindow: RelativePopupWindow? = null
-    var binding: ToptoolFavouritepopupdialogBinding =
-        ToptoolFavouritepopupdialogBinding.inflate(LayoutInflater.from(activity))
+    var binding: ToptoolAlbumspopupdialogBinding =
+        ToptoolAlbumspopupdialogBinding.inflate(LayoutInflater.from(activity))
 
     fun show(anchorView: View, xOffsetDp: Int = 0, yOffsetDp: Int = 0) {
         if (popupWindow == null) {

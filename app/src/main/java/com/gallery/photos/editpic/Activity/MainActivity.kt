@@ -1,29 +1,31 @@
 package com.gallery.photos.editpic.Activity
 
+import android.app.Activity
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Environment
+import android.util.Log
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.TextView
-import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import com.gallery.photos.editpic.Adapter.FolderAdapter
 import com.gallery.photos.editpic.Adapter.RecentPictureAdapter
 import com.gallery.photos.editpic.Dialogs.SMBottomSheetDialog
+import com.gallery.photos.editpic.Extensions.PIN_LOCK
 import com.gallery.photos.editpic.Extensions.gone
 import com.gallery.photos.editpic.Extensions.handleBackPress
 import com.gallery.photos.editpic.Extensions.invisible
 import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.notifyGalleryRoot
 import com.gallery.photos.editpic.Extensions.onClick
+import com.gallery.photos.editpic.Extensions.startActivityWithBundle
 import com.gallery.photos.editpic.Extensions.visible
 import com.gallery.photos.editpic.Fragment.AlbumFragment
 import com.gallery.photos.editpic.Fragment.RecentsPictureFragment
@@ -110,6 +112,16 @@ class MainActivity : BaseActivity() {
             menuitembtnid.onClick {
                 SMBottomSheetDialog(this@MainActivity) {
                     when (it) {
+                        "hideshowid" -> {
+                            if (MyApplicationClass.getString(PIN_LOCK)?.isNotEmpty() == true) {
+                                luancherForPin.launch(
+                                    Intent(this@MainActivity, PatternAct::class.java)
+                                        .putExtra("isFromHide", true)
+                                )
+                            } else {
+                                startActivityWithBundle<HideActivity>()
+                            }
+                        }
                         "Recent" -> {
                             tvpicture.setTextColor(Color.BLACK)
                             picview.visible()
@@ -123,6 +135,18 @@ class MainActivity : BaseActivity() {
             }
         }
     }
+
+    var luancherForPin =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data = result.data
+                val resultString = data?.getStringExtra("isFromHide") // Get returned data
+                Log.d("TAG", "Result HideActivity: $resultString")
+                if (resultString == "true") {
+                    startActivityWithBundle<HideActivity>()
+                }
+            }
+        }
 
     private fun resetSelection(
         buttons: List<Triple<LinearLayout, TextView, ImageView>>, defaultIcons: Map<ImageView, Int>

@@ -78,6 +78,10 @@ class ViewPagerPopupManager(
                 onClick.invoke("hiddentoid")
                 dismiss()
             }
+            tvSlideShow.onClick {
+                onClick.invoke("tvSlideShow")
+                dismiss()
+            }
             tvRecycleBin.onClick {
                 onClick.invoke("recyclebinid")
                 dismiss()

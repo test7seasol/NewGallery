@@ -27,6 +27,8 @@
     <color name="tool_bg">#151414</color>
     <color name="semi_black_transparent">#99000000</color>
     <color name="bottomsheetcolor">#48AAAAAA</color>
+    <color name="greyish">#aaa8a8</color>
+    <color name="mine_shaft">#303030</color>
 
 
 </resources>

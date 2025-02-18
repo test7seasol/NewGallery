@@ -35,6 +35,7 @@ class HideViewPagerActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityHideviewPagerBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        applyStatusBarColor()
 
         hideImageListDelete = HideMediaStoreSingleton.hideimageList
         viewpagerselectedPosition = HideMediaStoreSingleton.hideselectedPosition
@@ -177,5 +178,11 @@ class HideViewPagerActivity : AppCompatActivity() {
         binding.tvtitile.text = fileName
 //        binding.bottomActions.bottomEdit.visibility =
 //            if (isVideoFile(hideImageListDelete[position].mediaPath)) View.GONE else View.VISIBLE
+    }
+    private fun applyStatusBarColor() {
+        window.statusBarColor =
+            resources.getColor(android.R.color.black, theme) // Set black status bar
+        window.decorView.systemUiVisibility = 0 // Ensures white text/icons
+        window.navigationBarColor = resources.getColor(android.R.color.black, theme)
     }
 }

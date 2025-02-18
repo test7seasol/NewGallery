@@ -55,7 +55,7 @@ class VideoViewPagerActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityVideoviewPagerBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        applyStatusBarColor()
         hideMediaDao = getMediaDatabase(this).hideMediaDao()
         deleteMediaDao = getMediaDatabase(this).deleteMediaDao()
         favouriteMediaDao = getMediaDatabase(this).favouriteMediaDao()
@@ -420,4 +420,11 @@ class VideoViewPagerActivity : AppCompatActivity() {
             }
         })
     }
+    private fun applyStatusBarColor() {
+        window.statusBarColor =
+            resources.getColor(android.R.color.black, theme) // Set black status bar
+        window.decorView.systemUiVisibility = 0 // Ensures white text/icons
+        window.navigationBarColor = resources.getColor(android.R.color.black, theme)
+    }
+
 }

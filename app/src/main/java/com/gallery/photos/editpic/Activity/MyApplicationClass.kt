@@ -29,7 +29,6 @@ class MyApplicationClass : Application() {
             return sharedPreferences!!.getBoolean(key, false)
         }
 
-
         fun putString(key: String, value: String) {
             sharedPreferences!!.edit()?.putString(key, value)!!.apply()
         }
@@ -38,7 +37,7 @@ class MyApplicationClass : Application() {
             sharedPreferences!!.edit()?.putBoolean(key, value)!!.apply()
         }
 
-        fun getString(key: String) = sharedPreferences?.getString(key, "en")
+        fun getString(key: String) = sharedPreferences?.getString(key, "")
 
         fun getBoolean(key: String) = sharedPreferences?.getBoolean(key, false)
     }

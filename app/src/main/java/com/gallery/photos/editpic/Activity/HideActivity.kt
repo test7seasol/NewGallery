@@ -1,6 +1,7 @@
 package com.gallery.photos.editpic.Activity
 
 import android.app.ProgressDialog
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -8,6 +9,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.gallery.photos.editpic.Adapter.HideAdapter
 import com.gallery.photos.editpic.Dialogs.DeleteWithRememberDialog
+import com.gallery.photos.editpic.Dialogs.SecurityDialog
+import com.gallery.photos.editpic.Dialogs.SlideShowDialog
 import com.gallery.photos.editpic.Extensions.gone
 import com.gallery.photos.editpic.Extensions.handleBackPress
 import com.gallery.photos.editpic.Extensions.log
@@ -22,6 +25,7 @@ import com.gallery.photos.editpic.PopupDialog.HideItemsBottomPopup
 import com.gallery.photos.editpic.PopupDialog.TopMenuHideActCustomPopup
 import com.gallery.photos.editpic.RoomDB.Dao.DeleteMediaDao
 import com.gallery.photos.editpic.RoomDB.Dao.HideMediaDao
+import com.gallery.photos.editpic.Utils.HideMediaStoreSingleton
 import com.gallery.photos.editpic.databinding.ActivityHideBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -109,6 +113,7 @@ class HideActivity : AppCompatActivity() {
                 onBackPressedDispatcher.onBackPressed()
             }
 
+
             llShare.onClick {
                 val selectedFiles = hideadapter!!.selectedItems.distinctBy { it.mediaPath }
                 if (selectedFiles.size <= 100) {
@@ -127,7 +132,6 @@ class HideActivity : AppCompatActivity() {
                             hideadapter!!.selectAllItems()
                             searchiconid.gone()
                             menuHide.gone()
-
                         }
 
                         "llUnHideAll" -> {
@@ -199,6 +203,30 @@ class HideActivity : AppCompatActivity() {
                 val topcustomtopcustompopup = TopMenuHideActCustomPopup(this@HideActivity) {
                     when (it) {
                         "llStartSlide" -> {
+                            SlideShowDialog(this@HideActivity) {
+                                when (it) {
+                                    "lloneSec" -> {
+                                        openViewPagerSlideShowActivity(0, 1)
+                                    }
+
+                                    "lltwoSec" -> {
+                                        openViewPagerSlideShowActivity(0, 2)
+                                    }
+
+                                    "llthreeSec" -> {
+                                        openViewPagerSlideShowActivity(0, 3)
+                                    }
+
+                                    "llfourSec" -> {
+                                        openViewPagerSlideShowActivity(0, 4)
+                                    }
+
+                                    "llfiveSec" -> {
+                                        openViewPagerSlideShowActivity(0, 5)
+                                    }
+
+                                }
+                            }
                         }
 
                         "llSelectAll" -> {
@@ -210,6 +238,16 @@ class HideActivity : AppCompatActivity() {
                 topcustomtopcustompopup.show(menuHide, 0, 0)
             }
         }
+    }
+
+    private fun openViewPagerSlideShowActivity(position: Int, sec: Int) {
+        HideMediaStoreSingleton.hideimageList = hideList
+        HideMediaStoreSingleton.hideselectedPosition = position
+
+        val intent = Intent(this, HideViewPagerActivity::class.java)
+        intent.putExtra("slideshow", true)
+        intent.putExtra("secoundSlideShow", sec)
+        startActivity(intent)
     }
 
     private suspend fun unHideAll(hideMediaModel: HideMediaModel) {

@@ -46,7 +46,7 @@
             android:fontFamily="@font/sans_bold"
             android:gravity="center"
             android:paddingTop="@dimen/_5sdp"
-            android:text="Access To\nFiles Permission"
+            android:text="@string/access_to_nfiles_permission"
             android:textColor="#000000"
             android:textSize="@dimen/_25sdp" />
 
@@ -59,7 +59,7 @@
             android:fontFamily="@font/sans_bold"
             android:gravity="center"
             android:padding="@dimen/_3sdp"
-            android:text="Grant permission to the app to access,\nmodify, and manage files on your\ndevice to streamline content organization"
+            android:text="@string/grant_permission_to_the_app_to_access_nmodify_and_manage_files_on_your_ndevice_to_streamline_content_organization"
             android:textColor="#68483E"
             android:textSize="@dimen/_12sdp" />
 
@@ -87,7 +87,7 @@
                     android:layout_height="match_parent"
                     android:fontFamily="@font/sans_bold"
                     android:gravity="center"
-                    android:text="Grant Access"
+                    android:text="@string/grant_access"
                     android:textColor="@color/white"
                     android:textSize="@dimen/_16sdp" />
 

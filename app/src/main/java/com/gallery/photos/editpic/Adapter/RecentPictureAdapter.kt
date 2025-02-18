@@ -24,9 +24,9 @@ import com.gallery.photos.editpic.Model.MediaListItem
 import com.gallery.photos.editpic.Model.MediaModel
 import com.gallery.photos.editpic.PopupDialog.CustomPopup
 import com.gallery.photos.editpic.R
+import com.gallery.photos.editpic.Views.FastScroller
 import com.gallery.photos.editpic.databinding.ItemMediaBinding
 import com.gallery.photos.editpic.databinding.ItemMediaDateHeaderBinding
-import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
 import java.io.File
 
 class RecentPictureAdapter(
@@ -34,7 +34,7 @@ class RecentPictureAdapter(
     private val onItemClick: (List<MediaModel>, Int) -> Unit,
     private val onLongItemClick: (Boolean) -> Unit
 ) : ListAdapter<MediaListItem, RecyclerView.ViewHolder>(DiffCallback()),
-    RecyclerViewFastScroller.OnPopupViewUpdate {
+    FastScroller.SectionIndexer {
 
     companion object {
         private const val VIEW_TYPE_HEADER = 0
@@ -383,23 +383,5 @@ class RecentPictureAdapter(
             oldItem == newItem
     }
 
-    override fun onUpdate(position: Int, popupTextView: TextView) {
-        val item = currentList.getOrNull(position) ?: return
-
-        // Get the exact header (date) at the given position
-        val headerText = getHeaderForPosition(position) // Replace `findNearestHeader` with this
-
-        popupTextView.text = headerText // Set the popup text to the header's date
-    }
-
-    // Function to get the exact header for a given position
-    private fun getHeaderForPosition(position: Int): String {
-        for (i in position downTo 0) {
-            val item = currentList.getOrNull(i)
-            if (item is MediaListItem.Header) { // Check if it's a header
-                return item.date // Return the date from the header
-            }
-        }
-        return "" // Default empty if no header is found
-    }
+    override fun getSectionText(position: Int) = findNearestHeader(position)
 }

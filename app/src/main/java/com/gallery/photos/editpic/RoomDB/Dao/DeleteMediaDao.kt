@@ -9,7 +9,6 @@ import androidx.room.Query
 import com.gallery.photos.editpic.Model.DeleteMediaModel
 import com.gallery.photos.editpic.Model.FavouriteMediaModel
 import com.gallery.photos.editpic.Model.HideMediaModel
-import androidx.room.Entity
 
 @Dao
 interface DeleteMediaDao {

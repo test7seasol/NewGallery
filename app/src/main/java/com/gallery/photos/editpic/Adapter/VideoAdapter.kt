@@ -1,7 +1,6 @@
 package com.gallery.photos.editpic.Adapter
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -10,20 +9,20 @@ import android.widget.TextView
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.gallery.photos.editpic.Activity.VideoActivity
+import com.gallery.photos.editpic.Extensions.formatDate
 import com.gallery.photos.editpic.Extensions.gone
 import com.gallery.photos.editpic.Extensions.log
-import com.gallery.photos.editpic.Extensions.onClick
 import com.gallery.photos.editpic.Extensions.visible
 import com.gallery.photos.editpic.Fragment.AllVideosFragment
-import com.gallery.photos.editpic.Model.MediaModel
 import com.gallery.photos.editpic.Model.VideoModel
 import com.gallery.photos.editpic.R
+import com.gallery.photos.editpic.Views.FastScroller
 import com.gallery.photos.editpic.databinding.ItemVideoBinding
 
 class VideoAdapter(var activity: AllVideosFragment, var onItemClick: (VideoModel) -> Unit
 ,var onLongItemClick:(Boolean) -> Unit) :
-    ListAdapter<VideoModel, VideoAdapter.VideoViewHolder>(VideoModel.DiffCallback()) {
+    ListAdapter<VideoModel, VideoAdapter.VideoViewHolder>(VideoModel.DiffCallback()),
+    FastScroller.SectionIndexer {
 
     class VideoViewHolder(val binding: ItemVideoBinding) : RecyclerView.ViewHolder(binding.root)
     val selectedItems = HashSet<VideoModel>()
@@ -191,4 +190,14 @@ class VideoAdapter(var activity: AllVideosFragment, var onItemClick: (VideoModel
         val remainingSeconds = seconds % 60
         return String.format("%02d:%02d", minutes, remainingSeconds)
     }
+
+    private fun findNearestHeader(position: Int): String {
+        for (i in currentList) { // Search upwards for the latest header
+            return formatDate(i.videoDateAdded) // Return the found header's date
+        }
+        return "Unknown" // Fallback if no header is found
+    }
+
+    override fun getSectionText(position: Int) = findNearestHeader(position)
+
 }

@@ -31,13 +31,28 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
-            android:layout_toLeftOf="@+id/ivMore"
+            android:layout_toLeftOf="@+id/ivOrientation"
             android:layout_toRightOf="@id/ivBack"
             android:fontFamily="@font/sans_medium"
             android:lines="1"
             android:maxLines="1"
             android:textColor="@color/white"
             android:textSize="@dimen/_14ssp" />
+
+        <ImageView
+            android:id="@+id/ivOrientation"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_centerVertical="true"
+            android:layout_toLeftOf="@+id/ivMore"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:visibility="gone"
+            android:padding="8dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_orientation_auto_vector"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/white" />
 
         <ImageView
             android:id="@+id/ivMore"

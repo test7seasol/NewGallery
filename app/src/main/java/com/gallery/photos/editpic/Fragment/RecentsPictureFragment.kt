@@ -21,6 +21,8 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.gallery.photos.editpic.Activity.AllPhotosActivity
 import com.gallery.photos.editpic.Activity.SearchAct
 import com.gallery.photos.editpic.Activity.ViewPagerActivity
@@ -405,18 +407,56 @@ class RecentsPictureFragment : Fragment() {
                     }
                 })
 
-        val layoutManager = GridLayoutManager(requireContext(), 4)
+        var layoutManager = GridLayoutManager(requireContext(), 3)
         layoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
             override fun getSpanSize(position: Int): Int {
                 // Make headers span all 4 columns, while media items take 1 column
-                return if (mediaAdapter.getItemViewType(position) == 0) 4 else 1
+                return if (mediaAdapter.getItemViewType(position) == 0) 3 else 1
             }
         }
 
+        binding.ivTopArrow.onClick {
+            binding.recyclerViewRecentPictures.scrollToPosition(0)
+            binding.ivTopArrow.gone()
+        }
+
+        binding.recyclerViewRecentPictures.addOnScrollListener(object :
+            RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
+
+                if (firstVisibleItemPosition >= 50) {
+                    if (binding.ivTopArrow.visibility == View.GONE) {
+                        binding.ivTopArrow.visibility = View.VISIBLE
+                        binding.ivTopArrow.animate()
+                            .translationY(0f) // Move up
+                            .alpha(1f)
+                            .setDuration(300)
+                            .start()
+                    }
+                } else {
+                    if (binding.ivTopArrow.visibility == View.VISIBLE) {
+                        binding.ivTopArrow.animate()
+                            .translationY(100f) // Move down
+                            .alpha(0f)
+                            .setDuration(300)
+                            .withEndAction { binding.ivTopArrow.visibility = View.GONE }
+                            .start()
+                    }
+                }
+            }
+        })
+
+
+
         binding.recyclerViewRecentPictures.apply {
             this.layoutManager = layoutManager
-            this.adapter = mediaAdapter
+            adapter = mediaAdapter
         }
+
     }
 
     private fun hideSelectedItems(mediaModel: MediaModel): Boolean {
@@ -531,7 +571,7 @@ class RecentsPictureFragment : Fragment() {
         super.onResume()
         ("onResume Fragment").log()
         viewModel.loadRecentMedia()
-        binding.recyclerViewRecentPictures.adapter?.notifyDataSetChanged() // Ensure UI updates
+//        binding.recyclerViewRecentPictures.adapter?.notifyDataSetChanged() // Ensure UI updates
 
     }
 

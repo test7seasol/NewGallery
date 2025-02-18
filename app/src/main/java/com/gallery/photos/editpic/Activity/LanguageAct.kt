@@ -54,7 +54,6 @@ class LanguageAct : AppCompatActivity() {
         list.add(LanguageModel(R.drawable.flag_vi, "vi", "Vietnamese", "Tiếng Việt", false))
 
 
-
         bind.apply {
             bind.donebtnid.gone()
 

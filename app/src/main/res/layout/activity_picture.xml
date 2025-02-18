@@ -20,7 +20,6 @@
             android:layout_marginStart="@dimen/_10sdp"
             android:padding="@dimen/_2sdp"
             android:src="@drawable/baseline_arrow_back_24"
-
             />
 
         <TextView
@@ -30,10 +29,11 @@
             android:layout_centerVertical="true"
             android:layout_marginStart="@dimen/_10sdp"
             android:layout_toRightOf="@+id/ivBack"
-            android:fontFamily="@font/sans_medium"
+            android:layout_centerInParent="true"
+            android:includeFontPadding="false"
             android:text="@string/photos"
             android:textColor="@color/blackg"
-            android:textSize="@dimen/_17ssp" />
+            android:textSize="@dimen/_16sdp" />
 
         <androidx.constraintlayout.utils.widget.ImageFilterView
             android:id="@+id/moreMenu"
@@ -51,34 +51,20 @@
             android:src="@drawable/ic_three_dots_vector"
             android:tint="@color/black" />
 
-
     </RelativeLayout>
 
-    <com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
-        android:id="@+id/fastscroller"
+    <com.gallery.photos.editpic.Views.FastScrollRecyclerView
+        android:id="@+id/recyclerViewPictures"
+        android:layout_below="@+id/rlToolbar"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/picturesselectedcontainerid"
-        android:layout_below="@+id/rlToolbar"
-        app:fastScrollEnabled="true"
-        app:handleDrawable="@drawable/ic_scroll_icon"
-        app:handleHeight="@dimen/_30sdp"
-        app:handleVisibilityDuration="2000"
-        app:handleHasFixedSize="true"
-        app:handleWidth="@dimen/_23sdp"
-        app:popupDrawable="@android:color/transparent">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerViewPictures"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:padding="4dp"
-            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-            app:spanCount="3"
-            tools:listitem="@layout/item_picture" />
-
-    </com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller>
+        app:bubbleColor="@color/blue_color_picker"
+        app:bubbleTextColor="@color/black"
+        app:handleColor="#999999"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        app:spanCount="3"
+        tools:listitem="@layout/item_media" />
 
     <RelativeLayout
         android:id="@+id/picturesselectedcontainerid"
