@@ -33,7 +33,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/sans_bold"
                 android:includeFontPadding="false"
-                android:text="Set security question"
+                android:text="@string/set_security_question"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_15sdp" />
 
@@ -43,7 +43,7 @@
                 android:layout_marginTop="@dimen/_2sdp"
                 android:fontFamily="@font/sans_regular"
                 android:includeFontPadding="false"
-                android:text="Help you reset your password when you forget it"
+                android:text="@string/help_you_reset_your_password_when_you_forget_it"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_10sdp" />
 
@@ -64,7 +64,7 @@
                     android:layout_weight="1"
                     android:fontFamily="@font/sans_medium"
                     android:gravity="start"
-                    android:text="What's your favorite color?"
+                    android:text="@string/what_s_your_favorite_color"
                     android:textColor="@color/black"
                     android:textSize="@dimen/_12sdp" />
 
@@ -107,7 +107,7 @@
                 android:includeFontPadding="false"
                 android:paddingHorizontal="@dimen/_35sdp"
                 android:paddingVertical="@dimen/_8sdp"
-                android:text="Save"
+                android:text="@string/save"
                 android:textColor="@color/white"
                 android:textSize="@dimen/_15sdp" />
 
@@ -123,7 +123,7 @@
                 android:includeFontPadding="false"
                 android:paddingHorizontal="@dimen/_35sdp"
                 android:paddingVertical="@dimen/_8sdp"
-                android:text="Cancel"
+                android:text="@string/cancel"
                 android:textColor="#898989"
                 android:textSize="@dimen/_12sdp"
                 android:visibility="gone" />

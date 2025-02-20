@@ -1,14 +1,18 @@
 package com.gallery.photos.editpic.Fragment
 
 import CreateNewFolderDialog
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK
 import android.app.ProgressDialog
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.ViewGroup
 import android.widget.RelativeLayout
@@ -16,6 +20,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -72,6 +77,13 @@ class RecentsPictureFragment : Fragment() {
     private val viewModel: RecentPictureViewModel by viewModels {
         RecentPictureViewModelFactory(RecentPictureRepository(requireContext()))
     }
+
+    lateinit var gridLayoutManager: GridLayoutManager
+    private lateinit var scaleGestureDetector: ScaleGestureDetector
+    private var currentSpanCount = 4  // Default span count
+    private val minSpanCount = 2
+    private val maxSpanCount = 6
+
     private var mediaList: ArrayList<MediaModel> = arrayListOf() // Store full media list
     var hideMediaModel: HideMediaModel? = null
     private var favouriteList: ArrayList<FavouriteMediaModel> = arrayListOf()
@@ -95,7 +107,7 @@ class RecentsPictureFragment : Fragment() {
             binding.searchiconid.invisible()
             binding.menuthreeid.invisible()
         } else {
-            binding.searchiconid.visible()
+//            binding.searchiconid.visible()
             binding.menuthreeid.visible()
             binding.selectedcontainerid.gone()
         }
@@ -146,17 +158,21 @@ class RecentsPictureFragment : Fragment() {
 
         hideMediaModel = HideMediaModel()
         setupRecyclerView()
+        setupPinchToZoomGesture()
         observeViewModel()
         viewModel.loadRecentMedia()
     }
 
-    @SuppressLint("SetTextI18n")
+    @SuppressLint("SetTextI18n", "NotifyDataSetChanged")
     private fun setupRecyclerView() {
         binding.apply {
 
             menuthreeid.onClick {
                 val topmenurecentpopup = TopMenuRecentCustomPopup(requireActivity()) {
                     when (it) {
+                        "llSort" -> {
+
+                        }
                         "llStartSlide" -> {
                             SlideShowDialog(requireActivity()) {
                                 when (it) {
@@ -204,38 +220,52 @@ class RecentsPictureFragment : Fragment() {
                 if (selectedFiles.size <= 100) {
                     shareMultipleFiles(selectedFiles, requireActivity())
                 } else {
-                    ("Max selection limit is 100").tos(requireActivity())
+                    (getString(R.string.max_selection_limit_is_100)).tos(requireActivity())
                 }
             }
 
-            llDelete.onClick {
+            llDelete.setOnClickListener {
                 val selectedFiles = mediaAdapter.selectedItems.distinctBy { it.mediaPath }
+
                 if (selectedFiles.size <= 100) {
                     DeleteWithRememberDialog(requireActivity(), false) {
                         CoroutineScope(Dispatchers.Main).launch {
                             // Show Progress Dialog
-                            val progressDialog = ProgressDialog(requireActivity())
-                            progressDialog.setMessage("Deleting files...")
-                            progressDialog.setCancelable(false)
-                            progressDialog.show()
+                            val progressDialog = ProgressDialog(requireActivity()).apply {
+                                setMessage(getString(R.string.deleting_files))
+                                setCancelable(false)
+                                show()
+                            }
 
                             withContext(Dispatchers.IO) {
-                                val deletionJobs = mediaAdapter.selectedItems.map {
+                                val deletionJobs = selectedFiles.map { mediaItem ->
                                     async {
-                                        deleteMediaModel!!.apply {
-                                            mediaId = it.mediaId
-                                            mediaName = it.mediaName
-                                            mediaPath = it.mediaPath
-                                            mediaMimeType = it.mediaMimeType
-                                            mediaDateAdded = it.mediaDateAdded
-                                            isVideo = it.isVideo
-                                            displayDate = it.displayDate
-                                            isSelect = it.isSelect
+                                        val deleteMediaModel = DeleteMediaModel(
+                                            mediaId = mediaItem.mediaId,
+                                            mediaName = mediaItem.mediaName,
+                                            mediaPath = mediaItem.mediaPath,
+                                            mediaMimeType = mediaItem.mediaMimeType,
+                                            mediaDateAdded = mediaItem.mediaDateAdded,
+                                            isVideo = mediaItem.isVideo,
+                                            displayDate = mediaItem.displayDate,
+                                            isSelect = mediaItem.isSelect
+                                        )
+
+                                        val isMoved = moveToRecycleBin(deleteMediaModel.mediaPath)
+                                        if (isMoved) {
+                                            deleteMediaModel.binPath = File(
+                                                createRecycleBin(), mediaItem.mediaName
+                                            ).absolutePath
+                                            deleteMediaDao!!.insertMedia(deleteMediaModel)  // Insert into Room DB
+
+                                        } else {
+                                            Log.e(
+                                                "FileDeletion",
+                                                "Failed to move file: ${deleteMediaModel.mediaPath}"
+                                            )
                                         }
-                                        moveToRecycleBin(deleteMediaModel!!.mediaPath)
                                     }
                                 }
-
                                 // Wait for all deletion tasks to complete
                                 deletionJobs.awaitAll()
                             }
@@ -244,7 +274,7 @@ class RecentsPictureFragment : Fragment() {
                             progressDialog.dismiss()
                             mediaAdapter.deleteSelectedItems()
                             mediaAdapter.unselectAllItems()
-                            tvSelection.text = "Pictures"
+                            tvSelection.text = getString(R.string.pictures)
                             viewModel.loadRecentMedia()
                         }
                     }
@@ -258,7 +288,7 @@ class RecentsPictureFragment : Fragment() {
                     when (it) {
                         "llAddTohide" -> {
                             val progressDialog = ProgressDialog(requireActivity()).apply {
-                                setMessage("Hiding files...")
+                                setMessage(getString(R.string.hiding_files))
                                 setCancelable(false)
                                 show()
                             }
@@ -281,9 +311,9 @@ class RecentsPictureFragment : Fragment() {
 
                                     // UI updates
                                     selectedcontainerid.gone()
-                                    searchiconid.visible()
+//                                    searchiconid.visible()
                                     menuthreeid.visible()
-                                    tvSelection.text = "Pictures"
+                                    tvSelection.text = getString(R.string.pictures)
 
                                     Toast.makeText(
                                         requireActivity(),
@@ -292,8 +322,7 @@ class RecentsPictureFragment : Fragment() {
                                     ).show()
                                 } else {
                                     Toast.makeText(
-                                        requireActivity(),
-                                        "No files hidden",
+                                        requireActivity(), getString(R.string.no_files_hidden),
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 }
@@ -318,9 +347,9 @@ class RecentsPictureFragment : Fragment() {
 
                             mediaAdapter.unselectAllItems()
                             selectedcontainerid.gone()
-                            searchiconid.visible()
+//                            searchiconid.visible()
                             menuthreeid.visible()
-                            tvSelection.text = "Pictures"
+                            tvSelection.text = getString(R.string.pictures)
                         }
 
                         "deselectall" -> {
@@ -328,9 +357,9 @@ class RecentsPictureFragment : Fragment() {
                             binding.selectedcontainerid.gone()
                             requireActivity().findViewById<RelativeLayout>(R.id.mainTopTabsContainer)
                                 .visible()
-                            binding.searchiconid.visible()
+//                            binding.searchiconid.visible()
                             binding.menuthreeid.visible()
-                            binding.tvSelection.text = "Pictures"
+                            binding.tvSelection.text = getString(R.string.pictures)
                         }
 
                         "selectallid" -> {
@@ -355,9 +384,9 @@ class RecentsPictureFragment : Fragment() {
                             binding.selectedcontainerid.gone()
                             requireActivity().findViewById<RelativeLayout>(R.id.mainTopTabsContainer)
                                 .visible()
-                            binding.searchiconid.visible()
+//                            binding.searchiconid.visible()
                             binding.menuthreeid.visible()
-                            binding.tvSelection.text = "Pictures"
+                            binding.tvSelection.text = getString(R.string.pictures)
                         }
 
                         "copytoid" -> {
@@ -375,9 +404,9 @@ class RecentsPictureFragment : Fragment() {
                             binding.selectedcontainerid.gone()
                             requireActivity().findViewById<RelativeLayout>(R.id.mainTopTabsContainer)
                                 .visible()
-                            binding.searchiconid.visible()
+//                            binding.searchiconid.visible()
                             binding.menuthreeid.visible()
-                            binding.tvSelection.text = "Pictures"
+                            binding.tvSelection.text = getString(R.string.pictures)
                         }
                     }
                 }
@@ -388,6 +417,7 @@ class RecentsPictureFragment : Fragment() {
         mediaAdapter =
             RecentPictureAdapter(activity = requireActivity() as AppCompatActivity, // Pass activity for ActionMode
                 onItemClick = { selectedMedia, position ->
+                    ("Pos: $position").log()
                     openViewPagerActivity(selectedMedia, position)
                 }, onLongItemClick = {
                     ("LongClick: " + it).log()
@@ -401,19 +431,20 @@ class RecentsPictureFragment : Fragment() {
                         binding.selectedcontainerid.gone()
                         requireActivity().findViewById<RelativeLayout>(R.id.mainTopTabsContainer)
                             .visible()
-                        binding.searchiconid.visible()
+//                        binding.searchiconid.visible()
                         binding.menuthreeid.visible()
-                        binding.tvSelection.text = "Pictures"
+                        binding.tvSelection.text = getString(R.string.pictures)
                     }
                 })
 
-        var layoutManager = GridLayoutManager(requireContext(), 3)
+        val layoutManager = GridLayoutManager(requireContext(), 3)
         layoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
             override fun getSpanSize(position: Int): Int {
                 // Make headers span all 4 columns, while media items take 1 column
                 return if (mediaAdapter.getItemViewType(position) == 0) 3 else 1
             }
         }
+
 
         binding.ivTopArrow.onClick {
             binding.recyclerViewRecentPictures.scrollToPosition(0)
@@ -450,13 +481,44 @@ class RecentsPictureFragment : Fragment() {
             }
         })
 
-
+        gridLayoutManager = GridLayoutManager(requireContext(), currentSpanCount)
+        gridLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+            override fun getSpanSize(position: Int): Int {
+                return if (mediaAdapter.getItemViewType(position) == 0) currentSpanCount else 1
+            }
+        }
 
         binding.recyclerViewRecentPictures.apply {
-            this.layoutManager = layoutManager
+            this.layoutManager = gridLayoutManager
             adapter = mediaAdapter
         }
 
+        binding.recyclerViewRecentPictures.scheduleLayoutAnimation()
+
+    }
+
+    private fun setupPinchToZoomGesture() {
+        scaleGestureDetector = ScaleGestureDetector(requireContext(),
+            object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                override fun onScale(detector: ScaleGestureDetector): Boolean {
+                    val scaleFactor = detector.scaleFactor
+
+                    if (scaleFactor > 1 && currentSpanCount > minSpanCount) {
+                        currentSpanCount--
+                    } else if (scaleFactor < 1 && currentSpanCount < maxSpanCount) {
+                        currentSpanCount++
+                    }
+
+                    gridLayoutManager.spanCount = currentSpanCount
+                    binding.recyclerViewRecentPictures.adapter?.notifyDataSetChanged()
+                    return true
+                }
+            })
+
+        binding.recyclerViewRecentPictures.setOnTouchListener { _, event ->
+            scaleGestureDetector.onTouchEvent(event)
+            false
+        }
     }
 
     private fun hideSelectedItems(mediaModel: MediaModel): Boolean {
@@ -524,52 +586,31 @@ class RecentsPictureFragment : Fragment() {
         val recycledFile = File(recycleBin, originalFile.name)
 
         return try {
-            Log.d(
-                "MoveToRecycleBin",
-                "Moving file to recycle bin: ${originalFile.absolutePath}"
-            )
+            Log.d("MoveToRecycleBin", "Moving file to recycle bin: ${originalFile.absolutePath}")
 
             originalFile.copyTo(recycledFile, overwrite = true)  // Copy to recycle bin
-            Log.d(
-                "MoveToRecycleBin",
-                "File copied to recycle bin: ${recycledFile.absolutePath}"
-            )
+            Log.d("MoveToRecycleBin", "File copied to recycle bin: ${recycledFile.absolutePath}")
 
             if (originalFile.delete()) {
                 Log.d("MoveToRecycleBin", "Original file deleted: ${originalFile.absolutePath}")
+                true
             } else {
                 Log.e(
                     "MoveToRecycleBin",
                     "Failed to delete original file: ${originalFile.absolutePath}"
                 )
+                false
             }
-
-            CoroutineScope(Dispatchers.IO).launch {
-
-                Log.d("MoveToRecycleBin", "Inserting media record into Room database.")
-                deleteMediaModel!!.binPath = recycledFile.absolutePath
-//                videoMediaModel!!.randomMediaId = randomMediaId
-
-                deleteMediaDao!!.insertMedia(deleteMediaModel!!)  // Save path for restoration
-//                imageList.removeAt(viewpagerselectedPosition)
-//                MediaStoreSingleton.imageList.removeAt(viewpagerselectedPosition)
-//                requireActivity().runOnUiThread {
-////                    binding.viewPager.currentItem = viewpagerselectedPosition + 1
-//                }
-                Log.d("MoveToRecycleBin", "Media record inserted into Room database.")
-            }
-            true
         } catch (e: IOException) {
-            Log.e("MoveToRecycleBin", "IOException occurred: ${e.message}")
-            e.printStackTrace()
+            Log.e("MoveToRecycleBin", "IOException occurred: ${e.message}", e)
             false
         }
     }
 
-
     override fun onResume() {
         super.onResume()
         ("onResume Fragment").log()
+        requestMediaPermission()
         viewModel.loadRecentMedia()
 //        binding.recyclerViewRecentPictures.adapter?.notifyDataSetChanged() // Ensure UI updates
 
@@ -619,6 +660,8 @@ class RecentsPictureFragment : Fragment() {
         }
 
         viewModel.mediaLiveData.observe(viewLifecycleOwner) { mediaItems ->
+
+
             ("Size: ${mediaItems.size}").log()
             // Extract only MediaModel items (exclude headers)
 
@@ -633,4 +676,33 @@ class RecentsPictureFragment : Fragment() {
             binding.shimmerLayout.shimmerLayout.beGone()
         }
     }
+
+    private fun requestMediaPermission() {
+        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_IMAGES
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+
+        if (ContextCompat.checkSelfPermission(
+                requireActivity(), permission
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            Log.d("PermissionCheck", "Permission already granted: $permission")
+        } else {
+            Log.d("PermissionCheck", "Requesting permission: $permission")
+            requestPermissionLauncher.launch(permission) // 🚀 Request permission
+        }
+    }
+
+
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                Log.d("PermissionCheck", "Permission granted")
+            } else {
+                Log.e("PermissionCheck", "Permission denied")
+            }
+        }
+
 }

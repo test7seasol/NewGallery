@@ -29,7 +29,7 @@
                 android:layout_gravity="center"
                 android:layout_marginVertical="@dimen/_10sdp"
                 android:gravity="center"
-                android:text="Move to Recycle bin?"
+                android:text="@string/move_to_recycle_bin"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_15sdp" />
 
@@ -40,7 +40,7 @@
                 android:layout_gravity="center"
                 android:gravity="center"
                 android:padding="@dimen/_5sdp"
-                android:text="All files will be deleted. Are you sure you want \n to delete selected files?"
+                android:text="@string/all_files_will_be_deleted_are_you_sure_you_want_n_to_delete_selected_files"
                 android:textColor="#7C7C7C"
                 android:textSize="@dimen/_11sdp"
                 android:visibility="gone" />
@@ -60,7 +60,7 @@
                 android:fontFamily="@font/sans_regular"
                 android:gravity="center"
                 android:padding="@dimen/_5sdp"
-                android:text="CANCEL"
+                android:text="@string/cancel"
                 android:textColor="#6B6E72"
                 android:textSize="@dimen/_13sdp" />
 

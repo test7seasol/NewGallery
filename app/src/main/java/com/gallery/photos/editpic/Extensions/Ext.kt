@@ -63,7 +63,6 @@ fun View.gone() {
 
 val Context.audioManager get() = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
-
 @SuppressLint("ResourceType")
 fun ImageView.loadImg(activity: Context, url: String) {
     Glide.with(activity)

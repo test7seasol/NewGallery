@@ -46,6 +46,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:adjustViewBounds="true"
+                        android:clickable="false"
                         android:gravity="center"
                         android:scaleType="fitCenter"
                         android:src="@drawable/videosvg" />
@@ -54,6 +55,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
+                        android:clickable="false"
                         android:layout_marginTop="@dimen/_3sdp"
                         android:gravity="center"
                         android:text="@string/videos"
@@ -74,6 +76,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:adjustViewBounds="true"
+                        android:clickable="false"
                         android:gravity="center"
                         android:scaleType="fitCenter"
                         android:src="@drawable/favoriteicon" />
@@ -81,6 +84,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:clickable="false"
                         android:layout_gravity="center"
                         android:layout_marginTop="@dimen/_3sdp"
                         android:gravity="center"
@@ -105,6 +109,7 @@
                         android:adjustViewBounds="true"
                         android:gravity="center"
                         android:scaleType="fitCenter"
+                        android:clickable="false"
                         android:src="@drawable/deleteicon" />
 
                     <TextView
@@ -112,6 +117,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:layout_marginTop="@dimen/_3sdp"
+                        android:clickable="false"
                         android:gravity="center"
                         android:text="@string/recycle_bin"
                         android:textColor="#252528" />
@@ -200,6 +206,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
+                        android:clickable="false"
                         android:adjustViewBounds="true"
                         android:gravity="center"
                         android:scaleType="fitCenter"
@@ -209,10 +216,11 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:clickable="false"
                         android:layout_gravity="center"
                         android:layout_marginTop="@dimen/_3sdp"
                         android:gravity="center"
-                        android:text="Hide Items"
+                        android:text="@string/hide_items"
                         android:textColor="#252528" />
 
                 </LinearLayout>
@@ -229,6 +237,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
+                        android:clickable="false"
                         android:adjustViewBounds="true"
                         android:gravity="center"
                         android:scaleType="fitCenter"
@@ -239,6 +248,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:layout_marginTop="@dimen/_3sdp"
+                        android:clickable="false"
                         android:gravity="center"
                         android:text="@string/settings"
                         android:textColor="#252528" />
@@ -293,7 +303,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:gravity="center"
-                        android:text="Recent"
+                        android:text="@string/recent"
                         android:textColor="#252528" />
 
                 </LinearLayout>
@@ -319,7 +329,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:gravity="center"
-                        android:text="Locations"
+                        android:text="@string/locations"
                         android:textColor="#252528" />
 
                 </LinearLayout>

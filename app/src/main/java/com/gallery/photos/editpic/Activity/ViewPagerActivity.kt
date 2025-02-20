@@ -13,11 +13,13 @@ import com.gallery.photos.editpic.Adapter.ViewPagerAdapter
 import com.gallery.photos.editpic.Dialogs.DeleteWithRememberDialog
 import com.gallery.photos.editpic.Dialogs.PropertiesDialog
 import com.gallery.photos.editpic.EditModule.EditImageActivity
+import com.gallery.photos.editpic.Extensions.PREF_LANGUAGE_CODE
 import com.gallery.photos.editpic.Extensions.handleBackPress
 import com.gallery.photos.editpic.Extensions.isVideoFile
 import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.name.getMediaDatabase
 import com.gallery.photos.editpic.Extensions.onClick
+import com.gallery.photos.editpic.Extensions.setLanguageCode
 import com.gallery.photos.editpic.Extensions.shareFile
 import com.gallery.photos.editpic.Extensions.tos
 import com.gallery.photos.editpic.Model.DeleteMediaModel
@@ -59,6 +61,7 @@ class ViewPagerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setLanguageCode(this, MyApplicationClass.getString(PREF_LANGUAGE_CODE)!!)
         binding = ActivityViewPagerBinding.inflate(layoutInflater)
         setContentView(binding.root)
         applyStatusBarColor()
@@ -75,7 +78,6 @@ class ViewPagerActivity : AppCompatActivity() {
         deleteMediaDao = getMediaDatabase(this).deleteMediaDao()
         hideMediaDao = getMediaDatabase(this).hideMediaDao()
         favouriteMediaDao = getMediaDatabase(this).favouriteMediaDao()
-
 
 
         imageList[viewpagerselectedPosition].apply {

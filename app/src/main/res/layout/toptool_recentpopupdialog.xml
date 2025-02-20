@@ -47,7 +47,7 @@
                 android:layout_height="wrap_content"
                 android:background="?selectableItemBackground"
                 android:padding="@dimen/_7sdp"
-                android:text="Group by"
+                android:text="@string/group_by"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_12sdp" />
 
@@ -76,7 +76,7 @@
                 android:layout_height="wrap_content"
                 android:background="?selectableItemBackground"
                 android:padding="@dimen/_7sdp"
-                android:text="Change view type"
+                android:text="@string/change_view_type"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_12sdp" />
 
@@ -105,7 +105,7 @@
                 android:layout_height="wrap_content"
                 android:background="?selectableItemBackground"
                 android:padding="@dimen/_7sdp"
-                android:text="Column count"
+                android:text="@string/column_count"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_12sdp" />
 
@@ -156,7 +156,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="@dimen/_7sdp"
-                android:text="Select all"
+                android:text="@string/select_all"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_12sdp" />
 
@@ -185,12 +185,39 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="@dimen/_7sdp"
-                android:text="Start slideshow"
+                android:text="@string/start_slideshow"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_12sdp" />
 
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/llSort"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?selectableItemBackground"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:visibility="gone">
 
+            <ImageView
+                android:layout_width="@dimen/_15sdp"
+                android:layout_height="@dimen/_15sdp"
+                android:layout_gravity="center"
+                android:adjustViewBounds="true"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_unhide_vector"
+                android:tint="@color/black"
+                android:visibility="gone" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/_7sdp"
+                android:text="Sort By"
+                android:textColor="@color/black"
+                android:textSize="@dimen/_12sdp" />
+
+        </LinearLayout>
     </LinearLayout>
 </RelativeLayout>

@@ -17,20 +17,24 @@
 
         <ImageView
             android:id="@+id/ivBack"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="@dimen/_30sdp"
+            android:layout_height="@dimen/_30sdp"
             android:layout_gravity="center"
-            android:layout_marginStart="@dimen/_7sdp"
-            android:padding="@dimen/_6sdp"
+            android:layout_centerVertical="true"
+            android:adjustViewBounds="true"
+            android:background="@drawable/samsungripple"
+            android:padding="@dimen/_5sdp"
+            android:scaleType="fitCenter"
             android:src="@drawable/backicon"
-            android:tint="@color/black" />
+            app:tint="@color/black" />
 
         <TextView
-            android:id="@+id/tvTital"
+            android:id="@+id/tvRecycleTital"
             android:layout_width="284dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_weight="1"
+            android:layout_marginStart="@dimen/_10sdp"
             android:fontFamily="@font/sans_regular"
             android:gravity="start"
             android:text="@string/recycle_bin"
@@ -71,7 +75,8 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_weight="1">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvDeleted"
@@ -90,12 +95,125 @@
             android:layout_marginTop="@dimen/_50sdp"
             android:fontFamily="@font/sans_medium"
             android:gravity="center"
-            android:text="Data not found"
+            android:text="@string/data_not_found"
             android:textColor="#444444"
             android:textSize="@dimen/_18sdp"
             android:visibility="gone" />
 
     </RelativeLayout>
 
+    <RelativeLayout
+        android:id="@+id/selectedcontainerRecycleid"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_gravity="center"
+        android:background="@color/white"
+        android:elevation="@dimen/_2sdp"
+        android:gravity="center"
+        android:visibility="gone"
+        tools:visibility="visible">
 
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            tools:ignore="UselessParent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:baselineAligned="false"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:id="@+id/llRestore"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="@dimen/_10sdp"
+                    android:layout_marginEnd="@dimen/_10sdp"
+                    android:layout_weight="1"
+                    android:background="@drawable/samsungripple"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:paddingTop="@dimen/_8sdp"
+                    android:paddingBottom="@dimen/_8sdp">
+
+                    <androidx.constraintlayout.utils.widget.ImageFilterView
+                        android:layout_width="@dimen/_45sdp"
+                        android:layout_height="@dimen/_30sdp"
+                        android:layout_gravity="center"
+                        android:adjustViewBounds="true"
+                        android:background="@drawable/samsungripple"
+                        android:gravity="center"
+                        android:padding="@dimen/_5sdp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/restore"
+                        android:tint="@color/black" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/llDelete"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="@dimen/_10sdp"
+                    android:layout_marginEnd="@dimen/_10sdp"
+                    android:layout_weight="1"
+                    android:background="@drawable/samsungripple"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:paddingTop="@dimen/_8sdp"
+                    android:paddingBottom="@dimen/_8sdp">
+
+                    <androidx.constraintlayout.utils.widget.ImageFilterView
+                        android:layout_width="@dimen/_45sdp"
+                        android:layout_height="@dimen/_30sdp"
+                        android:layout_gravity="center"
+                        android:adjustViewBounds="true"
+                        android:background="@drawable/samsungripple"
+                        android:gravity="center"
+                        android:padding="@dimen/_5sdp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/deleteicon"
+                        android:tint="@color/black" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/llMore"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="@dimen/_10sdp"
+                    android:layout_marginEnd="@dimen/_10sdp"
+                    android:layout_weight="1"
+                    android:background="@drawable/samsungripple"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:paddingTop="@dimen/_8sdp"
+                    android:paddingBottom="@dimen/_8sdp"
+                    android:visibility="gone">
+
+                    <androidx.constraintlayout.utils.widget.ImageFilterView
+                        android:layout_width="@dimen/_45sdp"
+                        android:layout_height="@dimen/_30sdp"
+                        android:layout_gravity="center"
+                        android:adjustViewBounds="true"
+                        android:background="@drawable/samsungripple"
+                        android:gravity="center"
+                        android:padding="@dimen/_5sdp"
+                        android:rotation="90"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_more_horiz"
+                        android:tint="@color/black" />
+
+                </LinearLayout>
+            </LinearLayout>
+        </RelativeLayout>
+
+    </RelativeLayout>
 </LinearLayout>

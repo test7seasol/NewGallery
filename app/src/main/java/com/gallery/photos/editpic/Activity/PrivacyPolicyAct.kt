@@ -8,8 +8,10 @@ import android.view.WindowInsetsController
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
+import com.gallery.photos.editpic.Extensions.PREF_LANGUAGE_CODE
 import com.gallery.photos.editpic.Extensions.html
 import com.gallery.photos.editpic.Extensions.onClick
+import com.gallery.photos.editpic.Extensions.setLanguageCode
 import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.databinding.ActivityPrivacyPolicyBinding
 
@@ -17,6 +19,7 @@ class PrivacyPolicyAct : AppCompatActivity() {
     lateinit var bind: ActivityPrivacyPolicyBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setLanguageCode(this, MyApplicationClass.getString(PREF_LANGUAGE_CODE)!!)
         bind = ActivityPrivacyPolicyBinding.inflate(layoutInflater)
         setContentView(bind.root)
         bind.toolid.backid.onClick { finish() }

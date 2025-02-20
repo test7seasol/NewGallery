@@ -20,10 +20,9 @@
             android:layout_marginStart="@dimen/_15sdp"
             android:layout_weight="1"
             android:gravity="start"
-            android:text="Albums"
+            android:text="@string/albums"
             android:textColor="@color/black"
             android:textSize="@dimen/_17sdp" />
-
 
 
         <androidx.constraintlayout.utils.widget.ImageFilterView
@@ -153,7 +152,6 @@
                         android:layout_height="@dimen/_30sdp"
                         android:layout_gravity="center"
                         android:adjustViewBounds="true"
-                        android:background="@drawable/samsungripple"
                         android:gravity="center"
                         android:padding="@dimen/_5sdp"
                         android:scaleType="fitCenter"
@@ -181,7 +179,6 @@
                         android:layout_height="@dimen/_30sdp"
                         android:layout_gravity="center"
                         android:adjustViewBounds="true"
-                        android:background="@drawable/samsungripple"
                         android:gravity="center"
                         android:padding="@dimen/_5sdp"
                         android:rotation="90"

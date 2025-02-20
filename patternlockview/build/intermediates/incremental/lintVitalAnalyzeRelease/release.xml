@@ -6,7 +6,7 @@
     mergedManifest="build\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml"
     proguardFiles="build\intermediates\default_proguard_files\global\proguard-android.txt-8.6.0"
     partialResultsDir="build\intermediates\lint_vital_partial_results\release\lintVitalAnalyzeRelease\out"
-    desugaredMethodsFiles="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\b06e70f6390dec9d9f4e16462f426d70\transformed\D8BackportedDesugaredMethods.txt">
+    desugaredMethodsFiles="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\45ab70c2ff404c94eccb408df2a98188\transformed\D8BackportedDesugaredMethods.txt">
   <buildFeatures
       namespacing="REQUIRED"/>
   <sourceProviders>
@@ -26,6 +26,6 @@
       applicationId="com.andrognito.patternlockview"
       generatedSourceFolders="build\generated\ap_generated_sources\release\out"
       generatedResourceFolders="build\generated\res\resValues\release"
-      desugaredMethodsFiles="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\b06e70f6390dec9d9f4e16462f426d70\transformed\D8BackportedDesugaredMethods.txt">
+      desugaredMethodsFiles="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\45ab70c2ff404c94eccb408df2a98188\transformed\D8BackportedDesugaredMethods.txt">
   </artifact>
 </variant>

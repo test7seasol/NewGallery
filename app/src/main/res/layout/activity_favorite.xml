@@ -17,11 +17,14 @@
 
         <ImageView
             android:id="@+id/ivBack"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="@dimen/_30sdp"
+            android:layout_height="@dimen/_30sdp"
             android:layout_gravity="center"
-            android:layout_marginStart="@dimen/_7sdp"
-            android:padding="@dimen/_6sdp"
+            android:layout_centerVertical="true"
+            android:adjustViewBounds="true"
+            android:background="@drawable/samsungripple"
+            android:padding="@dimen/_5sdp"
+            android:scaleType="fitCenter"
             android:src="@drawable/backicon"
             app:tint="@color/black" />
 
@@ -32,6 +35,7 @@
             android:layout_gravity="center"
             android:layout_weight="1"
             android:fontFamily="@font/sans_regular"
+            android:layout_marginStart="@dimen/_10sdp"
             android:gravity="start"
             android:text="@string/favorites"
             android:textColor="@color/black"
@@ -91,7 +95,7 @@
             android:layout_marginTop="@dimen/_50sdp"
             android:fontFamily="@font/sans_medium"
             android:gravity="center"
-            android:text="Favourite data not found"
+            android:text="@string/favourite_data_not_found"
             android:textColor="#444444"
             android:textSize="@dimen/_18sdp"
             android:visibility="gone" />
@@ -139,9 +143,8 @@
                             android:layout_height="@dimen/_30sdp"
                             android:layout_gravity="center"
                             android:adjustViewBounds="true"
-                            android:background="@drawable/samsungripple"
                             android:gravity="center"
-                            android:padding="@dimen/_5sdp"
+                            android:padding="@dimen/_6sdp"
                             android:scaleType="fitCenter"
                             android:src="@drawable/unfillfavourite"
                             android:tint="@color/black" />
@@ -167,7 +170,6 @@
                             android:layout_height="@dimen/_30sdp"
                             android:layout_gravity="center"
                             android:adjustViewBounds="true"
-                            android:background="@drawable/samsungripple"
                             android:gravity="center"
                             android:padding="@dimen/_5sdp"
                             android:scaleType="fitCenter"
@@ -195,7 +197,6 @@
                             android:layout_height="@dimen/_30sdp"
                             android:layout_gravity="center"
                             android:adjustViewBounds="true"
-                            android:background="@drawable/samsungripple"
                             android:gravity="center"
                             android:padding="@dimen/_5sdp"
                             android:scaleType="fitCenter"
@@ -223,7 +224,6 @@
                             android:layout_height="@dimen/_30sdp"
                             android:layout_gravity="center"
                             android:adjustViewBounds="true"
-                            android:background="@drawable/samsungripple"
                             android:gravity="center"
                             android:padding="@dimen/_5sdp"
                             android:rotation="90"
@@ -236,7 +236,6 @@
             </RelativeLayout>
 
         </RelativeLayout>
-
 
     </RelativeLayout>
 

@@ -509,6 +509,7 @@ class EditImageActivity : BaseActivity(), OnPhotoEditorListener, View.OnClickLis
     }
 
     override fun onBackPressed() {
+        super.onBackPressed()
         if (mIsFilterVisible) {
             showFilter(false)
             mTxtCurrentTool.setText(R.string.app_name)

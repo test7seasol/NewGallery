@@ -11,21 +11,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 
-/*
-class PictureViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val repository = PictureRepository(application)
-    val mediaLiveData: LiveData<List<MediaModel>> = repository.mediaLiveData
-
-    fun loadMedia(bucketId: String) {
-        viewModelScope.launch {
-            repository.loadMediaByBucketId(bucketId)
-        }
-    }
-}
-*/
-
-
 class PictureViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = PictureRepository(application)

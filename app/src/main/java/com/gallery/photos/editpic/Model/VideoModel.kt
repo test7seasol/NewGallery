@@ -5,12 +5,12 @@ import androidx.recyclerview.widget.DiffUtil
 
 @Keep
 data class VideoModel(
-    val videoId: Long,
-    var videoName: String,
-    var videoPath: String,
-    val videoSize: Long,
-    val videoDuration: Long,
-    val videoDateAdded: Long,
+    val videoId: Long = 0L,
+    var videoName: String = "",
+    var videoPath: String = "",
+    val videoSize: Long = 0L,
+    val videoDuration: Long = 0L,
+    val videoDateAdded: Long = 0L,
     val isSelect: Boolean = false,
     var isFav: Boolean = false,
 ) {

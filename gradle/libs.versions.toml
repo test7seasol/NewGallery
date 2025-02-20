@@ -9,6 +9,7 @@ appcompat = "1.7.0"
 material = "1.12.0"
 activity = "1.10.0"
 constraintlayout = "2.2.0"
+playServicesAds = "23.5.0"
 
 
 androidxLifecycleViewmodelKtx = "2.6.0"
@@ -31,6 +32,10 @@ swiperefreshlayout = "1.1.0"
 workRuntimeKtx = "2.10.0"
 mediationTestSuite = "3.0.0"
 relativepopupwindow = "0.4.1"
+lifecycleProcess = "2.8.7"
+volley = "1.2.1"
+firebaseCommonKtx = "21.0.0"
+firebaseCrashlyticsKtx = "19.4.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -66,7 +71,14 @@ ssp-android = { module = "com.intuit.ssp:ssp-android", version.ref = "sspAndroid
 androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
 shimmer = { module = "com.facebook.shimmer:shimmer", version.ref = "shimmer" }
 androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workRuntimeKtx" }
+#Ad
+play-services-ads = { module = "com.google.android.gms:play-services-ads", version.ref = "playServicesAds" }
+androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycleProcess" }
+volley = { group = "com.android.volley", name = "volley", version.ref = "volley" }
+firebase-common-ktx = { group = "com.google.firebase", name = "firebase-common-ktx", version.ref = "firebaseCommonKtx" }
+firebase-crashlytics-ktx = { group = "com.google.firebase", name = "firebase-crashlytics-ktx", version.ref = "firebaseCrashlyticsKtx" }
 
+#shimmer
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

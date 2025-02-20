@@ -33,7 +33,7 @@
             android:layout_weight="0"
             android:fontFamily="@font/sans_bold"
             android:gravity="start"
-            android:text="Select Files"
+            android:text="@string/select_files"
             android:textColor="@color/black"
             android:textSize="@dimen/_15sdp" />
 
@@ -46,7 +46,7 @@
             android:layout_marginEnd="@dimen/_10sdp"
             android:fontFamily="@font/sans_bold"
             android:gravity="end"
-            android:text="Create"
+            android:text="@string/create"
             android:textColor="@color/black"
             android:textSize="@dimen/_15sdp" />
 
@@ -132,7 +132,7 @@
                     android:layout_centerInParent="true"
                     android:fontFamily="@font/sans_regular"
                     android:textSize="@dimen/_12sdp"
-                    android:text="No items selected"
+                    android:text="@string/no_items_selected"
                     android:textColor="@color/black" />
 
             </RelativeLayout>
@@ -154,7 +154,7 @@
                 android:fontFamily="@font/sans_bold"
                 android:gravity="center"
                 android:padding="@dimen/_3sdp"
-                android:text="Import"
+                android:text="@string/mimport"
                 android:textColor="@color/white"
                 android:textSize="@dimen/_16sdp"
                 android:visibility="gone" />

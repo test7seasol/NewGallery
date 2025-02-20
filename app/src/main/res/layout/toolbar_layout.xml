@@ -35,7 +35,7 @@
             android:fontFamily="@font/sans_medium"
             android:gravity="center"
             android:includeFontPadding="false"
-            android:text="Privacy Policy"
+            android:text="@string/privacy_policy"
             android:textColor="@color/black"
             android:textSize="@dimen/_16sdp" />
 

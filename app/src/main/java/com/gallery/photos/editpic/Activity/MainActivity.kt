@@ -1,8 +1,11 @@
 package com.gallery.photos.editpic.Activity
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
@@ -19,18 +22,22 @@ import com.gallery.photos.editpic.Adapter.FolderAdapter
 import com.gallery.photos.editpic.Adapter.RecentPictureAdapter
 import com.gallery.photos.editpic.Dialogs.SMBottomSheetDialog
 import com.gallery.photos.editpic.Extensions.PIN_LOCK
+import com.gallery.photos.editpic.Extensions.PREF_LANGUAGE_CODE
 import com.gallery.photos.editpic.Extensions.gone
 import com.gallery.photos.editpic.Extensions.handleBackPress
 import com.gallery.photos.editpic.Extensions.invisible
 import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.notifyGalleryRoot
 import com.gallery.photos.editpic.Extensions.onClick
+import com.gallery.photos.editpic.Extensions.setLanguageCode
 import com.gallery.photos.editpic.Extensions.startActivityWithBundle
 import com.gallery.photos.editpic.Extensions.visible
 import com.gallery.photos.editpic.Fragment.AlbumFragment
 import com.gallery.photos.editpic.Fragment.RecentsPictureFragment
 import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.databinding.ActivityMainBinding
+import com.gallery.photos.editpic.myadsworld.MyAddPrefs
+import com.gallery.photos.editpic.myadsworld.MyAllAdCommonClass
 
 class MainActivity : BaseActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -39,6 +46,7 @@ class MainActivity : BaseActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         ("onAct").log()
+
         if (resultCode == RESULT_OK && requestCode == 120) {
             ("onAct innner").log()
             findViewById<RecyclerView>(R.id.recyclerViewRecentPictures).scrollToPosition(0)
@@ -49,25 +57,36 @@ class MainActivity : BaseActivity() {
         }
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
+        setLanguageCode(this, MyApplicationClass.getString(PREF_LANGUAGE_CODE)!!)
         setContentView(binding.root)
         window.statusBarColor = resources.getColor(android.R.color.white, theme)
 
+        //Calldorado..
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(arrayOf(Manifest.permission.READ_PHONE_STATE), 100)
+            }
+        }
+
         handleBackPress {
-            if (findViewById<TextView>(R.id.tvSelection).text.toString() != "Pictures") {
+            try {
+                if (findViewById<TextView>(R.id.tvSelection).text.toString() != getString(R.string.pictures)) {
                 findViewById<RelativeLayout>(R.id.selectedcontainerid).gone()
                 (findViewById<RecyclerView>(R.id.recyclerViewRecentPictures).adapter as RecentPictureAdapter).unselectAllItems()
-                findViewById<TextView>(R.id.tvSelection).text = "Pictures"
+                    findViewById<TextView>(R.id.tvSelection).text = getString(R.string.pictures)
                 binding.mainTopTabsContainer.visible()
-            } else if (findViewById<TextView>(R.id.tvAlbumeTitle).text.toString() != "Albums") {
+                } else if (findViewById<TextView>(R.id.tvAlbumeTitle).text.toString() != getString(R.string.albums)) {
                 findViewById<RelativeLayout>(R.id.selectedcontaineralbumsid).gone()
                 (findViewById<RecyclerView>(R.id.recyclerViewAlbums).adapter as FolderAdapter).unselectAllItems()
-                findViewById<TextView>(R.id.tvAlbumeTitle).text = "Albums"
+                    findViewById<TextView>(R.id.tvAlbumeTitle).text = getString(R.string.albums)
                 binding.mainTopTabsContainer.visible()
             } else {
+                finishAffinity()
+            }
+            } catch (e: Exception) {
                 finishAffinity()
             }
         }
@@ -76,6 +95,13 @@ class MainActivity : BaseActivity() {
 
         // Handle system insets
 
+        MyAllAdCommonClass.showAdmobBanner(
+            this@MainActivity,
+            binding.bannerContainer,
+            binding.shimmerContainerBanner,
+            false,
+            MyAddPrefs(this@MainActivity).admBannerId
+        )
 
         openPhotos()
         setLinearClickListeners()
@@ -118,6 +144,8 @@ class MainActivity : BaseActivity() {
                                     Intent(this@MainActivity, PatternAct::class.java)
                                         .putExtra("isFromHide", true)
                                 )
+                                overridePendingTransition(0, 0);  // Disables the transition effect
+
                             } else {
                                 startActivityWithBundle<HideActivity>()
                             }
@@ -129,7 +157,6 @@ class MainActivity : BaseActivity() {
                             albumview.gone()
                             openPhotos()
                         }
-
                     }
                 }
             }
@@ -168,7 +195,6 @@ class MainActivity : BaseActivity() {
 
     private fun openVideos() {
 //        loadFragment(AllVideosFragment())
-
     }
 
     private fun loadFragment(newFragment: Fragment) {

@@ -1,9 +1,9 @@
 <libraries>
   <library
       name="androidx.appcompat:appcompat:1.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\21178789d4b004248db0bc27030b0596\transformed\appcompat-1.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\fc0905ae3ea6a15191b45f9612cdb74e\transformed\appcompat-1.0.0\jars\classes.jar"
       resolved="androidx.appcompat:appcompat:1.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\21178789d4b004248db0bc27030b0596\transformed\appcompat-1.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\fc0905ae3ea6a15191b45f9612cdb74e\transformed\appcompat-1.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -14,9 +14,9 @@
       proguardRules="proguard.txt"/>
   <library
       name="androidx.fragment:fragment:1.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\c8c07aaee0fa0d3e29ec9ff01267ec77\transformed\fragment-1.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\e90038ae2c7c8a6f8012177ecb3b8cdf\transformed\fragment-1.0.0\jars\classes.jar"
       resolved="androidx.fragment:fragment:1.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\c8c07aaee0fa0d3e29ec9ff01267ec77\transformed\fragment-1.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\e90038ae2c7c8a6f8012177ecb3b8cdf\transformed\fragment-1.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -27,9 +27,9 @@
       proguardRules="proguard.txt"/>
   <library
       name="androidx.vectordrawable:vectordrawable-animated:1.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\3e40956a42b6f44231eb2116f349b824\transformed\vectordrawable-animated-1.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\4cd9f5a21ae3c1e6254b647baf888532\transformed\vectordrawable-animated-1.0.0\jars\classes.jar"
       resolved="androidx.vectordrawable:vectordrawable-animated:1.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\3e40956a42b6f44231eb2116f349b824\transformed\vectordrawable-animated-1.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\4cd9f5a21ae3c1e6254b647baf888532\transformed\vectordrawable-animated-1.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -40,9 +40,9 @@
       proguardRules="proguard.txt"/>
   <library
       name="androidx.legacy:legacy-support-core-ui:1.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\09bf5c045cf95b8b8e1bd9d0713844c6\transformed\legacy-support-core-ui-1.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\f1792432477432e9e58425436faab7d7\transformed\legacy-support-core-ui-1.0.0\jars\classes.jar"
       resolved="androidx.legacy:legacy-support-core-ui:1.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\09bf5c045cf95b8b8e1bd9d0713844c6\transformed\legacy-support-core-ui-1.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\f1792432477432e9e58425436faab7d7\transformed\legacy-support-core-ui-1.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -53,9 +53,9 @@
       proguardRules="proguard.txt"/>
   <library
       name="androidx.legacy:legacy-support-core-utils:1.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\9ba2a625de60120090bdba9af0467522\transformed\legacy-support-core-utils-1.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\255939a148faf2b2717e5c8c6ee18ad6\transformed\legacy-support-core-utils-1.0.0\jars\classes.jar"
       resolved="androidx.legacy:legacy-support-core-utils:1.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\9ba2a625de60120090bdba9af0467522\transformed\legacy-support-core-utils-1.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\255939a148faf2b2717e5c8c6ee18ad6\transformed\legacy-support-core-utils-1.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -66,9 +66,9 @@
       proguardRules="proguard.txt"/>
   <library
       name="androidx.vectordrawable:vectordrawable:1.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\8c427c1cfe8ca25f4ac6b51642c10f09\transformed\vectordrawable-1.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\c5ce0e26ff0f3a4f7df901e647cd846e\transformed\vectordrawable-1.0.0\jars\classes.jar"
       resolved="androidx.vectordrawable:vectordrawable:1.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\8c427c1cfe8ca25f4ac6b51642c10f09\transformed\vectordrawable-1.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\c5ce0e26ff0f3a4f7df901e647cd846e\transformed\vectordrawable-1.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -79,9 +79,9 @@
       proguardRules="proguard.txt"/>
   <library
       name="androidx.loader:loader:1.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\5ffa45f2c48f3d7e86006e7cceaaa0da\transformed\loader-1.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\98bcc087106d772c84b49eb52ecdcf67\transformed\loader-1.0.0\jars\classes.jar"
       resolved="androidx.loader:loader:1.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\5ffa45f2c48f3d7e86006e7cceaaa0da\transformed\loader-1.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\98bcc087106d772c84b49eb52ecdcf67\transformed\loader-1.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -92,9 +92,9 @@
       proguardRules="proguard.txt"/>
   <library
       name="androidx.viewpager:viewpager:1.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\101a714fd2ccc32e42256d5c675fdd88\transformed\viewpager-1.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\72770e5551dd4c9f4f7b0d3e84a9163d\transformed\viewpager-1.0.0\jars\classes.jar"
       resolved="androidx.viewpager:viewpager:1.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\101a714fd2ccc32e42256d5c675fdd88\transformed\viewpager-1.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\72770e5551dd4c9f4f7b0d3e84a9163d\transformed\viewpager-1.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -105,9 +105,9 @@
       proguardRules="proguard.txt"/>
   <library
       name="androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\a2ae0946d60f92fb028b834f44710801\transformed\coordinatorlayout-1.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\4d0e51d8ec4f5b03bb2ebe1d49b605c8\transformed\coordinatorlayout-1.0.0\jars\classes.jar"
       resolved="androidx.coordinatorlayout:coordinatorlayout:1.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\a2ae0946d60f92fb028b834f44710801\transformed\coordinatorlayout-1.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\4d0e51d8ec4f5b03bb2ebe1d49b605c8\transformed\coordinatorlayout-1.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -118,9 +118,9 @@
       proguardRules="proguard.txt"/>
   <library
       name="androidx.drawerlayout:drawerlayout:1.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\98db90ce086f0970fa363a6ffe508e4d\transformed\drawerlayout-1.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\fc61a580140570743b7e78fc73c7fbc8\transformed\drawerlayout-1.0.0\jars\classes.jar"
       resolved="androidx.drawerlayout:drawerlayout:1.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\98db90ce086f0970fa363a6ffe508e4d\transformed\drawerlayout-1.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\fc61a580140570743b7e78fc73c7fbc8\transformed\drawerlayout-1.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -131,9 +131,9 @@
       proguardRules="proguard.txt"/>
   <library
       name="androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\fc96a7939e7e97794de488dbb578234f\transformed\slidingpanelayout-1.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\ed361158ccf70340334d09b6e152a58b\transformed\slidingpanelayout-1.0.0\jars\classes.jar"
       resolved="androidx.slidingpanelayout:slidingpanelayout:1.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\fc96a7939e7e97794de488dbb578234f\transformed\slidingpanelayout-1.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\ed361158ccf70340334d09b6e152a58b\transformed\slidingpanelayout-1.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -144,9 +144,9 @@
       proguardRules="proguard.txt"/>
   <library
       name="androidx.customview:customview:1.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\85a4ddb2de6fc060ef6e17ab1838c1fe\transformed\customview-1.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\3e0f9f0db4439835a8be40ef0db8cadb\transformed\customview-1.0.0\jars\classes.jar"
       resolved="androidx.customview:customview:1.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\85a4ddb2de6fc060ef6e17ab1838c1fe\transformed\customview-1.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\3e0f9f0db4439835a8be40ef0db8cadb\transformed\customview-1.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -157,9 +157,9 @@
       proguardRules="proguard.txt"/>
   <library
       name="androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\0a9e150779c5b161bee01f2e09f7ced2\transformed\swiperefreshlayout-1.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\03c3fb6d06085fb55c2d830c2e06de0a\transformed\swiperefreshlayout-1.0.0\jars\classes.jar"
       resolved="androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\0a9e150779c5b161bee01f2e09f7ced2\transformed\swiperefreshlayout-1.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\03c3fb6d06085fb55c2d830c2e06de0a\transformed\swiperefreshlayout-1.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -170,9 +170,9 @@
       proguardRules="proguard.txt"/>
   <library
       name="androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\c83138d99d3cede7a9088177b3bfbb81\transformed\asynclayoutinflater-1.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\b6f1259059ff4426b4c360e6d6b704c3\transformed\asynclayoutinflater-1.0.0\jars\classes.jar"
       resolved="androidx.asynclayoutinflater:asynclayoutinflater:1.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\c83138d99d3cede7a9088177b3bfbb81\transformed\asynclayoutinflater-1.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\b6f1259059ff4426b4c360e6d6b704c3\transformed\asynclayoutinflater-1.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -183,9 +183,9 @@
       proguardRules="proguard.txt"/>
   <library
       name="androidx.core:core:1.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\7ec595e0fd481079b7be581eedeb2656\transformed\core-1.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\3b0beb0d003cdbda78d1f306ff01289b\transformed\core-1.0.0\jars\classes.jar"
       resolved="androidx.core:core:1.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\7ec595e0fd481079b7be581eedeb2656\transformed\core-1.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\3b0beb0d003cdbda78d1f306ff01289b\transformed\core-1.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -196,9 +196,9 @@
       proguardRules="proguard.txt"/>
   <library
       name="androidx.versionedparcelable:versionedparcelable:1.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\b48477045e05ce37e3927d7997dbd093\transformed\versionedparcelable-1.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\558894d4afc11744ae7720b210440dca\transformed\versionedparcelable-1.0.0\jars\classes.jar"
       resolved="androidx.versionedparcelable:versionedparcelable:1.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\b48477045e05ce37e3927d7997dbd093\transformed\versionedparcelable-1.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\558894d4afc11744ae7720b210440dca\transformed\versionedparcelable-1.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -213,9 +213,9 @@
       resolved="androidx.collection:collection:1.0.0"/>
   <library
       name="androidx.cursoradapter:cursoradapter:1.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\8a91f752dfad574cc3c0468cdf798720\transformed\cursoradapter-1.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\cd27518b270cc8fcaa9fd4c689418c1c\transformed\cursoradapter-1.0.0\jars\classes.jar"
       resolved="androidx.cursoradapter:cursoradapter:1.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\8a91f752dfad574cc3c0468cdf798720\transformed\cursoradapter-1.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\cd27518b270cc8fcaa9fd4c689418c1c\transformed\cursoradapter-1.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -226,9 +226,9 @@
       proguardRules="proguard.txt"/>
   <library
       name="androidx.lifecycle:lifecycle-runtime:2.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\128f8ff989f18e373010068552443d32\transformed\lifecycle-runtime-2.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\0a17492cee3f12364cfe50789ac694fd\transformed\lifecycle-runtime-2.0.0\jars\classes.jar"
       resolved="androidx.lifecycle:lifecycle-runtime:2.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\128f8ff989f18e373010068552443d32\transformed\lifecycle-runtime-2.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\0a17492cee3f12364cfe50789ac694fd\transformed\lifecycle-runtime-2.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -239,9 +239,9 @@
       proguardRules="proguard.txt"/>
   <library
       name="androidx.documentfile:documentfile:1.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\ee3d3eff0f260bc2e1fbae0c82ed177f\transformed\documentfile-1.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\c895215a427fab8a74ba6d5af3043822\transformed\documentfile-1.0.0\jars\classes.jar"
       resolved="androidx.documentfile:documentfile:1.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\ee3d3eff0f260bc2e1fbae0c82ed177f\transformed\documentfile-1.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\c895215a427fab8a74ba6d5af3043822\transformed\documentfile-1.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -252,9 +252,9 @@
       proguardRules="proguard.txt"/>
   <library
       name="androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\2dad7c9fe700206cc0729971985aa47a\transformed\localbroadcastmanager-1.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\c0f7707158260100e64c6a6dd5ba72a9\transformed\localbroadcastmanager-1.0.0\jars\classes.jar"
       resolved="androidx.localbroadcastmanager:localbroadcastmanager:1.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\2dad7c9fe700206cc0729971985aa47a\transformed\localbroadcastmanager-1.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\c0f7707158260100e64c6a6dd5ba72a9\transformed\localbroadcastmanager-1.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -265,9 +265,9 @@
       proguardRules="proguard.txt"/>
   <library
       name="androidx.print:print:1.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\53d935c144743a0dfc8674b98ab566cb\transformed\print-1.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\7a21e344806eaf9032fd25c739278c11\transformed\print-1.0.0\jars\classes.jar"
       resolved="androidx.print:print:1.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\53d935c144743a0dfc8674b98ab566cb\transformed\print-1.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\7a21e344806eaf9032fd25c739278c11\transformed\print-1.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -278,9 +278,9 @@
       proguardRules="proguard.txt"/>
   <library
       name="androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\c163863119f586078a0bd19f5196482a\transformed\lifecycle-viewmodel-2.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\a7ce868d4643cf8bf91b4c61a9eafc46\transformed\lifecycle-viewmodel-2.0.0\jars\classes.jar"
       resolved="androidx.lifecycle:lifecycle-viewmodel:2.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\c163863119f586078a0bd19f5196482a\transformed\lifecycle-viewmodel-2.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\a7ce868d4643cf8bf91b4c61a9eafc46\transformed\lifecycle-viewmodel-2.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -291,9 +291,9 @@
       proguardRules="proguard.txt"/>
   <library
       name="androidx.lifecycle:lifecycle-livedata:2.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\206e3e85ecff0ab90cd2124aebc1d230\transformed\lifecycle-livedata-2.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\fd5e56069e29e54a4262252dba4506ec\transformed\lifecycle-livedata-2.0.0\jars\classes.jar"
       resolved="androidx.lifecycle:lifecycle-livedata:2.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\206e3e85ecff0ab90cd2124aebc1d230\transformed\lifecycle-livedata-2.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\fd5e56069e29e54a4262252dba4506ec\transformed\lifecycle-livedata-2.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -304,9 +304,9 @@
       proguardRules="proguard.txt"/>
   <library
       name="androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\aa7ca492edf0b697ff5cdb285fb4012e\transformed\lifecycle-livedata-core-2.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\044a292f0b9349b6497964d9175366c3\transformed\lifecycle-livedata-core-2.0.0\jars\classes.jar"
       resolved="androidx.lifecycle:lifecycle-livedata-core:2.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\aa7ca492edf0b697ff5cdb285fb4012e\transformed\lifecycle-livedata-core-2.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\044a292f0b9349b6497964d9175366c3\transformed\lifecycle-livedata-core-2.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -321,9 +321,9 @@
       resolved="androidx.lifecycle:lifecycle-common:2.0.0"/>
   <library
       name="androidx.arch.core:core-runtime:2.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\6db7476baec30ac6db7d52d04c2442b5\transformed\core-runtime-2.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\0405c180907b0ccf764707c0ec8e6115\transformed\core-runtime-2.0.0\jars\classes.jar"
       resolved="androidx.arch.core:core-runtime:2.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\6db7476baec30ac6db7d52d04c2442b5\transformed\core-runtime-2.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\0405c180907b0ccf764707c0ec8e6115\transformed\core-runtime-2.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
@@ -338,9 +338,9 @@
       resolved="androidx.arch.core:core-common:2.0.0"/>
   <library
       name="androidx.interpolator:interpolator:1.0.0@aar"
-      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\687573f94844ce6a99d214f86dae0deb\transformed\interpolator-1.0.0\jars\classes.jar"
+      jars="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\51485d6fc9d2ae97bb79a65a810f704e\transformed\interpolator-1.0.0\jars\classes.jar"
       resolved="androidx.interpolator:interpolator:1.0.0"
-      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\687573f94844ce6a99d214f86dae0deb\transformed\interpolator-1.0.0"
+      folder="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\51485d6fc9d2ae97bb79a65a810f704e\transformed\interpolator-1.0.0"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"

@@ -46,7 +46,6 @@ class PropertiesDialog(
             }
         }
 
-
         dialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
         dialog?.show()
     }
@@ -61,5 +60,4 @@ class PropertiesDialog(
             else -> String.format("%d Bytes", bytes)
         }
     }
-
 }

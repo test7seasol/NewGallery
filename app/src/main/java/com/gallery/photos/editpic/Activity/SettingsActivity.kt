@@ -7,7 +7,9 @@ import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.gallery.photos.editpic.Extensions.PIN_LOCK
+import com.gallery.photos.editpic.Extensions.PREF_LANGUAGE_CODE
 import com.gallery.photos.editpic.Extensions.onClick
+import com.gallery.photos.editpic.Extensions.setLanguageCode
 import com.gallery.photos.editpic.Extensions.shareUs
 import com.gallery.photos.editpic.Extensions.startActivityWithBundle
 import com.gallery.photos.editpic.databinding.ActivitySettingsBinding
@@ -28,6 +30,7 @@ class SettingsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setLanguageCode(this, MyApplicationClass.getString(PREF_LANGUAGE_CODE)!!)
         bind = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(bind.root)
 
@@ -52,6 +55,7 @@ class SettingsActivity : AppCompatActivity() {
                             (MyApplicationClass.getString(PIN_LOCK)?.isNotEmpty() == true)
                         )
                 )
+                overridePendingTransition(0, 0);  // Disables the transition effect
             }
         }
     }

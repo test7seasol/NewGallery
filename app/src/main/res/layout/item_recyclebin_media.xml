@@ -17,14 +17,14 @@
         <ImageView
             android:id="@+id/imageViewMedia"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/_80sdp"
+            android:layout_height="@dimen/_100sdp"
             android:scaleType="centerCrop"
             android:src="#ededed" />
 
         <View
             android:id="@+id/selectView"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/_80sdp"
+            android:layout_height="@dimen/_100sdp"
             android:alpha="0.5"
             android:background="#444444"
             android:visibility="gone" />

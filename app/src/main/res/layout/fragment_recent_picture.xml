@@ -20,7 +20,7 @@
             android:layout_marginStart="@dimen/_15sdp"
             android:layout_weight="1"
             android:gravity="start"
-            android:text="Pictures"
+            android:text="@string/pictures"
             android:textColor="@color/black"
             android:textSize="@dimen/_17sdp" />
 
@@ -89,8 +89,9 @@
             android:layout_centerHorizontal="true"
             android:background="#7E7E7E"
             android:layout_marginVertical="@dimen/_10sdp"
-            android:padding="@dimen/_4sdp"
-            android:src="@drawable/top_arrow"
+            android:padding="@dimen/_7sdp"
+            android:rotation="90"
+            android:src="@drawable/backicon"
             android:visibility="visible"
             app:round="@dimen/_100sdp" />
 
@@ -139,7 +140,6 @@
                         android:layout_height="@dimen/_30sdp"
                         android:layout_gravity="center"
                         android:adjustViewBounds="true"
-                        android:background="@drawable/samsungripple"
                         android:gravity="center"
                         android:padding="@dimen/_5sdp"
                         android:scaleType="fitCenter"
@@ -167,7 +167,6 @@
                         android:layout_height="@dimen/_30sdp"
                         android:layout_gravity="center"
                         android:adjustViewBounds="true"
-                        android:background="@drawable/samsungripple"
                         android:gravity="center"
                         android:padding="@dimen/_5sdp"
                         android:scaleType="fitCenter"
@@ -195,7 +194,6 @@
                         android:layout_height="@dimen/_30sdp"
                         android:layout_gravity="center"
                         android:adjustViewBounds="true"
-                        android:background="@drawable/samsungripple"
                         android:gravity="center"
                         android:padding="@dimen/_5sdp"
                         android:rotation="90"

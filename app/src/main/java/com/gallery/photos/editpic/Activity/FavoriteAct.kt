@@ -7,20 +7,24 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
+import android.view.ScaleGestureDetector
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.recyclerview.widget.GridLayoutManager
 import com.gallery.photos.editpic.Adapter.FavouriteAdapter
 import com.gallery.photos.editpic.Dialogs.DeleteWithRememberDialog
 import com.gallery.photos.editpic.Dialogs.SlideShowDialog
+import com.gallery.photos.editpic.Extensions.PREF_LANGUAGE_CODE
 import com.gallery.photos.editpic.Extensions.gone
 import com.gallery.photos.editpic.Extensions.handleBackPress
 import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.name.getMediaDatabase
 import com.gallery.photos.editpic.Extensions.notifyGalleryRoot
 import com.gallery.photos.editpic.Extensions.onClick
+import com.gallery.photos.editpic.Extensions.setLanguageCode
 import com.gallery.photos.editpic.Extensions.shareMultipleFilesFavourite
 import com.gallery.photos.editpic.Extensions.tos
 import com.gallery.photos.editpic.Extensions.visible
@@ -28,6 +32,7 @@ import com.gallery.photos.editpic.Model.DeleteMediaModel
 import com.gallery.photos.editpic.Model.FavouriteMediaModel
 import com.gallery.photos.editpic.PopupDialog.FavouriteBottomPopup
 import com.gallery.photos.editpic.PopupDialog.TopMenuFavouriteCustomPopup
+import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.RoomDB.Dao.DeleteMediaDao
 import com.gallery.photos.editpic.RoomDB.Dao.FavouriteMediaDao
 import com.gallery.photos.editpic.Utils.FavouriteMediaStoreSingleton
@@ -50,6 +55,12 @@ class FavoriteAct : AppCompatActivity() {
     var deleteMediaModel: DeleteMediaModel? = null
     var favouriteMediaModel: FavouriteMediaModel? = null
     var deleteMediaDao: DeleteMediaDao? = null
+
+    lateinit var gridLayoutManager: GridLayoutManager
+    private lateinit var scaleGestureDetector: ScaleGestureDetector
+    private var currentSpanCount = 4  // Default span count
+    private val minSpanCount = 2
+    private val maxSpanCount = 6
 
     fun toggleTopBarVisibility(isVisible: Boolean) {
         bind.rvFavourite.visibility = View.VISIBLE
@@ -91,7 +102,7 @@ class FavoriteAct : AppCompatActivity() {
                     val intent = Intent("com.example.FOLDER_CREATED")
                     LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
 
-                    ("Album created successfully").tos(this)
+                    (getString(R.string.album_created_successfully)).tos(this)
                 }
             } else {
                 Log.d("ActivityResult", "Result canceled or failed")
@@ -101,13 +112,14 @@ class FavoriteAct : AppCompatActivity() {
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setLanguageCode(this, MyApplicationClass.getString(PREF_LANGUAGE_CODE)!!)
         bind = ActivityFavoriteBinding.inflate(layoutInflater)
         setContentView(bind.root)
 
         handleBackPress {
-            if (bind.tvTitleFavourite.text != "Favourite") {
+            if (bind.tvTitleFavourite.text != getString(R.string.favorites)) {
                 favadapter!!.unselectAllItems()
-                bind.tvTitleFavourite.text = "Favourite"
+                bind.tvTitleFavourite.text = getString(R.string.favorites)
             } else {
                 finish()
             }
@@ -149,20 +161,41 @@ class FavoriteAct : AppCompatActivity() {
             Log.d("LiveData", "Media list updated: ${mediaList.size} items")
         }
 
+        setupPinchToZoomGesture()
+
         favadapter = FavouriteAdapter(this@FavoriteAct, favouriteList) { onLongItemClick ->
             if (onLongItemClick) {
                 bind.selectedcontainerFavouriteid.visible()
 //                binding.ivSearch.gone()
                 bind.menuFav.gone()
-
             } else {
-                bind.tvTitleFavourite.text = "Favourite"
+                bind.tvTitleFavourite.text = getString(R.string.favorites)
 //                binding.ivSearch.visible()
                 bind.selectedcontainerFavouriteid.gone()
                 bind.menuFav.visible()
             }
         }
-        bind.rvFavourite.adapter = favadapter
+
+      /*  val layoutManager = GridLayoutManager(this, 3)
+        layoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+            override fun getSpanSize(position: Int): Int {
+                // Make headers span all 4 columns, while media items take 1 column
+                return if (favadapter!!.getItemViewType(position) == 0) 3 else 3
+            }
+        }*/
+
+        gridLayoutManager = GridLayoutManager(this, currentSpanCount)
+        gridLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+            override fun getSpanSize(position: Int): Int {
+                return if (favadapter!!.getItemViewType(position) == 0) currentSpanCount else 3
+            }
+        }
+
+        bind.rvFavourite.apply {
+//            this.layoutManager = gridLayoutManager
+            adapter = favadapter
+        }
+
 
         bind.apply {
             llMore.onClick {
@@ -203,7 +236,7 @@ class FavoriteAct : AppCompatActivity() {
                             selectedcontainerFavouriteid.gone()
                             searchiconid.visible()
                             menuFav.visible()
-                            tvTitleFavourite.text = "Favourite"
+                            tvTitleFavourite.text = getString(R.string.favorites)
                         }
 
                         "copytoid" -> {
@@ -221,7 +254,7 @@ class FavoriteAct : AppCompatActivity() {
                             selectedcontainerFavouriteid.gone()
                             searchiconid.visible()
                             menuFav.visible()
-                            tvTitleFavourite.text = "Favourite"
+                            tvTitleFavourite.text = getString(R.string.favorites)
                         }
                     }
                 }
@@ -244,62 +277,66 @@ class FavoriteAct : AppCompatActivity() {
 
             llDelete.onClick {
                 val selectedFiles = favadapter!!.selectedItems.distinctBy { it.mediaPath }
+
                 if (selectedFiles.size <= 100) {
                     DeleteWithRememberDialog(this@FavoriteAct, false) {
                         CoroutineScope(Dispatchers.Main).launch {
                             // Show Progress Dialog
-                            val progressDialog = ProgressDialog(this@FavoriteAct)
-                            progressDialog.setMessage("Deleting files...")
-                            progressDialog.setCancelable(false)
-                            progressDialog.show()
+                            val progressDialog = ProgressDialog(this@FavoriteAct).apply {
+                                setMessage(getString(R.string.deleting_files))
+                                setCancelable(false)
+                                show()
+                            }
 
                             withContext(Dispatchers.IO) {
-                                val deletionJobs = favadapter!!.selectedItems.map {
+                                val deletionJobs = selectedFiles.map { mediaItem ->
                                     async {
-                                        deleteMediaModel!!.apply {
-                                            mediaId = it.mediaId
-                                            mediaName = it.mediaName
-                                            mediaPath = it.mediaPath
-                                            mediaMimeType = it.mediaMimeType
-                                            mediaDateAdded = it.mediaDateAdded
-                                            isVideo = it.isVideo
-                                            displayDate = it.displayDate
-                                            isSelect = it.isSelect
-                                        }
-                                        favouriteMediaModel!!.apply {
-                                            mediaId = it.mediaId
-                                            mediaName = it.mediaName
-                                            mediaPath = it.mediaPath
-                                            mediaMimeType = it.mediaMimeType
-                                            mediaDateAdded = it.mediaDateAdded
-                                            isVideo = it.isVideo
-                                            displayDate = it.displayDate
-                                            isSelect = it.isSelect
-                                        }
-                                        moveToRecycleBin(
-                                            deleteMediaModel!!.mediaPath
+                                        val deleteMediaModel = DeleteMediaModel(
+                                            mediaId = mediaItem.mediaId,
+                                            mediaName = mediaItem.mediaName,
+                                            mediaPath = mediaItem.mediaPath,
+                                            mediaMimeType = mediaItem.mediaMimeType,
+                                            mediaDateAdded = mediaItem.mediaDateAdded,
+                                            isVideo = mediaItem.isVideo,
+                                            displayDate = mediaItem.displayDate,
+                                            isSelect = mediaItem.isSelect
                                         )
+
+                                        val isMoved = moveToRecycleBin(deleteMediaModel.mediaPath)
+                                        if (isMoved) {
+                                            deleteMediaModel.binPath = File(
+                                                createRecycleBin(), mediaItem.mediaName
+                                            ).absolutePath
+                                            deleteMediaDao!!.insertMedia(deleteMediaModel)  // Insert into Recycle Bin
+
+                                            // ✅ Delete from favorites database
+                                            favouriteMediaDao.getMediaById(mediaItem.mediaId)
+                                                ?.let { it1 -> favouriteMediaDao!!.deleteMedia(it1) }
+                                            Log.d(
+                                                "FileDeletion",
+                                                "Removed from favorites: ${mediaItem.mediaPath}"
+                                            )
+                                        } else {
+                                            Log.e(
+                                                "FileDeletion",
+                                                "Failed to move file: ${deleteMediaModel.mediaPath}"
+                                            )
+                                        }
                                     }
                                 }
-
                                 // Wait for all deletion tasks to complete
                                 deletionJobs.awaitAll()
                             }
 
                             // Dismiss Progress Dialog and update UI
                             progressDialog.dismiss()
-
-                            favadapter!!.selectedItems.forEach {
-                                favouriteMediaDao.deleteMedia(it)
-                            }
-
                             favadapter!!.deleteSelectedItems()
                             favadapter!!.unselectAllItems()
-                            tvTitleFavourite.text = "Favourite"
+                            tvTitleFavourite.text = getString(R.string.favourite)
                         }
                     }
                 } else {
-                    ("Max selection limit is 100").tos(this@FavoriteAct)
+                    (getString(R.string.max_selection_limit_is_100)).tos(this@FavoriteAct)
                 }
             }
 
@@ -345,10 +382,35 @@ class FavoriteAct : AppCompatActivity() {
         }
     }
 
+    private fun setupPinchToZoomGesture() {
+        scaleGestureDetector = ScaleGestureDetector(
+            this,
+            object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                override fun onScale(detector: ScaleGestureDetector): Boolean {
+                    val scaleFactor = detector.scaleFactor
+
+                    if (scaleFactor > 1 && currentSpanCount > minSpanCount) {
+                        currentSpanCount--
+                    } else if (scaleFactor < 1 && currentSpanCount < maxSpanCount) {
+                        currentSpanCount++
+                    }
+
+                    gridLayoutManager.spanCount = currentSpanCount
+                    bind.rvFavourite.adapter?.notifyDataSetChanged()
+                    return true
+                }
+            })
+
+        bind.rvFavourite.setOnTouchListener { _, event ->
+            scaleGestureDetector.onTouchEvent(event)
+            false
+        }
+    }
+
     private fun unFavSelectedList() {
         if (favadapter!!.selectedItems.size <= 100) {
             val progressDialog = ProgressDialog(this@FavoriteAct).apply {
-                setMessage("Removing favorites...")
+                setMessage(getString(R.string.removing_favorites))
                 setCancelable(false)
                 show()
             }
@@ -364,10 +426,12 @@ class FavoriteAct : AppCompatActivity() {
 
                 favadapter!!.deleteSelectedItems()
                 favadapter!!.unselectAllItems()
-                bind.tvTitleFavourite.text = "Favourite"
+                bind.tvTitleFavourite.text = getString(R.string.favourite)
 
                 Toast.makeText(
-                    this@FavoriteAct, "Favorites removed successfully", Toast.LENGTH_SHORT
+                    this@FavoriteAct,
+                    getString(R.string.favorites_removed_successfully),
+                    Toast.LENGTH_SHORT
                 ).show()
             }
         } else {
@@ -389,9 +453,7 @@ class FavoriteAct : AppCompatActivity() {
         return recycleBin
     }
 
-    fun moveToRecycleBin(
-        originalFilePath: String
-    ): Boolean {
+    fun moveToRecycleBin(originalFilePath: String): Boolean {
         val originalFile = File(originalFilePath)
         if (!originalFile.exists()) {
             Log.e("MoveToRecycleBin", "File does not exist: $originalFilePath")
@@ -409,34 +471,20 @@ class FavoriteAct : AppCompatActivity() {
 
             if (originalFile.delete()) {
                 Log.d("MoveToRecycleBin", "Original file deleted: ${originalFile.absolutePath}")
+                true
             } else {
                 Log.e(
                     "MoveToRecycleBin",
                     "Failed to delete original file: ${originalFile.absolutePath}"
                 )
+                false
             }
-
-            CoroutineScope(Dispatchers.IO).launch {
-
-                Log.d("MoveToRecycleBin", "Inserting media record into Room database.")
-                deleteMediaModel!!.binPath = recycledFile.absolutePath
-//                videoMediaModel!!.randomMediaId = randomMediaId
-
-                deleteMediaDao!!.insertMedia(deleteMediaModel!!)  // Save path for restoration
-//                imageList.removeAt(viewpagerselectedPosition)
-//                MediaStoreSingleton.imageList.removeAt(viewpagerselectedPosition)
-//                requireActivity().runOnUiThread {
-////                    binding.viewPager.currentItem = viewpagerselectedPosition + 1
-//                }
-                Log.d("MoveToRecycleBin", "Media record inserted into Room database.")
-            }
-            true
         } catch (e: IOException) {
-            Log.e("MoveToRecycleBin", "IOException occurred: ${e.message}")
-            e.printStackTrace()
+            Log.e("MoveToRecycleBin", "IOException occurred: ${e.message}", e)
             false
         }
     }
+
 
     private fun openViewPagerSlideShowActivity(position: Int, sec: Int) {
         FavouriteMediaStoreSingleton.favouriteimageList = favouriteList

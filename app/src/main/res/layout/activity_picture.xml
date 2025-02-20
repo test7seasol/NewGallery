@@ -14,13 +14,16 @@
 
         <ImageView
             android:id="@+id/ivBack"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="@dimen/_30sdp"
+            android:layout_height="@dimen/_30sdp"
+            android:layout_gravity="center"
+            android:adjustViewBounds="true"
             android:layout_centerVertical="true"
-            android:layout_marginStart="@dimen/_10sdp"
-            android:padding="@dimen/_2sdp"
-            android:src="@drawable/baseline_arrow_back_24"
-            />
+            android:background="@drawable/samsungripple"
+            android:padding="@dimen/_5sdp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/backicon"
+            app:tint="@color/black" />
 
         <TextView
             android:id="@+id/tvAlbumName"
@@ -60,10 +63,10 @@
         android:layout_height="match_parent"
         android:layout_above="@+id/picturesselectedcontainerid"
         app:bubbleColor="@color/blue_color_picker"
-        app:bubbleTextColor="@color/black"
+        app:bubbleTextColor="@color/white"
         app:handleColor="#999999"
-        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
         app:spanCount="3"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
         tools:listitem="@layout/item_media" />
 
     <RelativeLayout
@@ -109,7 +112,6 @@
                         android:layout_height="@dimen/_30sdp"
                         android:layout_gravity="center"
                         android:adjustViewBounds="true"
-                        android:background="@drawable/samsungripple"
                         android:gravity="center"
                         android:padding="@dimen/_5sdp"
                         android:scaleType="fitCenter"
@@ -137,7 +139,6 @@
                         android:layout_height="@dimen/_30sdp"
                         android:layout_gravity="center"
                         android:adjustViewBounds="true"
-                        android:background="@drawable/samsungripple"
                         android:gravity="center"
                         android:padding="@dimen/_5sdp"
                         android:scaleType="fitCenter"
@@ -165,7 +166,6 @@
                         android:layout_height="@dimen/_30sdp"
                         android:layout_gravity="center"
                         android:adjustViewBounds="true"
-                        android:background="@drawable/samsungripple"
                         android:gravity="center"
                         android:padding="@dimen/_5sdp"
                         android:rotation="90"

@@ -18,7 +18,6 @@
             android:layout_width="@dimen/_30sdp"
             android:layout_height="@dimen/_30sdp"
             android:layout_gravity="center"
-            android:layout_marginStart="@dimen/_8sdp"
             android:adjustViewBounds="true"
             android:background="@drawable/samsungripple"
             android:padding="@dimen/_5sdp"
@@ -35,7 +34,7 @@
             android:layout_weight="1"
             android:fontFamily="@font/sans_medium"
             android:gravity="start"
-            android:text="Videos"
+            android:text="@string/videos"
             android:textColor="@color/black"
             android:textSize="@dimen/_17sdp" />
 
@@ -76,7 +75,7 @@
         android:layout_below="@+id/rlTop"
         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
         app:bubbleColor="@color/blue_color_picker"
-        app:bubbleTextColor="@color/black"
+        app:bubbleTextColor="@color/white"
         app:handleColor="#999999"
         app:spanCount="4"
         tools:listitem="@layout/item_video" />
@@ -88,7 +87,7 @@
         android:layout_marginTop="@dimen/_50sdp"
         android:fontFamily="@font/sans_medium"
         android:gravity="center"
-        android:text="Data not found"
+        android:text="@string/data_not_found"
         android:textColor="#444444"
         android:textSize="@dimen/_18sdp"
         android:visibility="gone" />
@@ -136,7 +135,6 @@
                         android:layout_height="@dimen/_30sdp"
                         android:layout_gravity="center"
                         android:adjustViewBounds="true"
-                        android:background="@drawable/samsungripple"
                         android:gravity="center"
                         android:padding="@dimen/_5sdp"
                         android:scaleType="fitCenter"
@@ -164,7 +162,6 @@
                         android:layout_height="@dimen/_30sdp"
                         android:layout_gravity="center"
                         android:adjustViewBounds="true"
-                        android:background="@drawable/samsungripple"
                         android:gravity="center"
                         android:padding="@dimen/_5sdp"
                         android:scaleType="fitCenter"
@@ -192,7 +189,6 @@
                         android:layout_height="@dimen/_30sdp"
                         android:layout_gravity="center"
                         android:adjustViewBounds="true"
-                        android:background="@drawable/samsungripple"
                         android:gravity="center"
                         android:padding="@dimen/_5sdp"
                         android:rotation="90"

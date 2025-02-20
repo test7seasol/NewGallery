@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_gravity="center"
-    android:background="@color/black"
+    android:background="@color/white"
     android:orientation="vertical"
     tools:context=".Activity.PatternAct">
 
@@ -15,9 +15,9 @@
         android:layout_width="@dimen/_35sdp"
         android:layout_height="@dimen/_35sdp"
         android:layout_margin="@dimen/_10sdp"
-        android:background="#444"
         android:padding="@dimen/_5sdp"
         android:src="@drawable/ic_back"
+        android:tint="@color/black"
         app:round="@dimen/_100sdp" />
 
 
@@ -26,9 +26,10 @@
         android:layout_height="@dimen/_80sdp"
         android:layout_marginTop="@dimen/_50sdp"
         android:adjustViewBounds="true"
+        android:tint="@color/black"
         android:scaleType="fitCenter"
         android:src="@drawable/patterlock"
-        android:tint="@color/white" />
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/tvPattern"
@@ -36,14 +37,16 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:fontFamily="@font/sans_medium"
+        android:layout_marginTop="@dimen/_50sdp"
         android:gravity="center"
-        android:text="Enter Your Pattern"
-        android:textColor="@color/white"
+        android:text="@string/enter_your_pattern"
+        android:textColor="@color/black"
         android:textSize="@dimen/_15sdp" />
 
     <com.andrognito.patternlockview.PatternLockView
         android:id="@+id/mPatternLockView"
         android:layout_width="match_parent"
+        app:normalStateColor="@color/black"
         android:layout_height="@dimen/_300sdp"
         android:layout_gravity="center" />
 
@@ -54,7 +57,7 @@
         android:layout_gravity="center"
         android:gravity="center"
         android:padding="@dimen/_5sdp"
-        android:text="Reseat Password"
+        android:text="@string/reseat_password"
         android:textColor="@color/red_color_picker" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

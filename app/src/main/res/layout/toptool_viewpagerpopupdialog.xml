@@ -48,7 +48,7 @@
                 android:layout_height="wrap_content"
                 android:background="?selectableItemBackground"
                 android:padding="@dimen/_7sdp"
-                android:text="Group by"
+                android:text="@string/group_by"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_12sdp" />
 
@@ -77,7 +77,7 @@
                 android:layout_height="wrap_content"
                 android:background="?selectableItemBackground"
                 android:padding="@dimen/_7sdp"
-                android:text="Change view type"
+                android:text="@string/change_view_type"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_12sdp" />
 
@@ -106,7 +106,7 @@
                 android:layout_height="wrap_content"
                 android:background="?selectableItemBackground"
                 android:padding="@dimen/_7sdp"
-                android:text="Column count"
+                android:text="@string/column_count"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_12sdp" />
 
@@ -135,7 +135,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="@dimen/_7sdp"
-                android:text="Hide"
+                android:text="@string/hide"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_12sdp" />
 
@@ -164,7 +164,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="@dimen/_7sdp"
-                android:text="Slide Show"
+                android:text="@string/slide_show"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_12sdp" />
 
@@ -193,7 +193,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="@dimen/_7sdp"
-                android:text="Empty Recycle bin"
+                android:text="@string/empty_recycle_bin"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_12sdp" />
 

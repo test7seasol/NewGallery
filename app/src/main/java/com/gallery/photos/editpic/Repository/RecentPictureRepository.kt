@@ -4,6 +4,7 @@ import android.content.Context
 import android.provider.MediaStore
 import com.gallery.photos.editpic.Extensions.DATE_LIMIT
 import com.gallery.photos.editpic.Model.MediaModel
+import com.gallery.photos.editpic.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
@@ -154,8 +155,8 @@ class RecentPictureRepository(private val context: Context) {
         calendar.timeInMillis = timestamp
 
         return when {
-            isSameDay(calendar, today) -> "Today"
-            isSameDay(calendar, yesterday) -> "Yesterday"
+            isSameDay(calendar, today) -> context.getString(R.string.today)
+            isSameDay(calendar, yesterday) -> context.getString(R.string.yesterday)
             else -> SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(calendar.time)
         }
     }

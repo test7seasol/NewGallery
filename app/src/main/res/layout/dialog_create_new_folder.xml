@@ -30,7 +30,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/sans_bold"
-                android:text="Create album"
+                android:text="@string/create_album"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_12sdp" />
 
@@ -61,7 +61,7 @@
                     android:fontFamily="@font/sans_bold"
                     android:gravity="center"
                     android:padding="@dimen/_5sdp"
-                    android:text="Cancel"
+                    android:text="@string/cancel"
                     android:textColor="@color/black"
                     android:textSize="@dimen/_12sdp" />
 
@@ -75,7 +75,7 @@
                     android:fontFamily="@font/sans_bold"
                     android:gravity="center"
                     android:padding="@dimen/_5sdp"
-                    android:text="Create"
+                    android:text="@string/create"
                     android:textColor="@color/black"
                     android:textSize="@dimen/_12sdp" />
 

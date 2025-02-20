@@ -2,29 +2,30 @@
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:layout_margin="@dimen/_2sdp"
     app:cardBackgroundColor="@color/white"
+    android:id="@+id/main"
     app:cardCornerRadius="0dp"
     app:cardElevation="0dp">
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/_100sdp"
         android:background="@color/white"
         android:layout_margin="@dimen/_2sdp">
 
         <ImageView
             android:id="@+id/imageViewMedia"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/_80sdp"
+            android:layout_height="@dimen/_100sdp"
             android:scaleType="centerCrop"
             android:src="#ededed" />
 
         <View
             android:id="@+id/selectView"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/_80sdp"
+            android:layout_height="match_parent"
             android:alpha="0.5"
             android:background="#444444"
             android:visibility="gone" />

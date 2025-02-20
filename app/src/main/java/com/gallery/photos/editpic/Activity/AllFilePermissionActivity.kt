@@ -14,9 +14,12 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import com.gallery.photos.editpic.Extensions.PREF_LANGUAGE_CODE
+import com.gallery.photos.editpic.Extensions.setLanguageCode
 import com.gallery.photos.editpic.Extensions.viewBinding
 import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.databinding.ActivityAllfilepermissionBinding
+import com.gallery.photos.editpic.myadsworld.MyAppOpenManager
 import java.util.Timer
 import java.util.TimerTask
 
@@ -29,6 +32,7 @@ class AllFilePermissionActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setLanguageCode(this, MyApplicationClass.getString(PREF_LANGUAGE_CODE)!!)
         setContentView(binding.root)
 
         shineAnimation()
@@ -117,6 +121,7 @@ class AllFilePermissionActivity : AppCompatActivity() {
 
     private fun onPermissionGranted() {
         permissionCheckTimer?.cancel()
+        MyAppOpenManager.appOpenAd = null
         startActivity(Intent(this, MainActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.graphics.Color
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AlertDialog
 import com.gallery.photos.editpic.Activity.MyApplicationClass
 import com.gallery.photos.editpic.Extensions.ANSWER
@@ -15,6 +16,7 @@ import com.gallery.photos.editpic.Extensions.onClick
 import com.gallery.photos.editpic.Extensions.tos
 import com.gallery.photos.editpic.Extensions.visible
 import com.gallery.photos.editpic.PopupDialog.TopQuesationsCustomPopup
+import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.databinding.SecurityQuebottomSheetLayoutBinding
 
 
@@ -42,11 +44,22 @@ class SecurityDialog(
         binding.apply {
             binding.tvSecurity.visibility = if (isFromReseat) View.GONE else View.VISIBLE
             binding.ivReset.visibility = if (isFromReseat) View.GONE else View.VISIBLE
-            binding.tvSave.text = if (isFromReseat) "Check" else "Save"
+            binding.tvSave.text =
+                if (isFromReseat) activity.getString(R.string.check) else activity.getString(R.string.save)
+
+            activity.delayTime(500) {
+                binding.edAnswer.requestFocus()  // Request focus on EditText
+                val imm = activity.getSystemService(InputMethodManager::class.java)
+                imm?.showSoftInput(
+                    binding.edAnswer, InputMethodManager.SHOW_IMPLICIT
+                )  // Show keyboard
+            }
 
             if (isFromReseat) {
                 tvQuestion.text = MyApplicationClass.getString(QUESATION)
                 tvCancel.visible()
+
+
             } else {
                 tvCancel.gone()
             }
@@ -77,7 +90,7 @@ class SecurityDialog(
                             edAnswer.setText("")
                             edAnswer.setTextColor(Color.BLACK)
                         }
-                        ("Wrong Answer").tos(activity)
+                        (activity.getString(R.string.wrong_answer)).tos(activity)
                     }
                 } else {
 
@@ -88,7 +101,7 @@ class SecurityDialog(
                         dialog?.dismiss()
                         callback(tvQuestion.text.toString().trim(), edittext.trim())
                     } else {
-                        ("Need to add answer").tos(activity)
+                        (activity.getString(R.string.need_to_add_answer)).tos(activity)
                     }
                 }
             }

@@ -16,22 +16,25 @@
 
         <ImageView
             android:id="@+id/ivBack"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="@dimen/_30sdp"
+            android:layout_height="@dimen/_30sdp"
             android:layout_gravity="center"
-            android:layout_marginStart="@dimen/_7sdp"
-            android:padding="@dimen/_6sdp"
+            android:layout_centerVertical="true"
+            android:adjustViewBounds="true"
+            android:background="@drawable/samsungripple"
+            android:padding="@dimen/_5sdp"
+            android:scaleType="fitCenter"
             android:src="@drawable/backicon"
             app:tint="@color/black" />
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_weight="1"
             android:fontFamily="@font/sans_regular"
+            android:layout_marginStart="@dimen/_10sdp"
             android:gravity="start"
-            android:text="Gallery Setting"
+            android:text="@string/settings"
             android:textColor="@color/black"
             android:textSize="@dimen/_17sdp" />
 
@@ -80,7 +83,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingStart="12dp"
-                android:text="Privacy Policy"
+                android:text="@string/privacy_policy"
                 android:textColor="@color/black"
                 android:textSize="16sp" />
         </LinearLayout>
@@ -108,7 +111,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingStart="12dp"
-                android:text="Share App"
+                android:text="@string/share_app"
                 android:textColor="@color/black"
                 android:textSize="16sp" />
         </LinearLayout>
@@ -135,7 +138,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingStart="12dp"
-                android:text="Language"
+                android:text="@string/language"
                 android:textColor="@color/black"
                 android:textSize="16sp" />
         </LinearLayout>
@@ -163,7 +166,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:paddingStart="12dp"
-                android:text="Hide Loker"
+                android:text="@string/hide_loker"
                 android:textColor="@color/black"
                 android:textSize="16sp" />
 

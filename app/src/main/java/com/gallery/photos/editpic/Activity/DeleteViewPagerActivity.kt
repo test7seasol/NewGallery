@@ -7,10 +7,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 import com.gallery.photos.editpic.Adapter.DeleteViewPagerAdapter
 import com.gallery.photos.editpic.Dialogs.DeleteWithRememberDialog
+import com.gallery.photos.editpic.Extensions.PREF_LANGUAGE_CODE
 import com.gallery.photos.editpic.Extensions.isVideoFile
 import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.name.getMediaDatabase
 import com.gallery.photos.editpic.Extensions.onClick
+import com.gallery.photos.editpic.Extensions.setLanguageCode
 import com.gallery.photos.editpic.Extensions.tos
 import com.gallery.photos.editpic.Model.DeleteMediaModel
 import com.gallery.photos.editpic.RoomDB.Dao.DeleteMediaDao
@@ -36,8 +38,10 @@ class DeleteViewPagerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setLanguageCode(this, MyApplicationClass.getString(PREF_LANGUAGE_CODE)!!)
         binding = ActivityDeleteviewPagerBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        applyStatusBarColor()
 
         imageListDelete = DeleteMediaStoreSingleton.deleteimageList
         viewpagerselectedPosition = DeleteMediaStoreSingleton.deleteselectedPosition
@@ -113,6 +117,13 @@ class DeleteViewPagerActivity : AppCompatActivity() {
                 Log.e("RestoreFile", "File not found: ${binFile.absolutePath}")
             }
         }
+    }
+
+    private fun applyStatusBarColor() {
+        window.statusBarColor =
+            resources.getColor(android.R.color.black, theme) // Set black status bar
+        window.decorView.systemUiVisibility = 0 // Ensures white text/icons
+        window.navigationBarColor = resources.getColor(android.R.color.black, theme)
     }
 
     // Function to format the date

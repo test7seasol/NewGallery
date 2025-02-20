@@ -14,15 +14,18 @@ import androidx.core.view.isVisible
 import com.gallery.photos.editpic.Adapter.RvFolderAdapter
 import com.gallery.photos.editpic.Adapter.RvInnerItemsAdapter
 import com.gallery.photos.editpic.Adapter.RvSelectItemsAdapter
+import com.gallery.photos.editpic.Extensions.PREF_LANGUAGE_CODE
 import com.gallery.photos.editpic.Extensions.gone
 import com.gallery.photos.editpic.Extensions.handleBackPress
 import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.onClick
+import com.gallery.photos.editpic.Extensions.setLanguageCode
 import com.gallery.photos.editpic.Extensions.toGson
 import com.gallery.photos.editpic.Extensions.tos
 import com.gallery.photos.editpic.Extensions.visible
 import com.gallery.photos.editpic.Model.FolderModelItem
 import com.gallery.photos.editpic.Model.MediaModelItem
+import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.Utils.MediaServices
 import com.gallery.photos.editpic.Utils.SelectionAlLPhotos.selectionArrayList
 import com.gallery.photos.editpic.databinding.ActivityAllimagesmediaBinding
@@ -44,6 +47,7 @@ class AllPhotosActivity : AppCompatActivity() {
     @SuppressLint("NotifyDataSetChanged", "SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setLanguageCode(this, MyApplicationClass.getString(PREF_LANGUAGE_CODE)!!)
         bind = ActivityAllimagesmediaBinding.inflate(layoutInflater)
         setContentView(bind.root)
         fromWhere = intent.extras!!.getString("from")!!
@@ -135,7 +139,7 @@ class AllPhotosActivity : AppCompatActivity() {
             }
 
             val progressDialog = ProgressDialog(this@AllPhotosActivity).apply {
-                setMessage("Processing files...")
+                setMessage(getString(R.string.processing_files))
                 setCancelable(false)
             }
 

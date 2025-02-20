@@ -4,7 +4,8 @@ plugins {
     id("kotlin-kapt")
     alias(libs.plugins.ksp)
     alias(libs.plugins.parcelize)
-
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -67,6 +68,10 @@ dependencies {
     //Glide
     implementation(libs.glide)
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.lifecycle.process)
+    implementation(libs.volley)
+    implementation(libs.firebase.common.ktx)
+    implementation(libs.firebase.crashlytics.ktx)
     annotationProcessor(libs.compiler)
 
     // ViewModel and LiveData
@@ -108,4 +113,6 @@ dependencies {
     //Editing Modul
     implementation("com.burhanrashid52:photoeditor:3.0.2")
 
+//     AD
+    implementation(libs.play.services.ads)
 }

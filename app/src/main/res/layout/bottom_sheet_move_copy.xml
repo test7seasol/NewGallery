@@ -30,7 +30,7 @@
                 android:id="@+id/tvTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Copy or move 1 image?"
+                android:text="@string/copy_or_move_1_image"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_12sdp" />
 
@@ -51,7 +51,7 @@
                     android:fontFamily="@font/sans_medium"
                     android:gravity="center"
                     android:padding="@dimen/_5sdp"
-                    android:text="Cancel"
+                    android:text="@string/cancel"
                     android:textColor="@color/black"
                     android:textSize="@dimen/_13sdp" />
 
@@ -65,7 +65,7 @@
                     android:fontFamily="@font/sans_medium"
                     android:gravity="center"
                     android:padding="@dimen/_5sdp"
-                    android:text="Copy"
+                    android:text="@string/copy"
                     android:textColor="@color/black"
                     android:textSize="@dimen/_13sdp" />
 
@@ -79,7 +79,7 @@
                     android:fontFamily="@font/sans_medium"
                     android:gravity="center"
                     android:padding="@dimen/_5sdp"
-                    android:text="Move"
+                    android:text="@string/move"
                     android:textColor="@color/black"
                     android:textSize="@dimen/_13sdp" />
 

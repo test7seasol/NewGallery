@@ -146,6 +146,13 @@ class RecentPictureAdapter(
         private val allItems: List<MediaListItem>
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(media: MediaModel) {
+
+            val displayMetrics = binding.root.context.resources.displayMetrics
+            val screenWidth = displayMetrics.widthPixels
+            val itemWidth = screenWidth / recentFragment!!.gridLayoutManager.spanCount
+            binding.root.layoutParams.height = itemWidth
+            binding.root.requestLayout()
+
             Glide.with(binding.imageViewMedia.context).load(media.mediaPath)
                 .placeholder(R.color.appgrey).error(R.color.appgrey).centerCrop()
                 .into(binding.imageViewMedia)
@@ -179,9 +186,8 @@ class RecentPictureAdapter(
 
             binding.root.setOnClickListener {
                 if (selectedItems.isEmpty()) {
-                    val mediaList =
-                        allItems.filterIsInstance<MediaListItem.Media>().map { it.media }
-                    val correctPosition = mediaList.indexOf(media) // Find actual media index
+                    val mediaList = currentList.filterIsInstance<MediaListItem.Media>().map { it.media }
+                    val correctPosition = mediaList.indexOf(media)
 
                     if (correctPosition != -1) {
                         Log.e(
@@ -254,7 +260,8 @@ class RecentPictureAdapter(
             selectedItems.clear() // Deselect all if already selected
             disableSelectionMode() // Exit selection mode if everything is deselected
         } else {
-            activity.findViewById<TextView>(R.id.tvSelection).setText("Pictures")
+            activity.findViewById<TextView>(R.id.tvSelection)
+                .setText(activity.getString(R.string.pictures))
             selectedItems.clear()
             selectedItems.addAll(allItems)
             activity.findViewById<TextView>(R.id.tvSelection).text =
@@ -365,12 +372,10 @@ class RecentPictureAdapter(
     fun deleteSelectedItems() {
         if (selectedItems.isEmpty()) return
 
-        val updatedList = currentList.filter {
-            it !is MediaListItem.Media || !selectedItems.contains(it.media)
-        }
+        val updatedList = ArrayList(currentList) // Create a new list instance
+        updatedList.removeAll { it is MediaListItem.Media && selectedItems.contains(it.media) }
+        submitList(updatedList.toList()) // Ensure a new list is passed
 
-        selectedItems.clear() // Clear the selection after deletion
-        submitList(updatedList) // Update the adapter with the new list
         disableSelectionMode() // Exit selection mode
     }
 

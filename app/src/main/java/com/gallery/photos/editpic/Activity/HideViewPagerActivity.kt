@@ -6,14 +6,17 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 import com.gallery.photos.editpic.Adapter.HideViewPagerAdapter
 import com.gallery.photos.editpic.Dialogs.DeleteWithRememberDialog
+import com.gallery.photos.editpic.Extensions.PREF_LANGUAGE_CODE
 import com.gallery.photos.editpic.Extensions.beGone
 import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.name.getMediaDatabase
 import com.gallery.photos.editpic.Extensions.onClick
+import com.gallery.photos.editpic.Extensions.setLanguageCode
 import com.gallery.photos.editpic.Extensions.shareFile
 import com.gallery.photos.editpic.Extensions.tos
 import com.gallery.photos.editpic.Model.HideMediaModel
 import com.gallery.photos.editpic.PopupDialog.TopMenuHideCustomPopup
+import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.RoomDB.Dao.HideMediaDao
 import com.gallery.photos.editpic.Utils.DeleteMediaStoreSingleton.deleteselectedPosition
 import com.gallery.photos.editpic.Utils.HideMediaStoreSingleton
@@ -33,6 +36,7 @@ class HideViewPagerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setLanguageCode(this, MyApplicationClass.getString(PREF_LANGUAGE_CODE)!!)
         binding = ActivityHideviewPagerBinding.inflate(layoutInflater)
         setContentView(binding.root)
         applyStatusBarColor()
@@ -126,7 +130,7 @@ class HideViewPagerActivity : AppCompatActivity() {
                     hideMediaDao!!.deleteMedia(mediaItem)  // Remove from Room database
 
                     runOnUiThread {
-                        ("File permanently deleted").tos(this@HideViewPagerActivity)
+                        (getString(R.string.file_permanently_deleted)).tos(this@HideViewPagerActivity)
                         hideImageListDelete.removeAt(viewpagerselectedPosition)
 //                        DeleteMediaStoreSingleton.deleteimageList.removeAt(viewpagerselectedPosition)
                         try {

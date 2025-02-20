@@ -47,7 +47,7 @@
                 android:layout_height="wrap_content"
                 android:background="?selectableItemBackground"
                 android:padding="@dimen/_7sdp"
-                android:text="Group by"
+                android:text="@string/group_by"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_12sdp" />
 
@@ -76,7 +76,7 @@
                 android:layout_height="wrap_content"
                 android:background="?selectableItemBackground"
                 android:padding="@dimen/_7sdp"
-                android:text="Change view type"
+                android:text="@string/change_view_type"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_12sdp" />
 
@@ -105,7 +105,7 @@
                 android:layout_height="wrap_content"
                 android:background="?selectableItemBackground"
                 android:padding="@dimen/_7sdp"
-                android:text="Column count"
+                android:text="@string/column_count"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_12sdp" />
 
@@ -156,7 +156,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="@dimen/_7sdp"
-                android:text="Select all"
+                android:text="@string/select_all"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_12sdp" />
 

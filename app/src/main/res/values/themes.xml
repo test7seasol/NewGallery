@@ -12,8 +12,77 @@
         <item name="cardBackgroundColor">@color/white</item>
     </style>
 
+    <style name="WheelPicker">
+        <item name="wheel_atmospheric">true</item>
+        <item name="wheel_curved">true</item>
+        <item name="wheel_cyclic">true</item>
+        <item name="wheel_item_space">24dp</item>
+        <item name="wheel_item_text_color">#bfbfbf</item>
+        <item name="wheel_item_text_size">16sp</item>
+        <item name="wheel_selected_item_text_color">#000</item>
+        <item name="wheel_visible_item_count">3</item>
+    </style>
+
+    <style name="CdoAppTheme1" parent="@style/Theme.VoiceRecorder1">
+        <item name="android:statusBarColor">@color/backgroundDark</item>
+        <item name="android:navigationBarColor">@color/backgroundDark</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+
+    <style name="Theme.VoiceRecorder1" parent="@style/Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowDisablePreview">true</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:forceDarkAllowed">false</item>
+        <item name="android:statusBarColor">@color/white</item>
+        <!--        <item name="colorAccent">@color/tools_theme</item>-->
+        <!--        <item name="colorOnPrimary">@color/bgcolor</item>-->
+        <!--        <item name="colorOnSecondary">@color/tint_icon_color</item>-->
+        <!--        <item name="colorPrimary">@color/app_color</item>-->
+        <!--        <item name="colorPrimaryVariant">@color/app_color</item>-->
+        <!--        <item name="colorSecondary">@color/app_color</item>-->
+        <!--        <item name="colorSecondaryVariant">@color/app_color</item>-->
+    </style>
+
+    <style name="roundedImageViewRounded">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <style name="textTest2" parent="@style/TextAppearance.AppCompat">
+        <item name="android:textColor">#aaaaaa</item>
+    </style>
+
+
+    <style name="Widget.CalendarView.Custom" parent="@android:style/Widget.DeviceDefault.Light.CalendarView">
+        <item name="android:textColorPrimary">#5e99a0</item>
+        <item name="android:titleTextStyle">@style/textTest</item>
+        <item name="android:weekDayTextAppearance">@style/textTest2</item>
+        <item name="android:dateTextAppearance">@style/textTest</item>
+        <item name="android:colorPrimary">#ffffff</item>
+        <item name="colorAccent">#5e99a0</item>
+    </style>
+
+    <style name="textTest" parent="@style/TextAppearance.AppCompat">
+        <item name="android:textColor">@color/black</item>
+    </style>
+
     <style name="Theme.GalleryEkta" parent="Base.Theme.GalleryEkta" />
 
+    <style name="gnt_RatingBar" parent="android:style/Widget.Material.RatingBar.Small">
+
+        <item name="colorControlNormal">@color/gnt_gray</item>
+        <item name="colorControlActivated">#038B8B</item>
+
+    </style>
+
+    <style name="exitAddialog_style" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowMinWidthMajor">100%</item>
+        <item name="android:windowMinWidthMinor">100%</item>
+        <item name="behavior_peekHeight">@dimen/_500sdp</item>
+    </style>
 
     <style name="AppTheme.TransparentWindow" parent="@style/Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowBackground">@android:color/transparent</item>

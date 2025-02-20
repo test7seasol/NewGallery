@@ -26,6 +26,6 @@
       applicationId="com.andrognito.patternlockview"
       generatedSourceFolders="build\generated\ap_generated_sources\release\out"
       generatedResourceFolders="build\generated\res\resValues\release"
-      desugaredMethodsFiles="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\b06e70f6390dec9d9f4e16462f426d70\transformed\D8BackportedDesugaredMethods.txt">
+      desugaredMethodsFiles="C:\Users\DREAMWORLD\.gradle\caches\transforms-4\45ab70c2ff404c94eccb408df2a98188\transformed\D8BackportedDesugaredMethods.txt">
   </artifact>
 </variant>

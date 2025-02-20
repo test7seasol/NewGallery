@@ -7,6 +7,7 @@ import android.content.res.Configuration
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.util.Log
+import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
 import com.gallery.photos.editpic.Activity.MyApplicationClass
 import com.gallery.photos.editpic.Model.FavouriteMediaModel
@@ -32,6 +33,13 @@ var ANSWER = "ANSWER"
 fun isVideoFile(filePath: String): Boolean {
     val videoExtensions = listOf("mp4", "mkv", "avi", "mov", "wmv", "flv", "3gp", "webm")
     return videoExtensions.any { filePath.endsWith(".$it", ignoreCase = true) }
+}
+
+fun getMimeTypeFromPath(filePath: String): String? {
+    val file = File(filePath)
+    val extension = file.extension.lowercase()
+
+    return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
 }
 
 

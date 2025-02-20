@@ -10,20 +10,20 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:background="@color/white">
 
         <ImageView
             android:id="@+id/imageViewMedia"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/_90sdp"
+            android:layout_height="match_parent"
             android:scaleType="centerCrop"
             android:src="#ededed" />
 
         <View
             android:id="@+id/selectView"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/_90sdp"
+            android:layout_height="@dimen/_100sdp"
             android:alpha="0.5"
             android:background="#444444"
             android:visibility="gone" />

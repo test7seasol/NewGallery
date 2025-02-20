@@ -7,20 +7,25 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
+import android.view.ScaleGestureDetector
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.GridLayoutManager
 import com.gallery.photos.editpic.Adapter.PictureAdapter
 import com.gallery.photos.editpic.Dialogs.DeleteWithRememberDialog
 import com.gallery.photos.editpic.Dialogs.SlideShowDialog
+import com.gallery.photos.editpic.Extensions.PREF_LANGUAGE_CODE
 import com.gallery.photos.editpic.Extensions.gone
 import com.gallery.photos.editpic.Extensions.handleBackPress
 import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.name.getMediaDatabase
 import com.gallery.photos.editpic.Extensions.notifyGalleryRoot
 import com.gallery.photos.editpic.Extensions.onClick
+import com.gallery.photos.editpic.Extensions.setLanguageCode
 import com.gallery.photos.editpic.Extensions.shareMultipleFiles
 import com.gallery.photos.editpic.Extensions.tos
 import com.gallery.photos.editpic.Extensions.visible
@@ -29,6 +34,7 @@ import com.gallery.photos.editpic.Model.FavouriteMediaModel
 import com.gallery.photos.editpic.Model.MediaModel
 import com.gallery.photos.editpic.PopupDialog.PicturesBottomPopup
 import com.gallery.photos.editpic.PopupDialog.TopMenuPicturesCustomPopup
+import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.RoomDB.Dao.DeleteMediaDao
 import com.gallery.photos.editpic.Utils.MediaStoreSingleton
 import com.gallery.photos.editpic.Utils.SelectionAlLPhotos.selectionArrayList
@@ -91,7 +97,7 @@ class PictureActivity : AppCompatActivity() {
                         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).path
                     )
                     mediaViewModel.loadMedia(intent.getStringExtra("BUCKET_ID") ?: "")
-                    ("Album created successfully").tos(this)
+                    (getString(R.string.album_created_successfully)).tos(this)
                 }
             } else {
                 Log.d("ActivityResult", "Result canceled or failed")
@@ -101,6 +107,7 @@ class PictureActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setLanguageCode(this, MyApplicationClass.getString(PREF_LANGUAGE_CODE)!!)
         binding = ActivityPictureBinding.inflate(layoutInflater)
         setContentView(binding.root)
         deleteMediaDao = getMediaDatabase(this).deleteMediaDao()
@@ -117,7 +124,8 @@ class PictureActivity : AppCompatActivity() {
             if (it) {
                 binding.picturesselectedcontainerid.visible()
             } else {
-                binding.tvAlbumName.text = intent.getStringExtra("folderName") ?: "Photos"
+                binding.tvAlbumName.text =
+                    intent.getStringExtra("folderName") ?: getString(R.string.photos)
                 binding.picturesselectedcontainerid.gone()
             }
         }
@@ -131,6 +139,7 @@ class PictureActivity : AppCompatActivity() {
         }
 
         setupRecyclerView()
+        setupPinchToZoomGesture()
         observeMedia()
 
         // Handle item click to open ViewPagerActivity
@@ -145,7 +154,7 @@ class PictureActivity : AppCompatActivity() {
                 if (selectedFiles.size <= 100) {
                     shareMultipleFiles(selectedFiles, this@PictureActivity)
                 } else {
-                    ("Max selection limit is 100").tos(this@PictureActivity)
+                    (getString(R.string.max_selection_limit_is_100)).tos(this@PictureActivity)
                 }
             }
 
@@ -156,7 +165,7 @@ class PictureActivity : AppCompatActivity() {
                             pictureAdapter!!.unselectAllItems()
                             binding.picturesselectedcontainerid.gone()
                             binding.tvAlbumName.text =
-                                intent.getStringExtra("folderName") ?: "Photos"
+                                intent.getStringExtra("folderName") ?: getString(R.string.photos)
                         }
 
                         "selectallid" -> {
@@ -176,7 +185,7 @@ class PictureActivity : AppCompatActivity() {
                             )
                             pictureAdapter!!.unselectAllItems()
                             binding.tvAlbumName.text =
-                                intent.getStringExtra("folderName") ?: "Photos"
+                                intent.getStringExtra("folderName") ?: getString(R.string.photos)
                             binding.picturesselectedcontainerid.gone()
                         }
 
@@ -192,7 +201,7 @@ class PictureActivity : AppCompatActivity() {
 
                             pictureAdapter!!.unselectAllItems()
                             binding.tvAlbumName.text =
-                                intent.getStringExtra("folderName") ?: "Photos"
+                                intent.getStringExtra("folderName") ?: getString(R.string.photos)
                             binding.picturesselectedcontainerid.gone()
 
                         }
@@ -209,7 +218,7 @@ class PictureActivity : AppCompatActivity() {
                         CoroutineScope(Dispatchers.Main).launch {
                             // Show Progress Dialog
                             val progressDialog = ProgressDialog(this@PictureActivity)
-                            progressDialog.setMessage("Deleting files...")
+                            progressDialog.setMessage(getString(R.string.deleting_files))
                             progressDialog.setCancelable(false)
                             progressDialog.show()
 
@@ -239,11 +248,11 @@ class PictureActivity : AppCompatActivity() {
                             pictureAdapter!!.deleteSelectedItems()
                             pictureAdapter!!.unselectAllItems()
                             binding.tvAlbumName.text =
-                                intent.getStringExtra("folderName") ?: "Photos"
+                                intent.getStringExtra("folderName") ?: getString(R.string.photos)
                         }
                     }
                 } else {
-                    ("Max selection limit is 100").tos(this@PictureActivity)
+                    (getString(R.string.max_selection_limit_is_100)).tos(this@PictureActivity)
                 }
             }
 
@@ -356,10 +365,48 @@ class PictureActivity : AppCompatActivity() {
         mediaViewModel.loadMedia(intent.getStringExtra("BUCKET_ID") ?: "")
     }
 
-    private fun setupRecyclerView() {
-        binding.recyclerViewPictures.adapter = pictureAdapter
-    }
+    lateinit var gridLayoutManager: GridLayoutManager
+    private lateinit var scaleGestureDetector: ScaleGestureDetector
+    private var currentSpanCount = 3  // Default span count
+    private val minSpanCount = 2
+    private val maxSpanCount = 6
 
+
+
+    private fun setupRecyclerView() {
+
+        gridLayoutManager = GridLayoutManager(this@PictureActivity, currentSpanCount) // Initialize it here
+
+        binding.recyclerViewPictures.apply {
+            layoutManager = gridLayoutManager // Assign it to RecyclerView
+            adapter = pictureAdapter
+        }
+
+        binding.recyclerViewPictures.scheduleLayoutAnimation()
+
+    }
+    private fun setupPinchToZoomGesture() {
+        scaleGestureDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+            override fun onScale(detector: ScaleGestureDetector): Boolean {
+                val scaleFactor = detector.scaleFactor
+
+                if (scaleFactor > 1 && currentSpanCount > minSpanCount) {
+                    currentSpanCount--
+                } else if (scaleFactor < 1 && currentSpanCount < maxSpanCount) {
+                    currentSpanCount++
+                }
+
+                gridLayoutManager.spanCount = currentSpanCount
+                binding.recyclerViewPictures.adapter?.notifyDataSetChanged()
+                return true
+            }
+        })
+
+        binding.recyclerViewPictures.setOnTouchListener { _, event ->
+            scaleGestureDetector.onTouchEvent(event)
+            false
+        }
+    }
     @SuppressLint("NotifyDataSetChanged")
     private fun observeMedia() {
         lifecycleScope.launch {

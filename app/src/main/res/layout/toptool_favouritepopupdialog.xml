@@ -156,7 +156,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="@dimen/_7sdp"
-                android:text="Select all"
+                android:text="@string/select_all"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_12sdp" />
 
@@ -186,7 +186,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="@dimen/_7sdp"
-                android:text="Start slideshow"
+                android:text="@string/start_slideshow"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_12sdp" />
 

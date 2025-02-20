@@ -8,7 +8,7 @@
     android:layout_centerInParent="true"
     android:layout_margin="@dimen/big_margin"
     android:alpha="0"
-    android:text="Failed to load media"
+    android:text="@string/failed_to_load_media"
     android:textAlignment="center"
     android:visibility="gone"
     app:drawableTopCompat="@drawable/ic_vector_warning_colored"

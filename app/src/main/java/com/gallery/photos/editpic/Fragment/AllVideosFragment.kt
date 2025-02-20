@@ -23,6 +23,7 @@ import com.gallery.photos.editpic.Adapter.VideoAdapter
 import com.gallery.photos.editpic.Dialogs.DeleteWithRememberDialog
 import com.gallery.photos.editpic.Extensions.formatDate
 import com.gallery.photos.editpic.Extensions.gone
+import com.gallery.photos.editpic.Extensions.isVideoFile
 import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.name.getMediaDatabase
 import com.gallery.photos.editpic.Extensions.notifyGalleryRoot
@@ -36,6 +37,7 @@ import com.gallery.photos.editpic.PopupDialog.PicturesBottomPopup
 import com.gallery.photos.editpic.PopupDialog.TopMenuVideosCustomPopup
 import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.RoomDB.Dao.DeleteMediaDao
+import com.gallery.photos.editpic.RoomDB.Dao.FavouriteMediaDao
 import com.gallery.photos.editpic.Utils.SelectionAlLPhotos.selectionArrayList
 import com.gallery.photos.editpic.Utils.VideoMediaStoreSingleton
 import com.gallery.photos.editpic.ViewModel.VideoViewModel
@@ -60,6 +62,7 @@ class AllVideosFragment : Fragment() {
     private var favouriteList: ArrayList<FavouriteMediaModel> = arrayListOf()
     var deleteMediaModel: DeleteMediaModel? = null
     var deleteMediaDao: DeleteMediaDao? = null
+    private lateinit var favouriteMediaDao: FavouriteMediaDao
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -119,6 +122,7 @@ class AllVideosFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
+        favouriteMediaDao = getMediaDatabase(requireActivity()).favouriteMediaDao()
         observeViewModel()
         setUpListioner()
         viewModel.loadAllVideos()
@@ -161,38 +165,55 @@ class AllVideosFragment : Fragment() {
                 if (selectedFiles.size <= 100) {
                     shareMultipleFilesVideo(selectedFiles, requireActivity())
                 } else {
-                    ("Max selection limit is 100").tos(requireActivity())
+                    (getString(R.string.max_selection_limit_is_100)).tos(requireActivity())
                 }
             }
 
-            llDelete.onClick {
+            llDelete.setOnClickListener {
                 val selectedFiles = videoAdapter.selectedItems.distinctBy { it.videoPath }
+
                 if (selectedFiles.size <= 100) {
                     DeleteWithRememberDialog(requireActivity(), false) {
                         CoroutineScope(Dispatchers.Main).launch {
                             // Show Progress Dialog
-                            val progressDialog = ProgressDialog(requireActivity())
-                            progressDialog.setMessage("Deleting files...")
-                            progressDialog.setCancelable(false)
-                            progressDialog.show()
+                            val progressDialog = ProgressDialog(requireActivity()).apply {
+                                setMessage(getString(R.string.deleting_files))
+                                setCancelable(false)
+                                show()
+                            }
 
                             withContext(Dispatchers.IO) {
-                                val deletionJobs = videoAdapter.selectedItems.map {
+                                val deletionJobs = selectedFiles.map { mediaItem ->
                                     async {
-                                        deleteMediaModel!!.apply {
-                                            mediaId = it.videoId
-                                            mediaName = it.videoName
-                                            mediaPath = it.videoPath
-                                            mediaMimeType = "mp4"
-                                            mediaDateAdded = it.videoDateAdded
-                                            isVideo = true
-                                            displayDate = formatDate(it.videoDateAdded)
-                                            isSelect = it.isSelect
+                                        val deleteMediaModel = DeleteMediaModel(
+                                            mediaId = mediaItem.videoId,
+                                            mediaName = mediaItem.videoName,
+                                            mediaPath = mediaItem.videoPath,
+                                            mediaMimeType = "mp4",
+                                            mediaDateAdded = mediaItem.videoDateAdded,
+                                            isVideo = isVideoFile(mediaItem.videoPath),
+                                            displayDate = formatDate(mediaItem.videoDateAdded),
+                                            isSelect = mediaItem.isSelect
+                                        )
+
+                                        val isMoved = moveToRecycleBin(deleteMediaModel.mediaPath)
+                                        if (isMoved) {
+                                            deleteMediaModel.binPath = File(
+                                                createRecycleBin(), mediaItem.videoName
+                                            ).absolutePath
+                                            deleteMediaDao!!.insertMedia(deleteMediaModel)  // Insert into Recycle Bin
+
+                                            favouriteMediaDao.getMediaById(mediaItem.videoId)
+                                                ?.let { it1 -> favouriteMediaDao.deleteMedia(it1) }
+
+                                        } else {
+                                            Log.e(
+                                                "FileDeletion",
+                                                "Failed to move file: ${deleteMediaModel.mediaPath}"
+                                            )
                                         }
-                                        moveToRecycleBin(deleteMediaModel!!.mediaPath)
                                     }
                                 }
-
                                 // Wait for all deletion tasks to complete
                                 deletionJobs.awaitAll()
                             }
@@ -201,12 +222,12 @@ class AllVideosFragment : Fragment() {
                             progressDialog.dismiss()
                             videoAdapter.deleteSelectedItems()
                             videoAdapter.unselectAllItems()
-                            binding.tvTitalVideo.text = "Videos"
-                            viewModel.loadAllVideos()
+                            tvTitalVideo.text = getString(R.string.videos)
+//                            viewModel.loadRecentMedia()
                         }
                     }
                 } else {
-                    ("Max selection limit is 100").tos(requireActivity())
+                    (getString(R.string.max_selection_limit_is_100)).tos(requireActivity())
                 }
             }
 
@@ -220,7 +241,7 @@ class AllVideosFragment : Fragment() {
                                 .visible()
 //                            binding.ivSearch.visible()
                             binding.menuDot.visible()
-                            binding.tvTitalVideo.text = "Videos"
+                            binding.tvTitalVideo.text = getString(R.string.videos)
                         }
 
                         "selectallid" -> {
@@ -244,7 +265,7 @@ class AllVideosFragment : Fragment() {
                             binding.selectedcontainerVideo.gone()
 //                            binding.ivSearch.visible()
                             binding.menuDot.visible()
-                            binding.tvTitalVideo.text = "Videos"
+                            binding.tvTitalVideo.text = getString(R.string.videos)
                         }
 
                         "copytoid" -> {
@@ -263,7 +284,7 @@ class AllVideosFragment : Fragment() {
                             binding.selectedcontainerVideo.gone()
 //                            binding.ivSearch.visible()
                             binding.menuDot.visible()
-                            binding.tvTitalVideo.text = "Videos"
+                            binding.tvTitalVideo.text = getString(R.string.videos)
                         }
                     }
                 }
@@ -305,34 +326,20 @@ class AllVideosFragment : Fragment() {
 
             if (originalFile.delete()) {
                 Log.d("MoveToRecycleBin", "Original file deleted: ${originalFile.absolutePath}")
+                true
             } else {
                 Log.e(
                     "MoveToRecycleBin",
                     "Failed to delete original file: ${originalFile.absolutePath}"
                 )
+                false
             }
-
-            CoroutineScope(Dispatchers.IO).launch {
-
-                Log.d("MoveToRecycleBin", "Inserting media record into Room database.")
-                deleteMediaModel!!.binPath = recycledFile.absolutePath
-//                videoMediaModel!!.randomMediaId = randomMediaId
-
-                deleteMediaDao!!.insertMedia(deleteMediaModel!!)  // Save path for restoration
-//                imageList.removeAt(viewpagerselectedPosition)
-//                MediaStoreSingleton.imageList.removeAt(viewpagerselectedPosition)
-//                requireActivity().runOnUiThread {
-////                    binding.viewPager.currentItem = viewpagerselectedPosition + 1
-//                }
-                Log.d("MoveToRecycleBin", "Media record inserted into Room database.")
-            }
-            true
         } catch (e: IOException) {
-            Log.e("MoveToRecycleBin", "IOException occurred: ${e.message}")
-            e.printStackTrace()
+            Log.e("MoveToRecycleBin", "IOException occurred: ${e.message}", e)
             false
         }
     }
+
 
     override fun onResume() {
         super.onResume()
@@ -352,7 +359,7 @@ class AllVideosFragment : Fragment() {
                 binding.menuDot.gone()
 
             } else {
-                binding.tvTitalVideo.text = "Videos"
+                binding.tvTitalVideo.text = getString(R.string.videos)
 //                binding.ivSearch.visible()
                 binding.menuDot.visible()
                 binding.selectedcontainerVideo.gone()

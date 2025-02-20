@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.gallery.photos.editpic.Extensions.onClick
+import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.databinding.PictureRecentBottomPopupBinding
 import com.labo.kaji.relativepopupwindow.RelativePopupWindow
 
@@ -54,9 +55,9 @@ class PicturesBottomPopup(
         binding.apply {
 
             if (selectedSize) {
-                tvSelect.text = "Select all"
+                tvSelect.text = activity.getString(R.string.select_all)
             } else {
-                tvSelect.text = "Deselect all"
+                tvSelect.text = activity.getString(R.string.deselect_all)
             }
 
             llCopy.onClick {

@@ -6,7 +6,11 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
+import android.widget.RelativeLayout
+import com.gallery.photos.editpic.Extensions.gone
 import com.gallery.photos.editpic.Extensions.tos
+import com.gallery.photos.editpic.Extensions.visible
+import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.databinding.DialogCreateNewFolderBinding
 import java.io.File
 import java.io.FileInputStream
@@ -34,12 +38,20 @@ class CreateNewFolderDialog(
             )
         }
 
+
+        activity.findViewById<RelativeLayout>(R.id.mainTopTabsContainer).gone()
+        activity.findViewById<RelativeLayout>(R.id.footer).gone()
+
         view.root.post {
             view.edAlbum.requestFocus()
             showKeyboard(activity, view.edAlbum)
         }
 
-        view.tvCancel.setOnClickListener { dialog.dismiss() }
+        view.tvCancel.setOnClickListener {
+            activity.findViewById<RelativeLayout>(R.id.mainTopTabsContainer).visible()
+            activity.findViewById<RelativeLayout>(R.id.footer).visible()
+            dialog.dismiss()
+        }
 
         view.tvCreate.setOnClickListener {
             val folderName = view.edAlbum.text.toString().trim()
@@ -59,13 +71,13 @@ class CreateNewFolderDialog(
                 }
             } else {
                 if (folderName.isEmpty()) {
-                    ("Please enter a valid album name").tos(activity)
+                    (activity.getString(R.string.please_enter_a_valid_album_name)).tos(activity)
                 } else {
                     val newFolderPath = "$initialPath/$folderName"
                     val newFolder = File(newFolderPath)
 
                     if (newFolder.exists()) {
-                        ("Folder already exists").tos(activity)
+                        (activity.getString(R.string.folder_already_exists)).tos(activity)
                     } else {
                         if (newFolder.mkdirs()) {
                             if (isFromWhere == "Move") {
@@ -76,7 +88,7 @@ class CreateNewFolderDialog(
                             callback(newFolderPath)
                             dialog.dismiss()
                         } else {
-                            ("Could not create folder").tos(activity)
+                            (activity.getString(R.string.could_not_create_folder)).tos(activity)
                         }
                     }
                 }
@@ -123,7 +135,9 @@ class CreateNewFolderDialog(
 
             activity.runOnUiThread {
                 progressDialog.dismiss()
-                if (allSuccess) ("Files moved successfully").tos(activity) else ("Some files failed to move").tos(
+                if (allSuccess) (activity.getString(R.string.files_moved_successfully)).tos(activity) else (activity.getString(
+                    R.string.some_files_failed_to_move
+                )).tos(
                     activity
                 )
             }
@@ -131,7 +145,7 @@ class CreateNewFolderDialog(
     }
 
     private fun copyFilesToNewFolder(filePaths: List<String>, destinationFolder: String) {
-        showProgressDialog("Copying files...", filePaths.size) { progressDialog ->
+        showProgressDialog(activity.getString(R.string.copying_files), filePaths.size) { progressDialog ->
             var progress = 0
             var allSuccess = true
 
@@ -162,7 +176,9 @@ class CreateNewFolderDialog(
 
             activity.runOnUiThread {
                 progressDialog.dismiss()
-                if (allSuccess) ("Files copied successfully").tos(activity) else ("Some files failed to copy").tos(
+                if (allSuccess) (activity.getString(R.string.files_copied_successfully)).tos(activity) else (activity.getString(
+                    R.string.some_files_failed_to_copy
+                )).tos(
                     activity
                 )
             }

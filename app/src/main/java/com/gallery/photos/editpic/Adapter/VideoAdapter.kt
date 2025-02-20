@@ -119,7 +119,8 @@ class VideoAdapter(var activity: AllVideosFragment, var onItemClick: (VideoModel
             disableSelectionMode() // Exit selection mode if everythi
             // ng is deselected
         } else {
-            activity.requireActivity().findViewById<TextView>(R.id.tvTitalVideo).setText("Videos")
+            activity.requireActivity().findViewById<TextView>(R.id.tvTitalVideo)
+                .setText(activity.getString(R.string.videos))
             selectedItems.clear()
             selectedItems.addAll(allItems)
             activity.requireActivity().findViewById<TextView>(R.id.tvTitalVideo).text =

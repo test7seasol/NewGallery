@@ -11,7 +11,7 @@
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
-        android:layout_height="@dimen/_90sdp"
+        android:layout_height="@dimen/_100sdp"
         app:cardCornerRadius="@dimen/_8sdp"
         app:cardElevation="2dp">
 
@@ -25,7 +25,6 @@
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
                 android:src="@color/ripple_color" />
-
 
             <View
                 android:id="@+id/selectView"

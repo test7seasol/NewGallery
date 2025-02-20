@@ -15,9 +15,12 @@ import android.view.animation.AnimationUtils
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.gallery.photos.editpic.Extensions.PREF_LANGUAGE_CODE
+import com.gallery.photos.editpic.Extensions.setLanguageCode
 import com.gallery.photos.editpic.Extensions.viewBinding
 import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.databinding.ActivityPermissionBinding
+import com.gallery.photos.editpic.myadsworld.MyAppOpenManager
 
 
 class PermissionActivity : AppCompatActivity() {
@@ -37,6 +40,7 @@ class PermissionActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setLanguageCode(this, MyApplicationClass.getString(PREF_LANGUAGE_CODE)!!)
         setContentView(binding.root)
 
         shineAnimation()
@@ -73,6 +77,8 @@ class PermissionActivity : AppCompatActivity() {
     }
 
     private fun goToNextActivity() {
+        MyAppOpenManager.appOpenAd = null
+
         handler.removeCallbacks(checkOverlayPermissionRunnable)  // Stop checking
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             startActivity(Intent(this, AllFilePermissionActivity::class.java).apply {

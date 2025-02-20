@@ -77,6 +77,10 @@ class TopMenuRecycleBinCustomPopup(
                 onClick.invoke("recyclebinid")
                 dismiss()
             }
+            tvSelectAll.onClick {
+                onClick.invoke("tvSelectAll")
+                dismiss()
+            }
         }
     }
 

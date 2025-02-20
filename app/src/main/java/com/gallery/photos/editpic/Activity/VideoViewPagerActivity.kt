@@ -11,10 +11,12 @@ import com.gallery.photos.editpic.Adapter.VideoDisplayAdapter
 import com.gallery.photos.editpic.Adapter.VideoPreviousNext
 import com.gallery.photos.editpic.Dialogs.DeleteWithRememberDialog
 import com.gallery.photos.editpic.Dialogs.PropertiesDialog
+import com.gallery.photos.editpic.Extensions.PREF_LANGUAGE_CODE
 import com.gallery.photos.editpic.Extensions.formatDate
 import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.name.getMediaDatabase
 import com.gallery.photos.editpic.Extensions.onClick
+import com.gallery.photos.editpic.Extensions.setLanguageCode
 import com.gallery.photos.editpic.Extensions.shareFile
 import com.gallery.photos.editpic.Model.DeleteMediaModel
 import com.gallery.photos.editpic.Model.FavouriteMediaModel
@@ -53,6 +55,7 @@ class VideoViewPagerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setLanguageCode(this, MyApplicationClass.getString(PREF_LANGUAGE_CODE)!!)
         binding = ActivityVideoviewPagerBinding.inflate(layoutInflater)
         setContentView(binding.root)
         applyStatusBarColor()
@@ -61,7 +64,7 @@ class VideoViewPagerActivity : AppCompatActivity() {
         favouriteMediaDao = getMediaDatabase(this).favouriteMediaDao()
         imageListVideo = VideoMediaStoreSingleton.videoimageList
         viewpagerselectedPosition = VideoMediaStoreSingleton.videoselectedPosition
-
+        videoMediaModel = VideoModel()
         deleteMediaModel = DeleteMediaModel()
         hideMediaModel = HideMediaModel()
 
@@ -91,13 +94,13 @@ class VideoViewPagerActivity : AppCompatActivity() {
             bottomActions.bottomProperties.onClick {
                 PropertiesDialog(
                     this@VideoViewPagerActivity, MediaModel(
-                        mediaId = videoMediaModel!!.videoId,
-                        mediaName = videoMediaModel!!.videoName,
-                        mediaPath = videoMediaModel!!.videoPath,
+                        mediaId = imageListVideo[viewpagerselectedPosition]!!.videoId,
+                        mediaName = imageListVideo[viewpagerselectedPosition]!!.videoName,
+                        mediaPath = imageListVideo[viewpagerselectedPosition]!!.videoPath,
                         mediaMimeType = "mp4",
-                        mediaDateAdded = videoMediaModel!!.videoDateAdded,
+                        mediaDateAdded = imageListVideo[viewpagerselectedPosition]!!.videoDateAdded,
                         isVideo = true,
-                        displayDate = formatDate(videoMediaModel!!.videoDateAdded),
+                        displayDate = formatDate(imageListVideo[viewpagerselectedPosition]!!.videoDateAdded),
                         isSelect = false,
                         isFav = false
                     )
@@ -194,6 +197,7 @@ class VideoViewPagerActivity : AppCompatActivity() {
             hideMediaModel!!.displayDate = formatDate(videoDateAdded)
             hideMediaModel!!.isSelect = isSelect
         }
+
 
         CoroutineScope(Dispatchers.IO).launch {
             favouriteMediaDao!!.getMediaById(hideMediaModel!!.mediaId)

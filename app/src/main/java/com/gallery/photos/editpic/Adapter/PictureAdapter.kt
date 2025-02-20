@@ -1,7 +1,6 @@
 package com.gallery.photos.editpic.Adapter
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -20,7 +19,7 @@ import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.databinding.ItemPictureBinding
 
 class PictureAdapter(
-    var activity: Activity,
+    var activity: PictureActivity,
     private val onLongItemClick: (Boolean) -> Unit
 ) :
     ListAdapter<MediaModel, PictureAdapter.PictureViewHolder>(DiffCallback()) {
@@ -28,7 +27,70 @@ class PictureAdapter(
     var onItemClick: ((MediaModel) -> Unit)? = null
 
     inner class PictureViewHolder(var bind: ItemPictureBinding) :
-        RecyclerView.ViewHolder(bind.root)
+        RecyclerView.ViewHolder(bind.root) {
+        fun bindItem(item: MediaModel?, position: Int) {/*
+                        val displayMetrics = bind.main.context.resources.displayMetrics
+                        val screenWidth = displayMetrics.widthPixels
+                        val itemWidth = screenWidth / activity.gridLayoutManager.spanCount
+                        bind.main.layoutParams.height = itemWidth
+                        bind.main.requestLayout()*/
+
+            bind.apply {
+                Glide.with(activity.applicationContext).load(item!!.mediaPath)
+                    .placeholder(R.color.ripple_color).error(R.color.ripple_color).centerCrop()
+                    .into(imageViewMedia)
+
+                imageViewVideoIcon.visibility = if (item.isVideo) View.VISIBLE else View.GONE
+                ivFav.visibility = if (item.isFav) View.VISIBLE else View.GONE
+
+                if (selectedItems.isNotEmpty()) {
+                    // We are in selection mode
+                    if (selectedItems.contains(item)) {
+                        // Item is selected → Show BLUE CHECK icon
+                        selectionOverlay.visibility = View.VISIBLE
+                        selectionOverlay.setImageResource(R.drawable.baseline_check_circle_24) // Blue icon
+                        selectionOverlay1.visibility = View.GONE // Hide unselected icon
+                        selectView.visible()
+                    } else {
+                        // Item is NOT selected → Show GREY UNSELECTED icon
+                        selectionOverlay.visibility = View.GONE
+                        selectionOverlay1.visibility = View.VISIBLE
+                        selectionOverlay1.setImageResource(R.drawable.baseline_radio_button_unchecked_24) // Grey icon
+                        selectView.gone()
+                    }
+                } else {
+                    // Selection mode is NOT active → Hide both icons
+                    selectionOverlay.visibility = View.GONE
+                    selectionOverlay1.visibility = View.GONE
+                    selectView.visibility = View.GONE
+                }
+
+                root.setOnClickListener {
+                    if (selectedItems.isEmpty()) {
+                        val mediaList = currentList
+                        val correctPosition = mediaList.indexOf(item)
+
+                        if (correctPosition != -1) {
+                            Log.e(
+                                "TAGdd",
+                                "Adapter clicked: $correctPosition, Media: ${item.mediaPath}"
+                            )
+                            onItemClick!!.invoke(item)
+                        }
+                    } else {
+                        toggleSelection(item)
+                    }
+                }
+
+                root.setOnLongClickListener {
+                    enableSelectionMode()
+                    toggleSelection(item)
+                    onLongItemClick.invoke(true)
+                    true
+                }
+            }
+        }
+    }
 
     val selectedItems = HashSet<MediaModel>()
 
@@ -38,63 +100,7 @@ class PictureAdapter(
     override fun onBindViewHolder(holder: PictureViewHolder, position: Int) {
         val item = currentList[position]
 
-        holder.bind.apply {
-            Glide.with(activity.applicationContext)
-                .load(item.mediaPath)
-                .placeholder(R.color.ripple_color)
-                .error(R.color.ripple_color)
-                .centerCrop()
-                .into(imageViewMedia)
-
-            imageViewVideoIcon.visibility = if (item.isVideo) View.VISIBLE else View.GONE
-            ivFav.visibility = if (item.isFav) View.VISIBLE else View.GONE
-
-            if (selectedItems.isNotEmpty()) {
-                // We are in selection mode
-                if (selectedItems.contains(item)) {
-                    // Item is selected → Show BLUE CHECK icon
-                    selectionOverlay.visibility = View.VISIBLE
-                    selectionOverlay.setImageResource(R.drawable.baseline_check_circle_24) // Blue icon
-                    selectionOverlay1.visibility = View.GONE // Hide unselected icon
-                    selectView.visible()
-                } else {
-                    // Item is NOT selected → Show GREY UNSELECTED icon
-                    selectionOverlay.visibility = View.GONE
-                    selectionOverlay1.visibility = View.VISIBLE
-                    selectionOverlay1.setImageResource(R.drawable.baseline_radio_button_unchecked_24) // Grey icon
-                    selectView.gone()
-                }
-            } else {
-                // Selection mode is NOT active → Hide both icons
-                selectionOverlay.visibility = View.GONE
-                selectionOverlay1.visibility = View.GONE
-                selectView.visibility = View.GONE
-            }
-
-            root.setOnClickListener {
-                if (selectedItems.isEmpty()) {
-                    val mediaList = currentList
-                    val correctPosition = mediaList.indexOf(item)
-
-                    if (correctPosition != -1) {
-                        Log.e(
-                            "TAGdd",
-                            "Adapter clicked: $correctPosition, Media: ${item.mediaPath}"
-                        )
-                        onItemClick!!.invoke(item)
-                    }
-                } else {
-                    toggleSelection(item)
-                }
-            }
-
-            root.setOnLongClickListener {
-                enableSelectionMode()
-                toggleSelection(item)
-                onLongItemClick.invoke(true)
-                true
-            }
-        }
+        holder.bindItem(item, position)
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -124,7 +130,8 @@ class PictureAdapter(
             disableSelectionMode() // Exit selection mode if everythi
         // ng is deselected
         } else {
-            activity.findViewById<TextView>(R.id.tvAlbumName).setText("Pictures")
+            activity.findViewById<TextView>(R.id.tvAlbumName)
+                .setText(activity.getString(R.string.pictures))
             selectedItems.clear()
             selectedItems.addAll(allItems)
             activity.findViewById<TextView>(R.id.tvAlbumName).text =

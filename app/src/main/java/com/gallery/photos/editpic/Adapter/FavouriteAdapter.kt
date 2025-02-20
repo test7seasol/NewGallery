@@ -41,6 +41,13 @@ class FavouriteAdapter(
         val item = list[position]
 
         holder.bind.apply {
+
+//            val displayMetrics = root.context.resources.displayMetrics
+//            val screenWidth = displayMetrics.widthPixels
+//            val itemWidth = screenWidth / (activity as FavoriteAct).gridLayoutManager.spanCount
+//            root.layoutParams.height = itemWidth
+//            root.requestLayout()
+
             imageViewMedia.loadImg(activity, item.mediaPath)
             imageViewVideoIcon.beVisibleIf(item.isVideo)
             selectionOverlay.setImageResource(if (item.isSelect) R.drawable.baseline_check_circle_24 else R.drawable.baseline_radio_button_unchecked_24)

@@ -64,6 +64,10 @@ class TopMenuRecentCustomPopup(
                 onClick.invoke("llStartSlide")
                 dismiss()
             }
+            llSort.onClick {
+                onClick.invoke("llSort")
+                dismiss()
+            }
         }
     }
 

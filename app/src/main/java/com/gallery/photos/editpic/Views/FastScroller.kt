@@ -488,10 +488,16 @@ class FastScroller : LinearLayout {
 
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                if (event.x < handleView.x - scrollbar.compatPaddingStart) return false
+                // Only allow touch if it's on the handleView (thumb), NOT anywhere on scrollbar
+                val isTouchOnThumb = event.x >= handleView.x &&
+                        event.x <= handleView.x + handleView.width &&
+                        event.y >= handleView.y &&
+                        event.y <= handleView.y + handleView.height
+
+                if (!isTouchOnThumb) return false
 
                 requestDisallowInterceptTouchEvent(true)
-                setHandleSelected(view == scrollbar)
+                setHandleSelected(true)
 
                 handler.removeCallbacks(scrollbarHider)
                 scrollbarAnimator?.cancel()
@@ -502,7 +508,7 @@ class FastScroller : LinearLayout {
 
                 fastScrollListener?.onFastScrollStart(this)
 
-                if (view == scrollbar) setYPositions()
+                setYPositions()
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
@@ -525,6 +531,7 @@ class FastScroller : LinearLayout {
 
         return false
     }
+
 
     private fun updateViewHeights() {
         val measureSpec = MeasureSpec.makeMeasureSpec(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED)

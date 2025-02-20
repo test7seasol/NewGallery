@@ -9,13 +9,14 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.gallery.photos.editpic.Adapter.HideAdapter
 import com.gallery.photos.editpic.Dialogs.DeleteWithRememberDialog
-import com.gallery.photos.editpic.Dialogs.SecurityDialog
 import com.gallery.photos.editpic.Dialogs.SlideShowDialog
+import com.gallery.photos.editpic.Extensions.PREF_LANGUAGE_CODE
 import com.gallery.photos.editpic.Extensions.gone
 import com.gallery.photos.editpic.Extensions.handleBackPress
 import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.name.getMediaDatabase
 import com.gallery.photos.editpic.Extensions.onClick
+import com.gallery.photos.editpic.Extensions.setLanguageCode
 import com.gallery.photos.editpic.Extensions.shareMultipleFilesHide
 import com.gallery.photos.editpic.Extensions.tos
 import com.gallery.photos.editpic.Extensions.visible
@@ -23,6 +24,7 @@ import com.gallery.photos.editpic.Model.DeleteMediaModel
 import com.gallery.photos.editpic.Model.HideMediaModel
 import com.gallery.photos.editpic.PopupDialog.HideItemsBottomPopup
 import com.gallery.photos.editpic.PopupDialog.TopMenuHideActCustomPopup
+import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.RoomDB.Dao.DeleteMediaDao
 import com.gallery.photos.editpic.RoomDB.Dao.HideMediaDao
 import com.gallery.photos.editpic.Utils.HideMediaStoreSingleton
@@ -58,14 +60,15 @@ class HideActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setLanguageCode(this, MyApplicationClass.getString(PREF_LANGUAGE_CODE)!!)
         bind = ActivityHideBinding.inflate(layoutInflater)
         setContentView(bind.root)
 
 
         handleBackPress {
-            if (bind.tvHide.text != "Hide") {
+            if (bind.tvHide.text != getString(R.string.hide)) {
                 hideadapter!!.unselectAllItems()
-                bind.tvHide.text = "Hide"
+                bind.tvHide.text = getString(R.string.hide)
             } else {
                 finish()
             }
@@ -101,7 +104,7 @@ class HideActivity : AppCompatActivity() {
                     bind.menuHide.gone()
 
                 } else {
-                    bind.tvHide.text = "Hide"
+                    bind.tvHide.text = getString(R.string.hide)
 //                binding.ivSearch.visible()
                     bind.selectedcontainerHideiteid.gone()
                     bind.menuHide.visible()
@@ -110,7 +113,12 @@ class HideActivity : AppCompatActivity() {
             rvHide.adapter = hideadapter
 
             ivBack.onClick {
-                onBackPressedDispatcher.onBackPressed()
+                if (bind.tvHide.text != getString(R.string.hide)) {
+                    hideadapter!!.unselectAllItems()
+                    bind.tvHide.text = getString(R.string.hide)
+                } else {
+                    finish()
+                }
             }
 
 
@@ -119,7 +127,7 @@ class HideActivity : AppCompatActivity() {
                 if (selectedFiles.size <= 100) {
                     shareMultipleFilesHide(selectedFiles, this@HideActivity)
                 } else {
-                    ("Max selection limit is 100").tos(this@HideActivity)
+                    (getString(R.string.max_selection_limit_is_100)).tos(this@HideActivity)
                 }
             }
 
@@ -136,7 +144,7 @@ class HideActivity : AppCompatActivity() {
 
                         "llUnHideAll" -> {
                             val progressDialog = ProgressDialog(this@HideActivity).apply {
-                                setMessage("Unhiding files...")
+                                setMessage(getString(R.string.unhiding_files))
                                 setCancelable(false)
                                 show()
                             }
@@ -155,7 +163,7 @@ class HideActivity : AppCompatActivity() {
                                 progressDialog.dismiss()
                                 hideadapter!!.deleteSelectedItems()
                                 hideadapter!!.unselectAllItems()
-                                tvHide.text = "Hide"
+                                tvHide.text = getString(R.string.hide)
                             }
                         }
                     }
@@ -171,7 +179,7 @@ class HideActivity : AppCompatActivity() {
                         CoroutineScope(Dispatchers.Main).launch {
                             // Show Progress Dialog
                             val progressDialog = ProgressDialog(this@HideActivity)
-                            progressDialog.setMessage("Deleting files...")
+                            progressDialog.setMessage(getString(R.string.deleting_files))
                             progressDialog.setCancelable(false)
                             progressDialog.show()
 
@@ -191,11 +199,11 @@ class HideActivity : AppCompatActivity() {
                             progressDialog.dismiss()
                             hideadapter!!.deleteSelectedItems()
                             hideadapter!!.unselectAllItems()
-                            tvHide.text = "Hide"
+                            tvHide.text = getString(R.string.hide)
                         }
                     }
                 } else {
-                    ("Max selection limit is 100").tos(this@HideActivity)
+                    (getString(R.string.max_selection_limit_is_100)).tos(this@HideActivity)
                 }
             }
 
@@ -283,7 +291,7 @@ class HideActivity : AppCompatActivity() {
                     hideMediaDao.deleteMedia(mediaItem)  // Remove from Room database
 
                     runOnUiThread {
-                        ("File permanently deleted").tos(this@HideActivity)
+                        (getString(R.string.file_permanently_deleted)).tos(this@HideActivity)
                         hideList.remove(mediaItem)
                     }
                 } else {

@@ -11,15 +11,22 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 import com.gallery.photos.editpic.Adapter.FavouriteViewPagerAdapter
 import com.gallery.photos.editpic.Dialogs.DeleteWithRememberDialog
+import com.gallery.photos.editpic.Dialogs.PropertiesDialog
+import com.gallery.photos.editpic.EditModule.EditImageActivity
+import com.gallery.photos.editpic.Extensions.PREF_LANGUAGE_CODE
+import com.gallery.photos.editpic.Extensions.formatDate
+import com.gallery.photos.editpic.Extensions.getMimeTypeFromPath
 import com.gallery.photos.editpic.Extensions.isVideoFile
 import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.name.getMediaDatabase
 import com.gallery.photos.editpic.Extensions.onClick
+import com.gallery.photos.editpic.Extensions.setLanguageCode
 import com.gallery.photos.editpic.Extensions.shareFile
 import com.gallery.photos.editpic.Extensions.tos
 import com.gallery.photos.editpic.Model.DeleteMediaModel
 import com.gallery.photos.editpic.Model.FavouriteMediaModel
 import com.gallery.photos.editpic.Model.HideMediaModel
+import com.gallery.photos.editpic.Model.MediaModel
 import com.gallery.photos.editpic.PopupDialog.ViewPagerHidePopupManager
 import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.RoomDB.Dao.DeleteMediaDao
@@ -53,6 +60,7 @@ class FavouriteViewPagerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setLanguageCode(this, MyApplicationClass.getString(PREF_LANGUAGE_CODE)!!)
         binding = ActivityFavouriteviewPagerBinding.inflate(layoutInflater)
         setContentView(binding.root)
         applyStatusBarColor()
@@ -77,6 +85,12 @@ class FavouriteViewPagerActivity : AppCompatActivity() {
             finish()
         }
 
+        binding.bottomActions.bottomEdit.onClick {
+            val intent = Intent(this@FavouriteViewPagerActivity, EditImageActivity::class.java)
+            intent.putExtra("IMAGE_PATH", favouriteimageList[viewpagerselectedPosition].mediaPath)
+            startActivity(intent)
+        }
+
         binding.apply {
             ivMore.onClick {
                 val topcustomtopcustompopup =
@@ -95,6 +109,23 @@ class FavouriteViewPagerActivity : AppCompatActivity() {
                     }
                 topcustomtopcustompopup.show(ivMore, 0, 0)
             }
+
+            binding.bottomActions.bottomProperties.onClick {
+                PropertiesDialog(
+                    this@FavouriteViewPagerActivity, MediaModel(
+                        mediaId = imageListFavourite[viewpagerselectedPosition]!!.mediaId,
+                        mediaName = imageListFavourite[viewpagerselectedPosition]!!.mediaName,
+                        mediaPath = imageListFavourite[viewpagerselectedPosition].mediaPath,
+                        mediaMimeType = getMimeTypeFromPath(imageListFavourite[viewpagerselectedPosition].mediaPath).toString(),
+                        mediaDateAdded = imageListFavourite[viewpagerselectedPosition]!!.mediaDateAdded,
+                        isVideo = isVideoFile(imageListFavourite[viewpagerselectedPosition].mediaPath),
+                        displayDate = formatDate(imageListFavourite[viewpagerselectedPosition]!!.mediaDateAdded),
+                        isSelect = false,
+                        isFav = imageListFavourite[viewpagerselectedPosition].isFav
+                    )
+                ) {}
+            }
+
             binding.bottomActions.bottomFavorite.setOnClickListener {
                 val position = viewpagerselectedPosition
                 val currentMedia = imageListFavourite[position]
@@ -172,7 +203,7 @@ class FavouriteViewPagerActivity : AppCompatActivity() {
                         binding.viewPager.currentItem = (position + 1)
                         updateImageTitle(position + 1)
                     } else {
-                        ("Slide end").tos(this@FavouriteViewPagerActivity)
+                        (getString(R.string.slide_end)).tos(this@FavouriteViewPagerActivity)
                         sliderstop()
                     }
 //                    isRunning = !isRunning

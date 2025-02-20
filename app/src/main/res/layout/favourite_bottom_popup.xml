@@ -37,7 +37,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/sans_regular"
                 android:padding="@dimen/_10sdp"
-                android:text="Unfavourite"
+                android:text="@string/unfavourite"
                 android:textColor="@color/blackg"
                 android:textSize="@dimen/_13ssp" />
 
@@ -57,7 +57,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/sans_regular"
                 android:padding="@dimen/_10sdp"
-                android:text="Copy to album"
+                android:text="@string/copy_to_album"
                 android:textColor="@color/blackg"
                 android:textSize="@dimen/_13ssp" />
 
@@ -76,7 +76,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/sans_regular"
                 android:padding="@dimen/_10sdp"
-                android:text="Move to album"
+                android:text="@string/move_to_album"
                 android:textColor="@color/blackg"
                 android:textSize="@dimen/_13ssp" />
 

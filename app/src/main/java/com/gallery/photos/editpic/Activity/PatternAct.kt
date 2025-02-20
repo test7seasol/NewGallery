@@ -19,11 +19,11 @@ import com.gallery.photos.editpic.Extensions.delayTime
 import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.onClick
 import com.gallery.photos.editpic.Extensions.tos
+import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.databinding.ActivityPatternBinding
 
 class PatternAct : AppCompatActivity() {
     lateinit var bind: ActivityPatternBinding
-
     var patternText = ""
     var isFromOn = false
     var isFromHide = false
@@ -37,7 +37,6 @@ class PatternAct : AppCompatActivity() {
         isFromOn = intent.extras?.getBoolean("isFromOn", false) == true
         isFromHide = intent.extras?.getBoolean("isFromHide", false) == true
 
-
         if (MyApplicationClass.getBoolean(SECURITY_ADD) == false) {
             SecurityDialog(this@PatternAct) { q, answer ->
 
@@ -46,12 +45,12 @@ class PatternAct : AppCompatActivity() {
 
         bind.apply {
 
-
             bind.tvReseat.onClick {
-
                 SecurityDialog(this@PatternAct, true) { q, answer ->
                     if (q == "SetPsd") {
-                        tvPattern.text = "Enter Your New Pattern"
+                        tvPattern.text = getString(R.string.enter_your_new_pattern)
+//                        MyApplicationClass.putString(PIN_LOCK,"")
+                        isFromOn = false
                         patternText = ""
                         isFromHide = false
                         mPatternLockView.setViewMode(PatternLockView.PatternViewMode.WRONG)
@@ -62,7 +61,7 @@ class PatternAct : AppCompatActivity() {
 
             ivBack.onClick { finish() }
 
-            val content = SpannableString("Reseat Password")
+            val content = SpannableString(getString(R.string.reseat_password))
             content.setSpan(UnderlineSpan(), 0, content.length, 0)
             bind.tvReseat.text = content
 
@@ -86,6 +85,7 @@ class PatternAct : AppCompatActivity() {
                             mPatternLockView, pattern
                         )
 
+
                         if (isFromHide) {
                             (MyApplicationClass.getString(PIN_LOCK) + " | " + lockPin).log()
                             if (MyApplicationClass.getString(PIN_LOCK) == lockPin) {
@@ -105,18 +105,20 @@ class PatternAct : AppCompatActivity() {
                                     mPatternLockView.clearPattern()
                                 }
                             }
-                        } else {
+                        }
+                        else {
                             if (!isFromOn) {
                                 if (patternText.isEmpty()) {
                                     patternText = lockPin
-                                    tvPattern.text = "ReEnter the pattern"
+                                    tvPattern.text = getString(R.string.reenter_the_pattern)
                                     mPatternLockView.setViewMode(PatternLockView.PatternViewMode.CORRECT)
                                     delayTime(800) {
                                         mPatternLockView.clearPattern()
                                     }
                                 } else {
                                     if (patternText == lockPin) {
-                                        tvPattern.text = "Pattern set successfully"
+                                        tvPattern.text =
+                                            getString(R.string.pattern_set_successfully)
                                         mPatternLockView.setViewMode(PatternLockView.PatternViewMode.CORRECT)
                                         MyApplicationClass.putString(PIN_LOCK, lockPin)
                                         delayTime(800) {
@@ -129,7 +131,7 @@ class PatternAct : AppCompatActivity() {
                                         this@PatternAct.finish()
                                     } else {
                                         ("Wrong Patter").tos(this@PatternAct)
-                                        tvPattern.text = "Enter Your Pattern"
+                                        tvPattern.text = getString(R.string.enter_your_pattern)
                                         patternText = ""
                                         mPatternLockView.setViewMode(PatternLockView.PatternViewMode.WRONG)
                                         delayTime(800) {
@@ -138,8 +140,9 @@ class PatternAct : AppCompatActivity() {
                                     }
                                 }
                             } else {
+                                ("Pattern TV: $patternText").log("PATTERNTV")
                                 if (MyApplicationClass.getString(PIN_LOCK) == lockPin) {
-                                    tvPattern.text = "Pattern unlock successfully"
+                                    tvPattern.text = getString(R.string.pattern_unlock_successfully)
                                     mPatternLockView.setViewMode(PatternLockView.PatternViewMode.CORRECT)
                                     MyApplicationClass.putString(PIN_LOCK, "")
                                     delayTime(800) {
@@ -149,7 +152,7 @@ class PatternAct : AppCompatActivity() {
                                     this@PatternAct.finish()
                                 } else {
                                     ("Wrong Patter").tos(this@PatternAct)
-                                    tvPattern.text = "Enter Your Pattern"
+                                    tvPattern.text = getString(R.string.enter_your_pattern)
                                     patternText = ""
                                     mPatternLockView.setViewMode(PatternLockView.PatternViewMode.WRONG)
                                     delayTime(800) {
@@ -176,8 +179,8 @@ class PatternAct : AppCompatActivity() {
 
     private fun applyStatusBarColor() {
         window.statusBarColor =
-            resources.getColor(android.R.color.black, theme) // Set black status bar
+            resources.getColor(android.R.color.white, theme) // Set black status bar
         window.decorView.systemUiVisibility = 0 // Ensures white text/icons
-        window.navigationBarColor = resources.getColor(android.R.color.black, theme)
+        window.navigationBarColor = resources.getColor(android.R.color.white, theme)
     }
 }

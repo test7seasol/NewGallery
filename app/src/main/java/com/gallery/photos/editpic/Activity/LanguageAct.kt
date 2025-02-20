@@ -4,18 +4,23 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
+import android.view.View
 import androidx.annotation.Keep
 import androidx.appcompat.app.AppCompatActivity
 import com.gallery.photos.editpic.Adapter.RVLanguageAdapter
 import com.gallery.photos.editpic.Extensions.ISONETIME
+import com.gallery.photos.editpic.Extensions.PREF_LANGUAGE_CODE
 import com.gallery.photos.editpic.Extensions.gone
 import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.onClick
 import com.gallery.photos.editpic.Extensions.setLanguageCode
 import com.gallery.photos.editpic.Extensions.startActivityWithBundle
-import com.gallery.photos.editpic.Extensions.visible
 import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.databinding.ActivityLanguageBinding
+import com.gallery.photos.editpic.myadsworld.MyAddPrefs
+import com.gallery.photos.editpic.myadsworld.MyAllAdCommonClass
+import com.gallery.photos.editpic.myadsworld.MyAppOpenManager
+import com.gallery.photos.editpic.myadsworld.nativetemplates.TemplateView
 
 @Keep
 data class LanguageModel(
@@ -31,6 +36,7 @@ class LanguageAct : AppCompatActivity() {
     @SuppressLint("NotifyDataSetChanged")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setLanguageCode(this, MyApplicationClass.getString(PREF_LANGUAGE_CODE)!!)
         bind = ActivityLanguageBinding.inflate(layoutInflater)
         setContentView(bind.root)
 
@@ -53,14 +59,33 @@ class LanguageAct : AppCompatActivity() {
         list.add(LanguageModel(R.drawable.flag_uk, "uk", "Ukrainian", "Українська", false))
         list.add(LanguageModel(R.drawable.flag_vi, "vi", "Vietnamese", "Tiếng Việt", false))
 
+        MyAllAdCommonClass.showNativeAdsId(
+            this,
+            findViewById<View>(R.id.my_template2) as TemplateView,
+            bind.shimmerViewContainer.root,
+            MyAddPrefs(this).admNativeId
+        )
 
         bind.apply {
             bind.donebtnid.gone()
 
             rvlanguageid.adapter = RVLanguageAdapter(this@LanguageAct, list) {
                 selectedLanguage = it.language_code
-                bind.donebtnid.visible()
-                rvlanguageid.adapter?.notifyDataSetChanged()
+                MyAppOpenManager.appOpenAd = null
+                setLanguageCode(this@LanguageAct, selectedLanguage)
+                MyApplicationClass.putBoolean(ISONETIME, true)
+                if (!Settings.canDrawOverlays(this@LanguageAct)) {
+                    val intent = Intent(this@LanguageAct, PermissionActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                } else {
+                    ("Select Language code: ${it.language}").log()
+                    startActivityWithBundle<MainActivity>()
+                    finishAffinity()
+                }
+
+//                bind.donebtnid.visible()
+//                rvlanguageid.adapter?.notifyDataSetChanged()
             }
 
             tvbackid.onClick {
@@ -68,6 +93,7 @@ class LanguageAct : AppCompatActivity() {
             }
 
             donebtnid.onClick {
+                MyAppOpenManager.appOpenAd = null
                 setLanguageCode(this@LanguageAct, selectedLanguage)
                 MyApplicationClass.putBoolean(ISONETIME, true)
                 if (!Settings.canDrawOverlays(this@LanguageAct)) {
@@ -79,7 +105,6 @@ class LanguageAct : AppCompatActivity() {
                     startActivityWithBundle<MainActivity>()
                     finishAffinity()
                 }
-
 
                 /*  MyAllAdCommonClass.AdShowdialogFirstActivityQue(
                       this@LanguageAct

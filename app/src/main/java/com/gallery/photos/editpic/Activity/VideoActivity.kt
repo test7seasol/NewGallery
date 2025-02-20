@@ -5,7 +5,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import com.gallery.photos.editpic.Adapter.VideoAdapter
+import com.gallery.photos.editpic.Extensions.PREF_LANGUAGE_CODE
 import com.gallery.photos.editpic.Extensions.handleBackPress
+import com.gallery.photos.editpic.Extensions.setLanguageCode
 import com.gallery.photos.editpic.Fragment.AllVideosFragment
 import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.databinding.ActivityVideoBinding
@@ -16,6 +18,7 @@ class VideoActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setLanguageCode(this, MyApplicationClass.getString(PREF_LANGUAGE_CODE)!!)
         bind = ActivityVideoBinding.inflate(layoutInflater)
         setContentView(bind.root)
 

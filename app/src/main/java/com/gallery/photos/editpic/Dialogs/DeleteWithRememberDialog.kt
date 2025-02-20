@@ -3,6 +3,7 @@ package com.gallery.photos.editpic.Dialogs
 import android.app.Activity
 import androidx.appcompat.app.AlertDialog
 import com.gallery.photos.editpic.Extensions.onClick
+import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.databinding.DialogDeleteWithCustomRememberBinding
 
 class DeleteWithRememberDialog(
@@ -24,7 +25,8 @@ class DeleteWithRememberDialog(
         // Show or hide the "Skip Recycle Bin" checkbox
 //        binding.skipTheRecycleBinCheckbox.isVisible = showSkipRecycleBinOption
 
-        binding.tvName.text = if (isFromBin) "Permanently Delete?" else "Move to Recycle bin?"
+        binding.tvName.text =
+            if (isFromBin) activity.getString(R.string.permanently_delete) else activity.getString(R.string.move_to_recycle_bin)
         // Handle Cancel button click
         binding.tvCancel.onClick {
             dialog?.dismiss()

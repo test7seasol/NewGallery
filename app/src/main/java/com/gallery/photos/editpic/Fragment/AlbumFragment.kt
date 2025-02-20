@@ -167,7 +167,7 @@ class AlbumFragment : Fragment() {
                 progressDialog?.dismiss() // Hide loader
 
                 if (successCount == list.size) {
-                    "${successCount} files ${fromWhere.lowercase()}d successfully".tos(
+                    "${successCount} files ${fromWhere.lowercase()} successfully".tos(
                         requireActivity()
                     )
                     mediaViewModel.refreshFolders()  // Refresh folders when user returns
@@ -271,7 +271,7 @@ class AlbumFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         progressDialog = ProgressDialog(requireActivity()).apply {
-            setMessage("Processing files...")
+            setMessage(getString(R.string.processing_files))
             setCancelable(false)
         }
         deleteMediaModel = DeleteMediaModel()
@@ -328,7 +328,7 @@ class AlbumFragment : Fragment() {
 //                    binding.searchiconid.visible()
                     binding.createFolder.visible()
                     binding.menuthreeid.visible()
-                    binding.tvAlbumeTitle.text = "Albums"
+                    binding.tvAlbumeTitle.text = getString(R.string.albums)
                 }
             })
             adapter = folderAdapter
@@ -381,7 +381,7 @@ class AlbumFragment : Fragment() {
 //                        binding.searchiconid.visible()
                         binding.createFolder.visible()
                         binding.menuthreeid.visible()
-                        binding.tvAlbumeTitle.text = "Albums"
+                        binding.tvAlbumeTitle.text = getString(R.string.albums)
                         folderAdapter!!.selectedItems.clear()
                         folderAdapter!!.notifyDataSetChanged()
                         progressDialog?.dismiss()
@@ -395,6 +395,10 @@ class AlbumFragment : Fragment() {
                         Environment.DIRECTORY_DCIM
                     ).path, isFromWhere = "CreateFolder"
                 ) {
+                    requireActivity().findViewById<RelativeLayout>(R.id.mainTopTabsContainer)
+                        .visible()
+                    requireActivity().findViewById<RelativeLayout>(R.id.footer).visible()
+
                     folderName = it
                     activityResultLauncher.launch(
                         Intent(

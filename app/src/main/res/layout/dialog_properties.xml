@@ -32,7 +32,7 @@
                 android:layout_marginTop="@dimen/_3sdp"
                 android:includeFontPadding="false"
                 android:textStyle="bold"
-                android:text="Properties"
+                android:text="@string/properties"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_18sdp" />
 
@@ -56,7 +56,7 @@
                 android:gravity="start"
                 android:padding="@dimen/_5sdp"
                 android:layout_marginTop="@dimen/_3sdp"
-                android:text="Name"
+                android:text="@string/name"
                 android:textColor="#7C7C7C"
                 android:textSize="@dimen/_11sdp"
                 android:visibility="visible" />
@@ -80,7 +80,7 @@
                 android:layout_gravity="center"
                 android:gravity="start"
                 android:padding="@dimen/_5sdp"
-                android:text="Path"
+                android:text="@string/path"
                 android:textColor="#7C7C7C"
                 android:textSize="@dimen/_11sdp"
                 android:visibility="visible" />
@@ -104,7 +104,7 @@
                 android:layout_gravity="center"
                 android:gravity="start"
                 android:padding="@dimen/_5sdp"
-                android:text="Size"
+                android:text="@string/size"
                 android:textColor="#7C7C7C"
                 android:textSize="@dimen/_11sdp"
                 android:visibility="visible" />
@@ -128,7 +128,7 @@
                 android:layout_gravity="center"
                 android:gravity="start"
                 android:padding="@dimen/_5sdp"
-                android:text="Resolution"
+                android:text="@string/resolution"
                 android:textColor="#7C7C7C"
                 android:textSize="@dimen/_11sdp"
                 android:visibility="visible" />
@@ -151,7 +151,7 @@
                 android:layout_gravity="center"
                 android:gravity="start"
                 android:padding="@dimen/_5sdp"
-                android:text="Last modified"
+                android:text="@string/last_modified"
                 android:textColor="#7C7C7C"
                 android:textSize="@dimen/_11sdp"
                 android:visibility="visible" />
@@ -177,7 +177,7 @@
                 android:fontFamily="@font/sans_medium"
                 android:gravity="center"
                 android:padding="@dimen/_8sdp"
-                android:text="OK"
+                android:text="@string/ok"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_13sdp" />
 
