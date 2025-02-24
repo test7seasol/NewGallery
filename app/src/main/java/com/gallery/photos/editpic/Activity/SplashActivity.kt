@@ -39,9 +39,13 @@ class SplashActivity : AppCompatActivity() {
             MyApplicationClass.putString(PREF_LANGUAGE_CODE, "en")
         }
 
-        delayTime(1000) {
+        if (MyApplicationClass.getBoolean("ISAPPOPENONE") == false) {
+            delayTime(1000) {
 //        launchActivity()
 
+                onNextActivity()
+            }
+        } else {
             onNextActivity()
         }
     }

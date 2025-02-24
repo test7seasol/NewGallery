@@ -7,7 +7,6 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 import com.gallery.photos.editpic.Adapter.FavouriteViewPagerAdapter
 import com.gallery.photos.editpic.Dialogs.DeleteWithRememberDialog
@@ -36,6 +35,8 @@ import com.gallery.photos.editpic.Utils.DeleteMediaStoreSingleton.deleteselected
 import com.gallery.photos.editpic.Utils.FavouriteMediaStoreSingleton
 import com.gallery.photos.editpic.Utils.FavouriteMediaStoreSingleton.favouriteimageList
 import com.gallery.photos.editpic.databinding.ActivityFavouriteviewPagerBinding
+import com.gallery.photos.editpic.myadsworld.MyAddPrefs
+import com.gallery.photos.editpic.myadsworld.MyAllAdCommonClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -44,7 +45,7 @@ import java.io.IOException
 import java.util.Timer
 import java.util.TimerTask
 
-class FavouriteViewPagerActivity : AppCompatActivity() {
+class FavouriteViewPagerActivity : BaseActivity() {
 
     private var viewpagerselectedPosition: Int = 1
     var deleteMediaModel: DeleteMediaModel? = null
@@ -80,6 +81,17 @@ class FavouriteViewPagerActivity : AppCompatActivity() {
         ("Favourite onPageSelected: $viewpagerselectedPosition").log()
 
         setupViewPager(imageListFavourite, viewpagerselectedPosition)
+
+        hideBottomNavigationBar(R.color.black)
+
+
+        MyAllAdCommonClass.showAdmobBanner(
+            this@FavouriteViewPagerActivity,
+            binding.bannerContainer,
+            binding.shimmerContainerBanner,
+            false,
+            MyAddPrefs(this@FavouriteViewPagerActivity).admBannerId
+        )
 
         binding.ivBack.setOnClickListener {
             finish()

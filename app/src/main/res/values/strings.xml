@@ -601,5 +601,6 @@
     <string name="yesterday">Yesterday</string>
     <string name="need_permissions">Need Permissions</string>
     <string name="this_app_needs_permission_to_use_this_feature_you_can_grant_them_in_app_settings">This app needs permission to use this feature. You can grant them in app settings.</string>
+    <string name="feedback">Feedback</string>
 
 </resources>

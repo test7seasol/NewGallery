@@ -21,12 +21,14 @@ import com.gallery.photos.editpic.RoomDB.Dao.HideMediaDao
 import com.gallery.photos.editpic.Utils.DeleteMediaStoreSingleton.deleteselectedPosition
 import com.gallery.photos.editpic.Utils.HideMediaStoreSingleton
 import com.gallery.photos.editpic.databinding.ActivityHideviewPagerBinding
+import com.gallery.photos.editpic.myadsworld.MyAddPrefs
+import com.gallery.photos.editpic.myadsworld.MyAllAdCommonClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 
-class HideViewPagerActivity : AppCompatActivity() {
+class HideViewPagerActivity : BaseActivity() {
     private var viewpagerselectedPosition: Int = 1
     var hideMediaModel: HideMediaModel? = null
     private lateinit var binding: ActivityHideviewPagerBinding
@@ -53,6 +55,17 @@ class HideViewPagerActivity : AppCompatActivity() {
         binding.ivBack.setOnClickListener {
             finish()
         }
+
+        hideBottomNavigationBar(R.color.black)
+
+
+        MyAllAdCommonClass.showAdmobBanner(
+            this@HideViewPagerActivity,
+            binding.bannerContainer,
+            binding.shimmerContainerBanner,
+            false,
+            MyAddPrefs(this@HideViewPagerActivity).admBannerId
+        )
 
         hideMediaDao = getMediaDatabase(this).hideMediaDao()
 

@@ -39,6 +39,7 @@ class CreateNewFolderDialog(
         }
 
 
+
         activity.findViewById<RelativeLayout>(R.id.mainTopTabsContainer).gone()
         activity.findViewById<RelativeLayout>(R.id.footer).gone()
 
@@ -51,6 +52,11 @@ class CreateNewFolderDialog(
             activity.findViewById<RelativeLayout>(R.id.mainTopTabsContainer).visible()
             activity.findViewById<RelativeLayout>(R.id.footer).visible()
             dialog.dismiss()
+        }
+
+        dialog.setOnDismissListener {
+            activity.findViewById<RelativeLayout>(R.id.mainTopTabsContainer).visible()
+            activity.findViewById<RelativeLayout>(R.id.footer).visible()
         }
 
         view.tvCreate.setOnClickListener {

@@ -15,10 +15,13 @@ import com.gallery.photos.editpic.Extensions.onClick
 import com.gallery.photos.editpic.Extensions.setLanguageCode
 import com.gallery.photos.editpic.Extensions.tos
 import com.gallery.photos.editpic.Model.DeleteMediaModel
+import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.RoomDB.Dao.DeleteMediaDao
 import com.gallery.photos.editpic.Utils.DeleteMediaStoreSingleton
 import com.gallery.photos.editpic.Utils.DeleteMediaStoreSingleton.deleteselectedPosition
 import com.gallery.photos.editpic.databinding.ActivityDeleteviewPagerBinding
+import com.gallery.photos.editpic.myadsworld.MyAddPrefs
+import com.gallery.photos.editpic.myadsworld.MyAllAdCommonClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -27,7 +30,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class DeleteViewPagerActivity : AppCompatActivity() {
+class DeleteViewPagerActivity : BaseActivity() {
 
     private var viewpagerselectedPosition: Int = 1
     var deleteMediaModel: DeleteMediaModel? = null
@@ -51,6 +54,16 @@ class DeleteViewPagerActivity : AppCompatActivity() {
         deleteMediaModel = imageListDelete[viewpagerselectedPosition]
 
         setupViewPager(imageListDelete, viewpagerselectedPosition)
+
+        hideBottomNavigationBar(R.color.black)
+
+        MyAllAdCommonClass.showAdmobBanner(
+            this@DeleteViewPagerActivity,
+            binding.bannerContainer,
+            binding.shimmerContainerBanner,
+            false,
+            MyAddPrefs(this@DeleteViewPagerActivity).admBannerId
+        )
 
         binding.ivBack.setOnClickListener {
             finish()

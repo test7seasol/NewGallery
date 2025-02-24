@@ -33,6 +33,8 @@ import com.gallery.photos.editpic.Utils.VideoMediaStoreSingleton
 import com.gallery.photos.editpic.Utils.VideoMediaStoreSingleton.videoimageList
 import com.gallery.photos.editpic.Views.CustomViewPager
 import com.gallery.photos.editpic.databinding.ActivityVideoviewPagerBinding
+import com.gallery.photos.editpic.myadsworld.MyAddPrefs
+import com.gallery.photos.editpic.myadsworld.MyAllAdCommonClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -40,7 +42,7 @@ import java.io.File
 import java.io.IOException
 import java.util.UUID
 
-class VideoViewPagerActivity : AppCompatActivity() {
+class VideoViewPagerActivity : BaseActivity() {
 
     private var viewpagerselectedPosition: Int = 1
     var videoMediaModel: VideoModel? = null
@@ -67,6 +69,18 @@ class VideoViewPagerActivity : AppCompatActivity() {
         videoMediaModel = VideoModel()
         deleteMediaModel = DeleteMediaModel()
         hideMediaModel = HideMediaModel()
+
+
+        hideBottomNavigationBar(R.color.black)
+
+
+        MyAllAdCommonClass.showAdmobBanner(
+            this@VideoViewPagerActivity,
+            binding.bannerContainer,
+            binding.shimmerContainerBanner,
+            false,
+            MyAddPrefs(this@VideoViewPagerActivity).admBannerId
+        )
 
         imageListVideo[viewpagerselectedPosition].apply {
             deleteMediaModel!!.mediaId = videoId

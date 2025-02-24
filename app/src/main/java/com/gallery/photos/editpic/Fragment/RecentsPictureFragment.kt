@@ -225,6 +225,7 @@ class RecentsPictureFragment : Fragment() {
             }
 
             llDelete.setOnClickListener {
+
                 val selectedFiles = mediaAdapter.selectedItems.distinctBy { it.mediaPath }
 
                 if (selectedFiles.size <= 100) {
@@ -444,7 +445,6 @@ class RecentsPictureFragment : Fragment() {
                 return if (mediaAdapter.getItemViewType(position) == 0) 3 else 1
             }
         }
-
 
         binding.ivTopArrow.onClick {
             binding.recyclerViewRecentPictures.scrollToPosition(0)

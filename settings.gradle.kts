@@ -21,6 +21,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Gallery Ekta"
+rootProject.name = "Gallery Fenil"
 include(":app")
 include(":patternlockview")

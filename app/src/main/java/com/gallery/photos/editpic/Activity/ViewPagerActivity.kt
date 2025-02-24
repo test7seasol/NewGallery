@@ -7,7 +7,6 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 import com.gallery.photos.editpic.Adapter.ViewPagerAdapter
 import com.gallery.photos.editpic.Dialogs.DeleteWithRememberDialog
@@ -33,6 +32,8 @@ import com.gallery.photos.editpic.RoomDB.Dao.FavouriteMediaDao
 import com.gallery.photos.editpic.RoomDB.Dao.HideMediaDao
 import com.gallery.photos.editpic.Utils.MediaStoreSingleton
 import com.gallery.photos.editpic.databinding.ActivityViewPagerBinding
+import com.gallery.photos.editpic.myadsworld.MyAddPrefs
+import com.gallery.photos.editpic.myadsworld.MyAllAdCommonClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -41,7 +42,7 @@ import java.io.IOException
 import java.util.Timer
 import java.util.TimerTask
 
-class ViewPagerActivity : AppCompatActivity() {
+class ViewPagerActivity : BaseActivity() {
     private var timer: Timer? = null
     private val handler = Handler(Looper.getMainLooper())
     private var isRunning = false
@@ -112,6 +113,19 @@ class ViewPagerActivity : AppCompatActivity() {
                 finish()
             }
         }
+
+        hideBottomNavigationBar(R.color.black)
+
+
+        MyAllAdCommonClass.showAdmobBanner(
+            this@ViewPagerActivity,
+            binding.bannerContainer,
+            binding.shimmerContainerBanner,
+            false,
+            MyAddPrefs(this@ViewPagerActivity).admBannerId
+        )
+
+
 
         binding.apply {
             binding.bottomActions.bottomShare.onClick {

@@ -71,6 +71,8 @@ class MainActivity : BaseActivity() {
             }
         }
 
+        hideBottomNavigationBar(R.color.white)
+
         handleBackPress {
             try {
                 if (findViewById<TextView>(R.id.tvSelection).text.toString() != getString(R.string.pictures)) {

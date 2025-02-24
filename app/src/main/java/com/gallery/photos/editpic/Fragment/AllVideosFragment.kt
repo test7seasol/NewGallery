@@ -91,6 +91,7 @@ class AllVideosFragment : Fragment() {
                     selectedFiles,
                     isFromWhere = (data.extras?.getString("where")!!)
                 ) { newAlbumPath ->
+
                     Log.d("NewAlbum", "Created new album at $newAlbumPath")
                     notifyGalleryRoot(
                         requireActivity(),

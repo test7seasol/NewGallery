@@ -110,7 +110,7 @@ dependencies {
     implementation("com.github.chrisbanes:PhotoView:2.3.0")
     implementation(libs.relativepopupwindow)
 
-    //Editing Modul
+    //Editing Module
     implementation("com.burhanrashid52:photoeditor:3.0.2")
 
 //     AD

@@ -48,6 +48,7 @@ class SMBottomSheetDialog(var activity: Activity, callback: (String) -> Unit) {
                 dialog.dismiss()
             }
             videoid.onClick {
+
                 activity.startActivityWithBundle<VideoActivity>()
 
                 dialog.dismiss()

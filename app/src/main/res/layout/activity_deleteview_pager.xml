@@ -65,12 +65,48 @@
         android:layout_above="@+id/bottom_actions"
         android:layout_below="@+id/rltop" />
 
-
     <include
         android:id="@+id/bottom_actions"
         layout="@layout/bottom_delete_actions"
         android:layout_width="match_parent"
         android:layout_height="@dimen/_60sdp"
-        android:layout_alignParentBottom="true" />
+        android:layout_above="@+id/footer" />
+
+    <RelativeLayout
+        android:id="@+id/footer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@color/white"
+        android:gravity="center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <FrameLayout
+            android:id="@+id/banner_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white" />
+
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:id="@+id/shimmer_container_banner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:shimmer_auto_start="true"
+            app:shimmer_base_color="#ccc">
+
+            <TextView
+                android:id="@+id/txtAd"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:layout_centerInParent="true"
+                android:gravity="center"
+                android:text="@string/loading"
+                android:textStyle="normal" />
+
+        </com.facebook.shimmer.ShimmerFrameLayout>
+    </RelativeLayout>
+
 
 </RelativeLayout>
