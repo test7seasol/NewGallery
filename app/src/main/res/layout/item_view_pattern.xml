@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/relative_layout_wrapper_filter_item"
+    android:layout_width="@dimen/_44sdp"
+    android:layout_height="@dimen/_40sdp"
+    android:clickable="true"
+    android:onClick="myClickHandler">
+
+    <com.quarkworks.roundedframelayout.RoundedFrameLayout
+        android:id="@+id/refresh_button_container"
+        android:layout_width="@dimen/_44sdp"
+        android:layout_height="@dimen/_40sdp"
+        android:layout_centerInParent="true"
+        app:borderColor="@color/transparent"
+        app:clippedBackgroundColor="@color/transparent"
+        app:cornerRadiusBottomLeft="7dp"
+        app:cornerRadiusBottomRight="7dp"
+        app:cornerRadiusTopLeft="7dp"
+        app:cornerRadiusTopRight="7dp"
+        app:softBorderColor="@color/transparent">
+
+        <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+            android:id="@+id/filter_image"
+            android:layout_width="@dimen/_40sdp"
+            android:layout_height="@dimen/_40sdp"
+            android:layout_marginStart="@dimen/_4sdp"
+            android:layout_marginEnd="@dimen/_4sdp"
+            app:siBorderColor="@color/transparent"
+            app:siBorderType="solid"
+            app:siRadius="7dp" />
+    </com.quarkworks.roundedframelayout.RoundedFrameLayout>
+</RelativeLayout>

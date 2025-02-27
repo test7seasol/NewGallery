@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/filterRoot"
+    android:background="@color/itemColor"
+    android:layout_width="@dimen/_23sdp"
+    android:layout_height="@dimen/_35sdp">
+
+    <com.quarkworks.roundedframelayout.RoundedFrameLayout
+        android:id="@+id/refresh_button_container"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_35sdp"
+        android:layout_centerInParent="true"
+        app:borderColor="@color/transparent"
+        app:clippedBackgroundColor="@color/transparent"
+        app:cornerRadiusBottomLeft="0dp"
+        app:cornerRadiusBottomRight="0dp"
+        app:cornerRadiusTopLeft="0dp"
+        app:cornerRadiusTopRight="0dp"
+        app:softBorderColor="@color/transparent">
+
+        <View
+            android:id="@+id/square_view"
+            android:background="@color/mainColor"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:elevation="1dp" />
+    </com.quarkworks.roundedframelayout.RoundedFrameLayout>
+
+    <ImageView
+        android:id="@+id/imageSelection"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/border_color_selected"
+        android:layout_centerInParent="true" />
+</RelativeLayout>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center"
+    android:id="@+id/relativeLayoutCropper"
+    android:background="@drawable/background_item"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="@dimen/_40sdp"
+    android:layout_height="@dimen/_40sdp"
+    android:layout_marginStart="@dimen/_4sdp"
+    android:layout_marginEnd="@dimen/_4sdp">
+
+    <ImageView
+        android:id="@+id/image_view_aspect_ratio"
+        android:layout_width="@dimen/_16sdp"
+        android:layout_height="@dimen/_13sdp"
+        android:src="@drawable/ic_crop_free"
+        android:scaleType="fitXY"
+        android:cropToPadding="false"
+        android:layout_centerHorizontal="true"
+        app:tint="@color/black" />
+
+    <TextView
+        android:textSize="@dimen/_7sdp"
+        android:textColor="@color/black"
+        android:gravity="center"
+        android:id="@+id/text_view_filter_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_4sdp"
+        android:text="Cover"
+        android:layout_below="@+id/image_view_aspect_ratio"
+        android:layout_centerHorizontal="true"
+        android:fontFamily="@font/sans_regular" />
+</RelativeLayout>

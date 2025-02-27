@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:background="@color/BackgroundCardColor"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraint_layout_confirm_PixLab"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_39sdp"
+        android:paddingStart="@dimen/_4sdp"
+        android:paddingEnd="@dimen/_4sdp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            app:tint="@color/white"
+            android:id="@+id/imageViewCloseSplash"
+            android:padding="@dimen/_9sdp"
+            android:layout_width="@dimen/_39sdp"
+            android:layout_height="@dimen/_39sdp"
+            android:src="@drawable/ic_round_close"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            app:tint="@color/white"
+            android:id="@+id/imageViewSaveSplash"
+            android:padding="@dimen/_9sdp"
+            android:layout_width="@dimen/_39sdp"
+            android:layout_height="@dimen/_39sdp"
+            android:src="@drawable/ic_round_check"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    <com.gallery.photos.editpic.ImageEDITModule.edit.views.SquareLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/constraint_layout_confirm"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/constraint_layout_confirm_PixLab">
+
+        <com.gallery.photos.editpic.ImageEDITModule.edit.utils.DripFrameLayout
+            android:id="@+id/frameLayoutBackground"
+            android:background="@color/white"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <com.gallery.photos.editpic.ImageEDITModule.edit.Editor.DripView
+                    android:id="@+id/dripViewImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.edit.Editor.DripView
+                    android:id="@+id/dripViewProfile"
+                    android:visibility="gone"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/frame_1"
+                    android:scaleType="centerCrop" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.edit.Editor.DripView
+                    android:id="@+id/dripViewFrame"
+                    android:visibility="gone"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/frame_profile"
+                    android:scaleType="fitXY" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.edit.Editor.DripView
+                    android:id="@+id/dripViewPixLab"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/style_1"
+                    android:scaleType="fitXY" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </com.gallery.photos.editpic.ImageEDITModule.edit.utils.DripFrameLayout>
+    </com.gallery.photos.editpic.ImageEDITModule.edit.views.SquareLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraint_layout_confirm"
+        android:background="@color/BackgroundColor"
+        android:paddingTop="@dimen/_11sdp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <RelativeLayout
+            android:id="@+id/relativeLayoutEffect"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_40sdp"
+            android:layout_marginBottom="@dimen/_7sdp"
+            app:layout_constraintBottom_toTopOf="@+id/viewLine">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_gravity="center_horizontal"
+                android:id="@+id/recyclerViewFrame"
+                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_gravity="center_horizontal"
+                android:id="@+id/recyclerViewProfile"
+                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_gravity="center_horizontal"
+                android:id="@+id/recyclerViewPixLab"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <LinearLayout
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:id="@+id/linLayoutColor"
+                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:id="@+id/imageViewColorPicker"
+                    android:background="@drawable/background_item"
+                    android:padding="@dimen/_7sdp"
+                    android:layout_width="@dimen/_29sdp"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_palette"
+                    android:layout_marginStart="@dimen/_4sdp" />
+
+                <View
+                    android:background="@color/itemColor"
+                    android:layout_width="2dp"
+                    android:layout_height="@dimen/_16sdp"
+                    android:layout_marginStart="@dimen/_7sdp"
+                    android:layout_marginEnd="@dimen/_7sdp" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.edit.utils.ColorSlider
+                    android:id="@+id/color_slider"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="@dimen/_7sdp" />
+            </LinearLayout>
+        </RelativeLayout>
+
+        <View
+            android:id="@+id/viewLine"
+            android:background="@color/lineColor"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            app:layout_constraintBottom_toTopOf="@+id/constraint_layout" />
+
+        <LinearLayout
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:id="@+id/constraint_layout"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_47sdp"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <LinearLayout
+                android:gravity="center"
+                android:orientation="vertical"
+                android:id="@+id/linearLayoutPixlab"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:layout_width="@dimen/_47sdp"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:id="@+id/imageViewPixlab"
+                    android:layout_width="@dimen/_16sdp"
+                    android:layout_height="@dimen/_16sdp"
+                    android:src="@drawable/ic_pixlab"
+                    app:tint="@color/mainColor" />
+
+                <TextView
+                    android:textSize="@dimen/_8sdp"
+                    android:textColor="@color/mainColor"
+                    android:gravity="center"
+                    android:id="@+id/textViewPixlab"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:text="@string/pixlab"
+                    android:fontFamily="@font/sans_regular" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:gravity="center"
+                android:orientation="vertical"
+                android:id="@+id/linearLayoutProfile"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:layout_width="@dimen/_47sdp"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:id="@+id/imageViewProfile"
+                    android:layout_width="@dimen/_16sdp"
+                    android:layout_height="@dimen/_16sdp"
+                    android:src="@drawable/ic_profile" />
+
+                <TextView
+                    android:textSize="@dimen/_8sdp"
+                    android:textColor="@color/iconColor"
+                    android:gravity="center"
+                    android:id="@+id/textViewProfile"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:text="@string/profile"
+                    android:fontFamily="@font/sans_regular" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:gravity="center"
+                android:orientation="vertical"
+                android:id="@+id/linearLayoutFrame"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:layout_width="@dimen/_47sdp"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:id="@+id/imageViewFrame"
+                    android:layout_width="@dimen/_16sdp"
+                    android:layout_height="@dimen/_16sdp"
+                    android:src="@drawable/ic_frame" />
+
+                <TextView
+                    android:textSize="@dimen/_8sdp"
+                    android:textColor="@color/iconColor"
+                    android:gravity="center"
+                    android:id="@+id/textViewFrame"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:text="@string/frame"
+                    android:fontFamily="@font/sans_regular" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:gravity="center"
+                android:orientation="vertical"
+                android:id="@+id/linearLayoutColor"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:layout_width="@dimen/_47sdp"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:id="@+id/imageViewColor"
+                    android:layout_width="@dimen/_16sdp"
+                    android:layout_height="@dimen/_16sdp"
+                    android:src="@drawable/ic_palette" />
+
+                <TextView
+                    android:textSize="@dimen/_8sdp"
+                    android:textColor="@color/iconColor"
+                    android:gravity="center"
+                    android:id="@+id/textViewColor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:text="@string/color"
+                    android:fontFamily="@font/sans_regular" />
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

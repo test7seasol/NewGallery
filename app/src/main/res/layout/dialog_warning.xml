@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/layout_close_dialog"
+    android:background="@color/white"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:background="@drawable/background_item"
+        android:paddingTop="@dimen/_12sdp"
+        android:paddingBottom="@dimen/_7sdp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/_12sdp"
+        android:elevation="2sp"
+        android:backgroundTint="@color/white">
+
+        <TextView
+            android:textSize="@dimen/_12ssp"
+            android:textColor="@color/black"
+            android:gravity="center"
+            android:id="@+id/textViewExit"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_27sdp"
+            android:text="Warning"
+            android:fontFamily="@font/sans_medium" />
+
+        <TextView
+            android:textSize="@dimen/_11ssp"
+            android:textColor="@color/black"
+            android:gravity="center"
+            android:id="@+id/textViewDiscard"
+            android:focusable="true"
+            android:clickable="true"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/_10sdp"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="15dp"
+            android:text="@string/changing_bluriness_will_lose_your_current_drawing_progress"
+            android:layout_below="@+id/textViewExit"
+            android:layout_centerHorizontal="true"
+            android:fontFamily="@font/sans_regular" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_47sdp"
+            android:layout_below="@+id/textViewDiscard">
+
+            <TextView
+                android:textSize="@dimen/_10sdp"
+                android:textColor="@color/white"
+                android:gravity="center"
+                android:layout_gravity="center_horizontal"
+                android:id="@+id/textViewCancel"
+                android:background="@drawable/background_unslelected"
+                android:focusable="true"
+                android:fontFamily="@font/sans_medium"
+                android:clickable="true"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/_27sdp"
+                android:text="Cancel"
+                android:layout_weight="1"
+                android:paddingStart="@dimen/_15sdp"
+                android:paddingEnd="@dimen/_15sdp"
+                android:layout_marginStart="@dimen/_15sdp"
+                android:layout_marginEnd="@dimen/_15sdp"
+                android:backgroundTint="@color/BackgroundCardColor"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:fontFamily="@font/sans_medium"
+                android:textSize="@dimen/_10sdp"
+                android:textColor="@color/white"
+                android:gravity="center"
+                android:layout_gravity="center_horizontal"
+                android:id="@+id/textViewContinue"
+                android:background="@drawable/background_selected"
+                android:focusable="true"
+                android:clickable="true"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/_27sdp"
+                android:text="Continue"
+                android:paddingStart="@dimen/_15sdp"
+                android:paddingEnd="@dimen/_15sdp"
+                android:layout_marginStart="@dimen/_15sdp"
+                android:layout_marginEnd="@dimen/_15sdp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </RelativeLayout>
+</FrameLayout>

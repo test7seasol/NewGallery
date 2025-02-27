@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/relative_layout_wrapper_filter_item"
+    android:layout_width="wrap_content"
+    android:layout_height="@dimen/_54sdp">
+
+    <com.quarkworks.roundedframelayout.RoundedFrameLayout
+        android:id="@+id/refresh_button_container"
+        android:layout_width="@dimen/_42sdp"
+        android:layout_height="@dimen/_42sdp"
+        android:layout_marginStart="0.5dp"
+        android:layout_marginEnd="0.5dp"
+        app:borderColor="@color/transparent"
+        app:clippedBackgroundColor="@color/transparent"
+        app:cornerRadiusBottomLeft="0dp"
+        app:cornerRadiusBottomRight="0dp"
+        app:cornerRadiusTopLeft="0dp"
+        app:cornerRadiusTopRight="0dp"
+        app:softBorderColor="@color/transparent">
+
+        <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+            android:id="@+id/round_image_view_filter_item"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitXY"
+            app:siBorderColor="@color/transparent"
+            app:siBorderWidth="0dp" />
+
+        <View
+            android:id="@+id/viewSelected"
+            android:background="@color/mainColor"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerVertical="true"
+            android:alpha="0.7"
+            android:layout_toEndOf="@+id/refresh_button_container" />
+    </com.quarkworks.roundedframelayout.RoundedFrameLayout>
+
+    <TextView
+        android:textSize="@dimen/_7sdp"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:gravity="center"
+        android:id="@+id/textViewTitle"
+        android:background="@color/mainColor"
+        android:layout_width="@dimen/_42sdp"
+        android:layout_height="match_parent"
+        android:text="GR-1"
+        android:layout_below="@+id/refresh_button_container"
+        android:layout_marginStart="0.5dp"
+        android:layout_marginEnd="0.5dp" />
+
+    <View
+        android:id="@+id/viewSpace"
+        android:background="@drawable/background_unslelected"
+        android:layout_width="3dp"
+        android:layout_height="@dimen/_19sdp"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="@dimen/_7sdp"
+        android:layout_marginEnd="@dimen/_7sdp"
+        android:layout_toEndOf="@+id/refresh_button_container"
+        android:backgroundTint="@color/itemColor" />
+</RelativeLayout>

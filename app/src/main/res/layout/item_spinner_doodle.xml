@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:minWidth="@dimen/_100sdp">
+
+    <View
+        android:id="@+id/topView"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/_5sdp" />
+
+    <LinearLayout
+        android:gravity="center"
+        android:layout_gravity="start"
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="@dimen/_12sdp"
+        android:paddingVertical="@dimen/_7sdp">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_gravity="center"
+            android:id="@+id/image"
+            android:visibility="visible"
+            android:layout_width="@dimen/_14sdp"
+            android:layout_height="@dimen/_14sdp"
+            android:src="@drawable/ic_color"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize10Percent" />
+
+        <TextView
+            android:textSize="@dimen/_13sdp"
+            android:textColor="@color/black_text"
+            android:ellipsize="end"
+            android:gravity="left"
+            android:layout_gravity="center"
+            android:id="@+id/txtTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:singleLine="false"
+            android:includeFontPadding="false"
+            android:fontFamily="@font/sans_bold"
+            android:layout_marginStart="@dimen/_10sdp" />
+    </LinearLayout>
+
+    <View
+        android:id="@+id/divider"
+        android:background="@color/divider_color"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="0.7dp" />
+
+    <View
+        android:id="@+id/bottomView"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/_5sdp" />
+</LinearLayout>

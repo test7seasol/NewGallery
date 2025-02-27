@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <array name="colorArray">
+        <item>#ffff00</item>
+        <item>#ff0000</item>
+        <item>#00aeef</item>
+        <item>#8dc63f</item>
+        <item>#ec008c</item>
+        <item>#00a651</item>
+        <item>#e64a19</item>
+        <item>#76ff03</item>
+        <item>#da00ff</item>
+        <item>#2979ff</item>
+        <item>#ff1744</item>
+    </array>
+    <array name="temperature_color">
+        <item>#ffff3300</item>
+        <item>#00ffffff</item>
+        <item>#ff4884ff</item>
+    </array>
+
+    <declare-styleable name="PatternLockView">
+        <attr name="dotCount" format="integer"/>
+        <attr name="dotNormalSize" format="dimension"/>
+        <attr name="dotSelectedSize" format="dimension"/>
+        <attr name="pathWidth" format="dimension"/>
+        <attr name="aspectRatioEnabled" format="boolean"/>
+        <attr name="aspectRatio" format="enum">
+            <enum name="square" value="0"/>
+            <enum name="width_bias" value="1"/>
+            <enum name="height_bias" value="2"/>
+        </attr>
+        <attr name="normalStateColor" format="color"/>
+        <attr name="correctStateColor" format="color"/>
+        <attr name="wrongStateColor" format="color"/>
+        <attr name="dotAnimationDuration" format="integer"/>
+        <attr name="pathEndAnimationDuration" format="integer"/>
+    </declare-styleable>
+
+    <declare-styleable name="FastScroller">
+        <attr name="hideScrollbar" format="boolean" />
+        <attr name="showBubble" format="boolean" />
+        <attr name="showBubbleAlways" format="boolean" />
+        <attr name="showTrack" format="boolean" />
+        <attr name="bubbleColor" format="color" />
+        <attr name="bubbleTextColor" format="color" />
+        <attr name="handleColor" format="color" />
+        <attr name="trackColor" format="color" />
+        <attr name="bubbleTextSize" format="dimension" />
+        <attr name="bubbleSize" format="enum">
+            <enum name="normal" value="0" />
+            <enum name="small" value="1" />
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="BottomActionMenuItem">
+        <attr name="android:id" />
+        <attr name="android:title" />
+        <attr name="android:icon" />
+        <attr name="android:visible" />
+        <attr name="showAsAction" />
+    </declare-styleable>
+
+    <declare-styleable name="PinLockView">
+        <attr name="pinLength" format="integer" />
+        <attr name="keypadTextColor" format="color" />
+        <attr name="keypadTextSize" format="dimension" />
+        <attr name="keypadButtonSize" format="dimension" />
+        <attr name="keypadVerticalSpacing" format="dimension" />
+        <attr name="keypadHorizontalSpacing" format="dimension" />
+        <attr name="keypadButtonBackgroundDrawable" format="integer" />
+        <attr name="keypadDeleteButtonDrawable" format="integer" />
+        <attr name="keypadDeleteButtonSize" format="dimension" />
+        <attr name="keypadShowDeleteButton" format="boolean" />
+        <attr name="keypadDeleteButtonPressedColor" format="color" />
+
+        <attr name="dotEmptyBackground" format="reference" />
+        <attr name="dotFilledBackground" format="reference" />
+        <attr name="dotDiameter" format="dimension" />
+        <attr name="dotSpacing" format="dimension" />
+        <attr name="indicatorType" format="enum">
+            <enum name="fixed" value="0" />
+            <enum name="fill" value="1" />
+            <enum name="fillWithAnimation" value="2" />
+        </attr>
+
+    </declare-styleable>
+
+    <declare-styleable name="TemplateView">
+        <attr name="gnt_template_type" format="reference" />
+    </declare-styleable>
+
+    <declare-styleable name="WheelPicker">
+        <attr name="wheel_data" format="reference" />
+        <attr name="wheel_selected_item_position" format="integer" />
+        <attr name="wheel_item_text_size" format="dimension" />
+        <attr name="wheel_item_text_color" format="color" />
+        <attr name="wheel_selected_item_text_color" format="color" />
+        <attr name="wheel_same_width" format="boolean" />
+        <attr name="wheel_maximum_width_text" format="string" />
+        <attr name="wheel_maximum_width_text_position" format="integer" />
+        <attr name="wheel_visible_item_count" format="integer" />
+        <attr name="wheel_item_space" format="dimension" />
+        <attr name="wheel_cyclic" format="boolean" />
+        <attr name="wheel_indicator" format="boolean" />
+        <attr name="wheel_indicator_color" format="color" />
+        <attr name="wheel_indicator_size" format="dimension" />
+        <attr name="wheel_curtain" format="boolean" />
+        <attr name="wheel_curtain_color" format="color" />
+        <attr name="wheel_atmospheric" format="boolean" />
+        <attr name="wheel_curved" format="boolean" />
+        <attr name="wheel_item_align" format="enum">
+            <enum name="center" value="0" />
+            <enum name="left" value="1" />
+            <enum name="right" value="2" />
+        </attr>
+        <attr name="wheel_font_path" format="string" />
+    </declare-styleable>
+
+    <declare-styleable name="ColorSeekBar">
+        <attr name="alphaBarPosition" format="integer" />
+        <attr name="barHeight" format="dimension" />
+        <attr name="barMargin" format="dimension" />
+        <attr name="barRadius" format="dimension" />
+        <attr name="bgColor" format="color" />
+        <attr name="colorBarPosition" format="integer" />
+        <attr name="colorSeeds" format="reference" />
+        <attr name="disabledColor" format="color" />
+        <attr name="isVertical" format="boolean" />
+        <attr name="maxPosition" format="integer" />
+        <attr name="showAlphaBar" format="boolean" />
+        <attr name="showColorBar" format="boolean" />
+        <attr name="showThumb" format="boolean" />
+        <attr name="thumbHeight" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="StickerView">
+        <attr name="borderAlpha" format="float" />
+        <attr name="borderColor" format="color" />
+        <attr name="bringToFrontCurrentSticker" format="boolean" />
+        <attr name="showBorder" format="boolean" />
+        <attr name="showIcons" format="boolean" />
+    </declare-styleable>
+
+
+    <declare-styleable name="CustomView">
+        <attr name="frame" format="reference" />
+        <attr name="image" format="reference" />
+        <attr name="mask" format="reference" />
+    </declare-styleable>
+
+
+    <declare-styleable name="RecyclerTabLayout">
+        <attr name="mScrollEnabled" format="boolean" />
+        <attr name="mTabBackground" format="reference|color" />
+        <attr name="mTabIndicatorColor" format="color" />
+        <attr name="mTabIndicatorHeight" format="dimension" />
+        <attr name="mTabMaxWidth" format="dimension" />
+        <attr name="mTabMinWidth" format="dimension" />
+        <attr name="mTabOnScreenLimit" format="integer" />
+        <attr name="mTabPadding" format="dimension" />
+        <attr name="mTabPaddingBottom" format="dimension" />
+        <attr name="mTabPaddingEnd" format="dimension" />
+        <attr name="mTabPaddingStart" format="dimension" />
+        <attr name="mTabPaddingTop" format="dimension" />
+        <attr name="mTabSelectedTextColor" format="color" />
+        <attr name="mTabTextAppearance" format="reference" />
+    </declare-styleable>
+    <attr name="defaultBackgroundColor" format="color"></attr>
+    <attr name="defaultBackgroundRangeColor" format="color"></attr>
+    <attr name="defaultBorderColor" format="color"></attr>
+    <attr name="maxValue" format="float"></attr>
+    <attr name="minValue" format="float"></attr>
+
+    <attr name="progress" format="float"></attr>
+
+    <declare-styleable name="ShaderImageView">
+        <attr name="siArrowPosition" format="dimension"/>
+        <attr name="siBorderAlpha" format="float"/>
+        <attr name="siBorderColor" format="color"/>
+        <attr name="siBorderType" format="enum">
+            <enum name="solid" value="0"/>
+            <enum name="dashed" value="1"/>
+        </attr>
+        <attr name="siBorderWidth" format="dimension"/>
+        <attr name="siForeground" format="reference|color"/>
+        <attr name="siRadius" format="dimension"/>
+        <attr name="siShape" format="enum">
+            <enum name="rectangle" value="0"/>
+            <enum name="circle" value="1"/>
+            <enum name="oval" value="2"/>
+        </attr>
+        <attr name="siSquare" format="boolean"/>
+        <attr name="siStrokeCap" format="enum">
+            <enum name="butt" value="0"/>
+            <enum name="round" value="1"/>
+            <enum name="square" value="2"/>
+        </attr>
+        <attr name="siStrokeJoin" format="enum">
+            <enum name="miter" value="0"/>
+            <enum name="round" value="1"/>
+            <enum name="bevel" value="2"/>
+        </attr>
+        <attr name="siStrokeMiter" format="float"/>
+        <attr name="siTriangleHeight" format="dimension"/>
+    </declare-styleable>
+
+    <declare-styleable name="ColorSlider">
+        <attr name="cs_colors" format="reference" />
+        <attr name="cs_from_color" format="color" />
+        <attr name="cs_to_color" format="color" />
+        <attr name="cs_hex_colors" format="reference" />
+        <attr name="cs_selector_color" format="color" />
+        <attr name="cs_steps" format="integer" />
+    </declare-styleable>
+
+
+    <declare-styleable name="ActionBar">
+
+        <attr name="navigationMode">
+            <!-- Normal static title text -->
+            <enum name="normal" value="0"/>
+            <!-- The action bar will use a selection list for navigation. -->
+            <enum name="listMode" value="1"/>
+            <!-- The action bar will use a series of horizontal tabs for navigation. -->
+            <enum name="tabMode" value="2"/>
+        </attr>
+
+        <attr name="displayOptions">
+            <flag name="none" value="0"/>
+            <flag name="useLogo" value="0x1"/>
+            <flag name="showHome" value="0x2"/>
+            <flag name="homeAsUp" value="0x4"/>
+            <flag name="showTitle" value="0x8"/>
+            <flag name="showCustom" value="0x10"/>
+            <flag name="disableHome" value="0x20"/>
+        </attr>
+
+        <attr name="title"/>
+
+        <attr format="string" name="subtitle"/>
+
+        <attr format="reference" name="titleTextStyle"/>
+
+        <attr format="reference" name="subtitleTextStyle"/>
+
+        <attr format="reference" name="icon"/>
+
+        <attr format="reference" name="logo"/>
+
+        <attr format="reference" name="divider"/>
+
+        <attr format="reference" name="background"/>
+
+        <attr format="reference|color" name="backgroundStacked"/>
+
+        <attr format="reference|color" name="backgroundSplit"/>
+
+        <attr format="reference" name="customNavigationLayout"/>
+
+        <attr name="height"/>
+
+        <attr format="reference" name="homeLayout"/>
+
+        <attr format="reference" name="progressBarStyle"/>
+
+        <attr format="reference" name="indeterminateProgressStyle"/>
+
+        <attr format="dimension" name="progressBarPadding"/>
+
+        <attr name="homeAsUpIndicator"/>
+
+        <attr format="dimension" name="itemPadding"/>
+
+        <attr format="boolean" name="hideOnContentScroll"/>
+
+        <attr format="dimension" name="contentInsetStart"/>
+
+        <attr format="dimension" name="contentInsetEnd"/>
+
+        <attr format="dimension" name="contentInsetLeft"/>
+
+        <attr format="dimension" name="contentInsetRight"/>
+
+        <attr format="dimension" name="contentInsetStartWithNavigation"/>
+
+        <attr format="dimension" name="contentInsetEndWithActions"/>
+
+        <attr format="dimension" name="elevation"/>
+
+        <attr format="reference" name="popupTheme"/>
+    </declare-styleable>
+
+
+</resources>

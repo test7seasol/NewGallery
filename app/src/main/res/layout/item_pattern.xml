@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingTop="@dimen/_7sdp"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:paddingStart="@dimen/_4sdp"
+    android:paddingEnd="@dimen/_4sdp">
+
+    <com.quarkworks.roundedframelayout.RoundedFrameLayout
+        android:id="@+id/refresh_button_container"
+        android:padding="@dimen/_4sdp"
+        android:layout_width="@dimen/_42sdp"
+        android:layout_height="@dimen/_42sdp"
+        app:borderColor="@color/transparent"
+        app:clippedBackgroundColor="@color/itemColor"
+        app:cornerRadiusBottomLeft="7dp"
+        app:cornerRadiusBottomRight="7dp"
+        app:cornerRadiusTopLeft="7dp"
+        app:cornerRadiusTopRight="7dp"
+        app:softBorderColor="@color/transparent">
+
+        <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+            android:id="@+id/image_view_collage_icon"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:siBorderColor="@color/transparent"
+            app:siBorderType="solid"
+            app:siRadius="7dp" />
+    </com.quarkworks.roundedframelayout.RoundedFrameLayout>
+</LinearLayout>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/relative_layout_wrapper_filter_item"
+    android:layout_width="@dimen/_38sdp"
+    android:layout_height="@dimen/_46sdp"
+    android:layout_marginStart="2.5dp"
+    android:layout_marginEnd="2.5dp">
+
+    <com.quarkworks.roundedframelayout.RoundedFrameLayout
+        android:id="@+id/refresh_button_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:borderColor="@color/transparent"
+        app:clippedBackgroundColor="@color/itemColor"
+        app:cornerRadiusBottomLeft="7dp"
+        app:cornerRadiusBottomRight="7dp"
+        app:cornerRadiusTopLeft="7dp"
+        app:cornerRadiusTopRight="7dp"
+        app:softBorderColor="@color/transparent">
+
+        <ImageView
+            android:id="@+id/round_image_view_filter_item"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop" />
+
+        <View
+            android:id="@+id/viewSelected"
+            android:background="@drawable/background_select"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@+id/refresh_button_container" />
+    </com.quarkworks.roundedframelayout.RoundedFrameLayout>
+</RelativeLayout>

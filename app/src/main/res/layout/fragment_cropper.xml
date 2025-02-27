@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/BackgroundCardColor"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayoutCrop"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_39sdp"
+        android:paddingStart="@dimen/_4sdp"
+        android:paddingEnd="@dimen/_4sdp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/imageViewCloseCrop"
+            android:padding="@dimen/_9sdp"
+            android:layout_width="@dimen/_39sdp"
+            android:layout_height="@dimen/_39sdp"
+            android:src="@drawable/ic_round_close"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/white" />
+
+        <ImageView
+            android:id="@+id/imageViewSaveCrop"
+            android:padding="@dimen/_9sdp"
+            android:layout_width="@dimen/_39sdp"
+            android:layout_height="@dimen/_39sdp"
+            android:src="@drawable/ic_round_check"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/white" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <com.isseiaoki.simplecropview.CropImageView
+        android:id="@+id/crop_image_view"
+        android:padding="@dimen/_7sdp"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/constraint_layout_confirm_adjust"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/constraintLayoutCrop"
+        app:scv_background_color="@color/BackgroundCardColor"
+        app:scv_crop_mode="fit_image"
+        app:scv_frame_color="@color/black"
+        app:scv_frame_stroke_weight="0.5dp"
+        app:scv_guide_color="@color/black"
+        app:scv_guide_show_mode="show_always"
+        app:scv_guide_stroke_weight="0.5dp"
+        app:scv_handle_color="@color/mainColor"
+        app:scv_handle_show_mode="show_always"
+        app:scv_handle_size="10dp"
+        app:scv_min_frame_size="100dp"
+        app:scv_overlay_color="#b2000000"
+        app:scv_touch_padding="5dp" />
+
+    <RelativeLayout
+        android:layout_gravity="center"
+        android:id="@+id/relative_layout_loading"
+        android:background="@android:color/transparent"
+        android:layout_width="@dimen/_76sdp"
+        android:layout_height="@dimen/_76sdp"
+        app:layout_constraintBottom_toTopOf="@+id/constraint_layout_confirm_adjust"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:layout_gravity="center"
+            android:id="@+id/lottie_animation_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_colorFilter="@color/white"
+            app:lottie_rawRes="@raw/loading" />
+    </RelativeLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraint_layout_confirm_adjust"
+        android:background="@color/BackgroundColor"
+        android:paddingTop="@dimen/_7sdp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:elevation="2dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:orientation="horizontal"
+            android:id="@+id/recycler_view_ratio"
+            android:background="@color/BackgroundColor"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_40sdp"
+            android:layout_marginBottom="@dimen/_7sdp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            app:layout_constraintBottom_toTopOf="@+id/viewLine" />
+
+        <View
+            android:id="@+id/viewLine"
+            android:background="@color/lineColor"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            app:layout_constraintBottom_toTopOf="@+id/constraint_layout" />
+
+        <LinearLayout
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:id="@+id/constraint_layout"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_47sdp"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <LinearLayout
+                android:gravity="center"
+                android:orientation="vertical"
+                android:id="@+id/linearLayoutRotateLeft"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:layout_width="@dimen/_47sdp"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:id="@+id/imageViewRatio"
+                    android:layout_width="@dimen/_16sdp"
+                    android:layout_height="@dimen/_16sdp"
+                    android:src="@drawable/ic_rotate_left"
+                    app:tint="@drawable/press_selected_color" />
+
+                <TextView
+                    android:textSize="@dimen/_8sdp"
+                    android:textColor="@drawable/press_selected_color"
+                    android:gravity="center"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:text="Left"
+                    android:fontFamily="@font/sans_regular" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:gravity="center"
+                android:orientation="vertical"
+                android:id="@+id/linearLayoutFlipH"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:layout_width="@dimen/_47sdp"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:layout_width="@dimen/_16sdp"
+                    android:layout_height="@dimen/_16sdp"
+                    android:src="@drawable/ic_flip_horizontal"
+                    app:tint="@drawable/press_selected_color" />
+
+                <TextView
+                    android:textSize="@dimen/_8sdp"
+                    android:textColor="@drawable/press_selected_color"
+                    android:gravity="center"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:text="Horizontal"
+                    android:fontFamily="@font/sans_regular" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:gravity="center"
+                android:orientation="vertical"
+                android:id="@+id/linearLayoutFlipV"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:layout_width="@dimen/_47sdp"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:layout_width="@dimen/_16sdp"
+                    android:layout_height="@dimen/_16sdp"
+                    android:src="@drawable/ic_flip_vertical"
+                    app:tint="@drawable/press_selected_color" />
+
+                <TextView
+                    android:textSize="@dimen/_8sdp"
+                    android:textColor="@drawable/press_selected_color"
+                    android:gravity="center"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:text="Vertical"
+                    android:fontFamily="@font/sans_regular" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:gravity="center"
+                android:orientation="vertical"
+                android:id="@+id/linearLayoutRotateRight"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:layout_width="@dimen/_47sdp"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:layout_width="@dimen/_16sdp"
+                    android:layout_height="@dimen/_16sdp"
+                    android:src="@drawable/ic_rotate_left"
+                    app:tint="@drawable/press_selected_color" />
+
+                <TextView
+                    android:textSize="@dimen/_8sdp"
+                    android:textColor="@drawable/press_selected_color"
+                    android:gravity="center"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:text="Right"
+                    android:fontFamily="@font/sans_regular" />
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

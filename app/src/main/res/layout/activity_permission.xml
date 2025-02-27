@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context=".Activity.PermissionActivity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        style="@style/Toolbar"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent">
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="@dimen/_25sdp"
+            android:adjustViewBounds="true"
+            android:src="@drawable/ic_guide_vect" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="#FFF7F4"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:fontFamily="@font/sans_bold"
+            android:gravity="center"
+            android:paddingTop="@dimen/_5sdp"
+            android:text="Step"
+            android:textColor="#FF5722"
+            android:textSize="@dimen/_20sdp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/sans_bold"
+            android:gravity="center"
+            android:padding="@dimen/_3sdp"
+            android:text="Allow  display permission"
+            android:textColor="#68483E"
+            android:textSize="@dimen/_12sdp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:fontFamily="@font/sans_bold"
+            android:gravity="center"
+            android:paddingTop="@dimen/_5sdp"
+            android:text="Access App\nOverlay Permission"
+            android:textColor="#000000"
+            android:textSize="@dimen/_20sdp" />
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/sans_bold"
+            android:gravity="center"
+            android:padding="@dimen/_3sdp"
+            android:text="Grant access caller details after the call\nto stay organized and productive."
+            android:textColor="#68483E"
+            android:textSize="@dimen/_12sdp" />
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/_55sdp"
+            android:layout_alignParentBottom="true"
+            android:layout_centerInParent="true"
+            android:layout_gravity="center"
+            android:layout_marginHorizontal="@dimen/_5sdp"
+            android:layout_marginVertical="@dimen/_15sdp">
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btnGrant"
+                style="@style/Widget.Material3.CardView.Filled"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_45sdp"
+                android:layout_centerVertical="true"
+                android:layout_marginHorizontal="@dimen/_15sdp"
+                app:cardBackgroundColor="#FF5722"
+                app:cardCornerRadius="@dimen/_60sdp">
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:fontFamily="@font/sans_bold"
+                    android:gravity="center"
+                    android:text="Grant Access"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/_16sdp" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <View
+                android:id="@+id/shine"
+                android:layout_width="@dimen/_20sdp"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_shine"
+                android:rotation="20" />
+
+        </RelativeLayout>
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+</RelativeLayout>

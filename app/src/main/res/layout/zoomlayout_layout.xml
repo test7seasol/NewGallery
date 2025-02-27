@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center"
+    android:background="#EE1F1E1E"
+    android:gravity="center"
+    android:orientation="vertical"
+    tools:context=".Activity.ZoomInZoomOutAct">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_100sdp"
+        android:layout_gravity="center"
+        android:rotation="40"
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_zoom" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="@dimen/_20sdp"
+        android:fontFamily="@font/sans_bold"
+        android:gravity="center"
+        android:text="Zoom in/out"
+        android:textColor="@color/white"
+        android:textSize="@dimen/_22sdp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:fontFamily="@font/sans_regular"
+        android:gravity="center"
+        android:text="Change the number of columns"
+        android:textColor="@color/white"
+        android:textSize="@dimen/_12sdp" />
+
+    <TextView
+        android:id="@+id/tvGotIt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="@dimen/_100sdp"
+        android:background="@drawable/ic_gotit"
+        android:fontFamily="@font/sans_bold"
+        android:gravity="center"
+        android:textColor="@color/white"
+        android:paddingHorizontal="@dimen/_40sdp"
+        android:paddingVertical="@dimen/_8sdp"
+        android:text="GOT IT"
+        android:textSize="@dimen/_12sdp" />
+
+</LinearLayout>

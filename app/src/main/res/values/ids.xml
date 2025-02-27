@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <item name="fast_scroller" type="id" />
+    <item name="recycler_view" type="id" />
+
+    <item name="mCircleImage" type="id" />
+    <item name="mResizeImage" type="id" />
+    <item name="mTopImage" type="id" />
+    <item name="mBottomImage" type="id" />
+    <item name="mLeftImage" type="id" />
+    <item name="mRightImage" type="id" />
+    <item name="mCenterImage" type="id" />
+    <item name="centerLine" type="id" />
+    <item name="lineLeft" type="id" />
+    <item name="lineRight" type="id" />
+    <item name="mControlLayout" type="id" />
+    <item name="controlLineTop" type="id" />
+    <item name="redMask" type="id" />
+    <item name="controlIconTop" type="id" />
+    <item name="frmBorder" type="id" />
+    <item name="imgPhotoEditorClose" type="id" />
+
+
+</resources>

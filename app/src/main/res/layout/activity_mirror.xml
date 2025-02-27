@@ -1,0 +1,560 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/layout_mirror_activity"
+    android:background="@color/BackgroundCardColor"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraint_layout_confirm_blur"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_39sdp"
+        android:paddingStart="@dimen/_4sdp"
+        android:paddingEnd="@dimen/_4sdp">
+
+        <ImageView
+            app:tint="@color/white"
+            android:id="@+id/imageViewCloseDrip"
+            android:padding="@dimen/_9sdp"
+            android:layout_width="@dimen/_39sdp"
+            android:layout_height="@dimen/_39sdp"
+            android:src="@drawable/ic_round_close"
+            android:onClick="myClickHandler"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            app:tint="@color/white"
+            android:id="@+id/imageViewSaveDrip"
+            android:padding="@dimen/_9sdp"
+            android:layout_width="@dimen/_39sdp"
+            android:layout_height="@dimen/_39sdp"
+            android:src="@drawable/ic_round_check"
+            android:onClick="myClickHandler"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <com.gallery.photos.editpic.ImageEDITModule.edit.mirror.CustomViewFlipper
+        android:gravity="bottom"
+        android:id="@+id/mirror_view_flipper"
+        android:background="@color/BackgroundColor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/viewLine">
+
+        <LinearLayout
+            android:layout_gravity="bottom"
+            android:orientation="horizontal"
+            android:background="@color/BackgroundColor"
+            android:padding="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <HorizontalScrollView
+                android:padding="1dp"
+                android:scrollbars="none"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:padding="1dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                        android:id="@+id/button_m1"
+                        android:layout_width="@dimen/_38sdp"
+                        android:layout_height="@dimen/_38sdp"
+                        android:layout_margin="@dimen/_4sdp"
+                        android:src="@drawable/m1"
+                        android:onClick="myClickHandler"
+                        app:siRadius="@dimen/_5sdp" />
+
+                    <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                        android:id="@+id/button_m2"
+                        android:layout_width="@dimen/_38sdp"
+                        android:layout_height="@dimen/_38sdp"
+                        android:layout_margin="@dimen/_4sdp"
+                        android:src="@drawable/m2"
+                        android:onClick="myClickHandler"
+                        app:siRadius="@dimen/_5sdp" />
+
+                    <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                        android:id="@+id/button_m3"
+                        android:layout_width="@dimen/_38sdp"
+                        android:layout_height="@dimen/_38sdp"
+                        android:layout_margin="@dimen/_4sdp"
+                        android:src="@drawable/m3"
+                        android:onClick="myClickHandler"
+                        app:siRadius="@dimen/_5sdp" />
+
+                    <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                        android:id="@+id/button_m4"
+                        android:layout_width="@dimen/_38sdp"
+                        android:layout_height="@dimen/_38sdp"
+                        android:layout_margin="@dimen/_4sdp"
+                        android:src="@drawable/m4"
+                        android:onClick="myClickHandler"
+                        app:siRadius="@dimen/_5sdp" />
+
+                    <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                        android:id="@+id/button_m5"
+                        android:layout_width="@dimen/_38sdp"
+                        android:layout_height="@dimen/_38sdp"
+                        android:layout_margin="@dimen/_4sdp"
+                        android:src="@drawable/m5"
+                        android:onClick="myClickHandler"
+                        app:siRadius="@dimen/_5sdp" />
+
+                    <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                        android:id="@+id/button_m6"
+                        android:layout_width="@dimen/_38sdp"
+                        android:layout_height="@dimen/_38sdp"
+                        android:layout_margin="@dimen/_4sdp"
+                        android:src="@drawable/m6"
+                        android:onClick="myClickHandler"
+                        app:siRadius="@dimen/_5sdp" />
+
+                    <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                        android:id="@+id/button_m7"
+                        android:layout_width="@dimen/_38sdp"
+                        android:layout_height="@dimen/_38sdp"
+                        android:layout_margin="@dimen/_4sdp"
+                        android:src="@drawable/m7"
+                        app:siRadius="@dimen/_5sdp" />
+
+                    <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                        android:id="@+id/button_m8"
+                        android:layout_width="@dimen/_38sdp"
+                        android:layout_height="@dimen/_38sdp"
+                        android:layout_margin="@dimen/_4sdp"
+                        android:src="@drawable/m8"
+                        android:onClick="myClickHandler"
+                        app:siRadius="@dimen/_5sdp" />
+
+                    <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                        android:id="@+id/button_m9"
+                        android:layout_width="@dimen/_38sdp"
+                        android:layout_height="@dimen/_38sdp"
+                        android:layout_margin="@dimen/_4sdp"
+                        android:src="@drawable/m9"
+                        android:onClick="myClickHandler"
+                        app:siRadius="@dimen/_5sdp" />
+
+                    <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                        android:id="@+id/button_m10"
+                        android:layout_width="@dimen/_38sdp"
+                        android:layout_height="@dimen/_38sdp"
+                        android:layout_margin="@dimen/_4sdp"
+                        android:src="@drawable/m10"
+                        app:siRadius="@dimen/_5sdp" />
+
+                    <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                        android:id="@+id/button_m11"
+                        android:layout_width="@dimen/_38sdp"
+                        android:layout_height="@dimen/_38sdp"
+                        android:layout_margin="@dimen/_4sdp"
+                        android:src="@drawable/m11"
+                        android:onClick="myClickHandler"
+                        app:siRadius="@dimen/_5sdp" />
+
+                    <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                        android:id="@+id/button_m12"
+                        android:layout_width="@dimen/_38sdp"
+                        android:layout_height="@dimen/_38sdp"
+                        android:layout_margin="@dimen/_4sdp"
+                        android:src="@drawable/m12"
+                        android:onClick="myClickHandler"
+                        app:siRadius="@dimen/_5sdp" />
+
+                    <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                        android:id="@+id/button_m13"
+                        android:layout_width="@dimen/_38sdp"
+                        android:layout_height="@dimen/_38sdp"
+                        android:layout_margin="@dimen/_4sdp"
+                        android:src="@drawable/m13"
+                        android:onClick="myClickHandler"
+                        app:siRadius="@dimen/_5sdp" />
+
+                    <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                        android:id="@+id/button_m14"
+                        android:layout_width="@dimen/_38sdp"
+                        android:layout_height="@dimen/_38sdp"
+                        android:layout_margin="@dimen/_4sdp"
+                        android:src="@drawable/m14"
+                        android:onClick="myClickHandler"
+                        app:siRadius="@dimen/_5sdp" />
+
+                    <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                        android:id="@+id/button_m15"
+                        android:layout_width="@dimen/_38sdp"
+                        android:layout_height="@dimen/_38sdp"
+                        android:layout_margin="@dimen/_4sdp"
+                        android:src="@drawable/m15"
+                        android:onClick="myClickHandler"
+                        app:siRadius="@dimen/_5sdp" />
+                </LinearLayout>
+            </HorizontalScrollView>
+        </LinearLayout>
+
+        <HorizontalScrollView
+            android:layout_gravity="bottom"
+            android:background="@color/BackgroundColor"
+            android:padding="5dp"
+            android:scrollbars="none"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:padding="1dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                    android:id="@+id/button_3d_1"
+                    android:background="@drawable/background_item"
+                    android:padding="@dimen/_7sdp"
+                    android:layout_width="@dimen/_38sdp"
+                    android:layout_height="@dimen/_38sdp"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:src="@drawable/mirror_3d_14_icon_left"
+                    android:onClick="myClickHandler"
+                    app:siRadius="@dimen/_5sdp" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                    android:id="@+id/button_3d_2"
+                    android:background="@drawable/background_item"
+                    android:padding="@dimen/_4sdp"
+                    android:layout_width="@dimen/_38sdp"
+                    android:layout_height="@dimen/_38sdp"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:src="@drawable/mirror_3d_14_icon_right"
+                    android:onClick="myClickHandler"
+                    app:siRadius="@dimen/_5sdp" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                    android:id="@+id/button_3d_3"
+                    android:background="@drawable/background_item"
+                    android:padding="@dimen/_4sdp"
+                    android:layout_width="@dimen/_38sdp"
+                    android:layout_height="@dimen/_38sdp"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:src="@drawable/mirror_3d_10_icon_left"
+                    android:onClick="myClickHandler"
+                    app:siRadius="@dimen/_5sdp" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                    android:id="@+id/button_3d_4"
+                    android:background="@drawable/background_item"
+                    android:padding="@dimen/_4sdp"
+                    android:layout_width="@dimen/_38sdp"
+                    android:layout_height="@dimen/_38sdp"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:src="@drawable/mirror_3d_10_icon"
+                    android:onClick="myClickHandler"
+                    app:siRadius="@dimen/_5sdp" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                    android:id="@+id/button_3d_5"
+                    android:background="@drawable/background_item"
+                    android:padding="@dimen/_4sdp"
+                    android:layout_width="@dimen/_38sdp"
+                    android:layout_height="@dimen/_38sdp"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:src="@drawable/mirror_3d_11_icon_left"
+                    android:onClick="myClickHandler"
+                    app:siRadius="@dimen/_5sdp" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                    android:id="@+id/button_3d_6"
+                    android:background="@drawable/background_item"
+                    android:padding="@dimen/_4sdp"
+                    android:layout_width="@dimen/_38sdp"
+                    android:layout_height="@dimen/_38sdp"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:src="@drawable/mirror_3d_11_icon"
+                    android:onClick="myClickHandler"
+                    app:siRadius="@dimen/_5sdp" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                    android:id="@+id/button_3d_7"
+                    android:background="@drawable/background_item"
+                    android:padding="@dimen/_4sdp"
+                    android:layout_width="@dimen/_38sdp"
+                    android:layout_height="@dimen/_38sdp"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:src="@drawable/mirror_3d_4_icon_left"
+                    android:onClick="myClickHandler"
+                    app:siRadius="@dimen/_5sdp" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                    android:id="@+id/button_3d_8"
+                    android:background="@drawable/background_item"
+                    android:padding="@dimen/_4sdp"
+                    android:layout_width="@dimen/_38sdp"
+                    android:layout_height="@dimen/_38sdp"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:src="@drawable/mirror_3d_4_icon"
+                    android:onClick="myClickHandler"
+                    app:siRadius="@dimen/_5sdp" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                    android:id="@+id/button_3d_9"
+                    android:background="@drawable/background_item"
+                    android:padding="@dimen/_4sdp"
+                    android:layout_width="@dimen/_38sdp"
+                    android:layout_height="@dimen/_38sdp"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:src="@drawable/mirror_3d_3_icon_left"
+                    android:onClick="myClickHandler"
+                    app:siRadius="@dimen/_5sdp" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                    android:id="@+id/button_3d_10"
+                    android:background="@drawable/background_item"
+                    android:padding="@dimen/_4sdp"
+                    android:layout_width="@dimen/_38sdp"
+                    android:layout_height="@dimen/_38sdp"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:src="@drawable/mirror_3d_3_icon_right"
+                    android:onClick="myClickHandler"
+                    app:siRadius="@dimen/_5sdp" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                    android:id="@+id/button_3d_11"
+                    android:background="@drawable/background_item"
+                    android:padding="@dimen/_4sdp"
+                    android:layout_width="@dimen/_38sdp"
+                    android:layout_height="@dimen/_38sdp"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:src="@drawable/mirror_3d_1_icon_left"
+                    android:onClick="myClickHandler"
+                    app:siRadius="@dimen/_5sdp" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                    android:id="@+id/button_3d_12"
+                    android:background="@drawable/background_item"
+                    android:padding="@dimen/_4sdp"
+                    android:layout_width="@dimen/_38sdp"
+                    android:layout_height="@dimen/_38sdp"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:src="@drawable/mirror_3d_1_icon"
+                    android:onClick="myClickHandler"
+                    app:siRadius="@dimen/_5sdp" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                    android:id="@+id/button_3d_13"
+                    android:background="@drawable/background_item"
+                    android:padding="@dimen/_4sdp"
+                    android:layout_width="@dimen/_38sdp"
+                    android:layout_height="@dimen/_38sdp"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:src="@drawable/mirror_3d_6_icon"
+                    android:onClick="myClickHandler"
+                    app:siRadius="@dimen/_5sdp" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                    android:id="@+id/button_3d_14"
+                    android:background="@drawable/background_item"
+                    android:padding="@dimen/_4sdp"
+                    android:layout_width="@dimen/_38sdp"
+                    android:layout_height="@dimen/_38sdp"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:src="@drawable/mirror_3d_6_icon_left"
+                    android:onClick="myClickHandler"
+                    app:siRadius="@dimen/_5sdp" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                    android:id="@+id/button_3d_15"
+                    android:background="@drawable/background_item"
+                    android:padding="@dimen/_4sdp"
+                    android:layout_width="@dimen/_38sdp"
+                    android:layout_height="@dimen/_38sdp"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:src="@drawable/mirror_3d_13_icon"
+                    android:onClick="myClickHandler"
+                    app:siRadius="@dimen/_5sdp" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                    android:id="@+id/button_3d_16"
+                    android:background="@drawable/background_item"
+                    android:padding="@dimen/_4sdp"
+                    android:layout_width="@dimen/_38sdp"
+                    android:layout_height="@dimen/_38sdp"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:src="@drawable/mirror_3d_13_icon_right"
+                    android:onClick="myClickHandler"
+                    app:siRadius="@dimen/_5sdp" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                    android:id="@+id/button_3d_17"
+                    android:background="@drawable/background_item"
+                    android:padding="@dimen/_4sdp"
+                    android:layout_width="@dimen/_38sdp"
+                    android:layout_height="@dimen/_38sdp"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:src="@drawable/mirror_3d_15_icon4"
+                    android:onClick="myClickHandler"
+                    app:siRadius="@dimen/_5sdp" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                    android:id="@+id/button_3d_18"
+                    android:background="@drawable/background_item"
+                    android:padding="@dimen/_4sdp"
+                    android:layout_width="@dimen/_38sdp"
+                    android:layout_height="@dimen/_38sdp"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:src="@drawable/mirror_3d_15_icon2"
+                    android:onClick="myClickHandler"
+                    app:siRadius="@dimen/_5sdp" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                    android:id="@+id/button_3d_19"
+                    android:background="@drawable/background_item"
+                    android:padding="@dimen/_4sdp"
+                    android:layout_width="@dimen/_38sdp"
+                    android:layout_height="@dimen/_38sdp"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:src="@drawable/mirror_3d_15_icon3"
+                    android:onClick="myClickHandler"
+                    app:siRadius="@dimen/_5sdp" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                    android:id="@+id/button_3d_20"
+                    android:background="@drawable/background_item"
+                    android:padding="@dimen/_4sdp"
+                    android:layout_width="@dimen/_38sdp"
+                    android:layout_height="@dimen/_38sdp"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:src="@drawable/mirror_3d_15_icon"
+                    android:onClick="myClickHandler"
+                    app:siRadius="@dimen/_5sdp" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                    android:id="@+id/button_3d_21"
+                    android:background="@drawable/background_item"
+                    android:padding="@dimen/_4sdp"
+                    android:layout_width="@dimen/_38sdp"
+                    android:layout_height="@dimen/_38sdp"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:src="@drawable/mirror_3d_16_icon4"
+                    android:onClick="myClickHandler"
+                    app:siRadius="@dimen/_5sdp" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                    android:id="@+id/button_3d_22"
+                    android:background="@drawable/background_item"
+                    android:padding="@dimen/_4sdp"
+                    android:layout_width="@dimen/_38sdp"
+                    android:layout_height="@dimen/_38sdp"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:src="@drawable/mirror_3d_16_icon2"
+                    android:onClick="myClickHandler"
+                    app:siRadius="@dimen/_5sdp" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                    android:id="@+id/button_3d_23"
+                    android:background="@drawable/background_item"
+                    android:padding="@dimen/_4sdp"
+                    android:layout_width="@dimen/_38sdp"
+                    android:layout_height="@dimen/_38sdp"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:src="@drawable/mirror_3d_16_icon3"
+                    android:onClick="myClickHandler"
+                    app:siRadius="@dimen/_5sdp" />
+
+                <com.gallery.photos.editpic.ImageEDITModule.github.siyamed.shapeimageview.RoundedImageView
+                    android:id="@+id/button_3d_24"
+                    android:background="@drawable/background_item"
+                    android:padding="@dimen/_4sdp"
+                    android:layout_width="@dimen/_38sdp"
+                    android:layout_height="@dimen/_38sdp"
+                    android:layout_margin="@dimen/_4sdp"
+                    android:src="@drawable/mirror_3d_16_icon"
+                    android:onClick="myClickHandler"
+                    app:siRadius="@dimen/_5sdp" />
+            </LinearLayout>
+        </HorizontalScrollView>
+    </com.gallery.photos.editpic.ImageEDITModule.edit.mirror.CustomViewFlipper>
+
+    <View
+        android:id="@+id/viewLine"
+        android:background="@color/lineColor"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_above="@+id/mirror_footer" />
+
+    <LinearLayout
+        android:gravity="center_horizontal"
+        android:orientation="horizontal"
+        android:id="@+id/mirror_footer"
+        android:background="@color/BackgroundColor"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_47sdp"
+        android:layout_alignParentBottom="true">
+
+        <LinearLayout
+            android:gravity="center"
+            android:orientation="vertical"
+            android:id="@+id/linearLayout2D"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:layout_width="@dimen/_55sdp"
+            android:layout_height="match_parent"
+            android:onClick="myClickHandler">
+
+            <ImageView
+                android:id="@+id/imageView2D"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:src="@drawable/ic_mirror"
+                app:tint="@drawable/press_selected_color" />
+
+            <TextView
+                android:textSize="@dimen/_8sdp"
+                android:textColor="@drawable/press_selected_color"
+                android:gravity="center"
+                android:id="@+id/textView2D"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_4sdp"
+                android:text="Mirror 2D"
+                android:fontFamily="@font/sans_regular" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:gravity="center"
+            android:orientation="vertical"
+            android:id="@+id/linearLayout3D"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:layout_width="@dimen/_55sdp"
+            android:layout_height="match_parent"
+            android:onClick="myClickHandler">
+
+            <ImageView
+                android:id="@+id/imageView3D"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:src="@drawable/ic_mirror"
+                app:tint="@drawable/press_selected_color" />
+
+            <TextView
+                android:textSize="@dimen/_8sdp"
+                android:textColor="@drawable/press_selected_color"
+                android:gravity="center"
+                android:id="@+id/textView3D"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_4sdp"
+                android:text="Mirror 3D"
+                android:fontFamily="@font/sans_regular" />
+        </LinearLayout>
+    </LinearLayout>
+</RelativeLayout>

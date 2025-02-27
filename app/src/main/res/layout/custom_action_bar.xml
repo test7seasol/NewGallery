@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="?actionBarSize"
+    android:orientation="horizontal"
+    android:background="@color/white"
+    android:padding="8dp">
+
+    <ImageView
+        android:visibility="gone"
+        android:id="@+id/closeSelection"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/baseline_arrow_back_24"
+        android:padding="8dp"
+        android:tint="@android:color/black" />
+
+    <TextView
+        android:id="@+id/actionbar_title"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:text="0 Selected"
+        android:textColor="@android:color/black"
+        android:textSize="18sp"
+        android:gravity="center_vertical" />
+
+    <ImageView
+        android:id="@+id/shareimgmenu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_ios_share"
+        android:padding="8dp"
+        android:tint="@android:color/black" />
+
+    <ImageView
+        android:id="@+id/deleteimgmenu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_delete_outline"
+        android:padding="8dp"
+        android:tint="@android:color/black" />
+
+    <ImageView
+        android:id="@+id/moreimgmenu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/baseline_more_vert_24"
+        android:padding="8dp"
+        android:tint="@android:color/black" />
+</LinearLayout>

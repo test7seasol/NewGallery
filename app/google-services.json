@@ -1,0 +1,29 @@
+{
+    "project_info": {
+        "project_number": "307525549548",
+        "project_id": "gallery-6435c",
+        "storage_bucket": "gallery-6435c.firebasestorage.app"
+    },
+    "client": [
+        {
+            "client_info": {
+                "mobilesdk_app_id": "1:307525549548:android:bae2131ae2e61ffec694c9",
+                "android_client_info": {
+                    "package_name": "com.gallery.photos.editpic"
+                }
+            },
+            "oauth_client": [],
+            "api_key": [
+                {
+                    "current_key": "AIzaSyAhOVrQSonMbDl0imttrDd8C2MOSlbaWMw"
+                }
+            ],
+            "services": {
+                "appinvite_service": {
+                    "other_platform_oauth_client": []
+                }
+            }
+        }
+    ],
+    "configuration_version": "1"
+}
