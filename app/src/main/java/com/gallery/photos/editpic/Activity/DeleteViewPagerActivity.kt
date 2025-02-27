@@ -47,7 +47,7 @@ class DeleteViewPagerActivity : BaseActivity() {
         imageListDelete = DeleteMediaStoreSingleton.deleteimageList
         viewpagerselectedPosition = DeleteMediaStoreSingleton.deleteselectedPosition
 
-        ("Delete onPageSelected: $viewpagerselectedPosition").log()
+//        ("Delete onPageSelected: $viewpagerselectedPosition").log()
 
         deleteMediaModel = imageListDelete[viewpagerselectedPosition]
 
