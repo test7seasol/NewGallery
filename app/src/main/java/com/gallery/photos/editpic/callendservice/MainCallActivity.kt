@@ -49,12 +49,12 @@ class MainCallActivity : BaseActivity(), OnKeyboardOpenListener {
         init()
         UIComponent()
 
-        ConstantsKt.setKeyboardVisibilityListener(this) { isOpen ->
+       /* ConstantsKt.setKeyboardVisibilityListener(this) { isOpen ->
             if (MyApplicationClass.isConnected(this)) {
                 Log.i("MAIN::KEY", "OPEN :: $isOpen")
                 binding.cardAds.visibility = if (isOpen) View.GONE else View.VISIBLE
             }
-        }
+        }*/
 
         setSecondPage()
 //        applyStatusBarColor()
@@ -194,6 +194,6 @@ class MainCallActivity : BaseActivity(), OnKeyboardOpenListener {
 
     override fun onKeyBoardIsOpen(isOpen: Boolean) {
         Log.i("MAIN::KEY", "OPEN :: $isOpen")
-        binding.cardAds.visibility = if (isOpen) View.GONE else View.VISIBLE
+//        binding.cardAds.visibility = if (isOpen) View.GONE else View.VISIBLE
     }
 }

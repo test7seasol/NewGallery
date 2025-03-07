@@ -38,7 +38,6 @@ var isDialogShowing = false
 
 
 
-
 fun isVideoFile(filePath: String): Boolean {
     val videoExtensions = listOf("mp4", "mkv", "avi", "mov", "wmv", "flv", "3gp", "webm")
     return videoExtensions.any { filePath.endsWith(".$it", ignoreCase = true) }
