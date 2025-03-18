@@ -19,6 +19,7 @@ import com.gallery.photos.editpic.myadsworld.MyAllAdCommonClass
 import com.gallery.photos.editpic.myadsworld.MyAllAdCommonClass.JSON_URL
 import com.gallery.photos.editpic.myadsworld.MyAppOpenManager
 import com.google.firebase.FirebaseApp
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import org.json.JSONException
 import org.json.JSONObject
@@ -63,6 +64,9 @@ class MyApplicationClass : Application() {
 
         FirebaseApp.initializeApp(this)
         FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled = !BuildConfig.DEBUG
+        val firebaseAnalytics = FirebaseAnalytics.getInstance(this)
+        firebaseAnalytics.setAnalyticsCollectionEnabled(true)
+
         ABMyAddPrefs = MyAddPrefs(ctx)
 
         try {
@@ -94,36 +98,49 @@ class MyApplicationClass : Application() {
             )
         )
         val requestQueue = Volley.newRequestQueue(context)
-        val req = JsonObjectRequest(Request.Method.GET, MyAESUTIL.decrypt(
-            JSON_URL
-        ), null, { response ->
-            try {
-                val tutorialsObject = JSONObject(response.toString())
-                ABMyAddPrefs?.admNativeId = tutorialsObject.getString("nativeId")
-                ABMyAddPrefs?.admInterId = tutorialsObject.getString("interstialId")
-                ABMyAddPrefs?.admBannerId = tutorialsObject.getString("bannerId")
-                ABMyAddPrefs?.admAppOpenId = tutorialsObject.getString("appopenId")
-                ABMyAddPrefs?.admShowclick =
-                    Integer.parseInt(tutorialsObject.getString("afterClick"));
-                ABMyAddPrefs?.buttonColor = tutorialsObject.getString("addButtonColor")
+        val req = JsonObjectRequest(
+            Request.Method.GET, MyAESUTIL.decrypt(
+                JSON_URL
+            ), null, { response ->
+                try {
+                    val tutorialsObject = JSONObject(response.toString())
+                    ABMyAddPrefs?.admNativeId =
+                        if (BuildConfig.DEBUG) "/6499/example/native" else tutorialsObject.getString(
+                            "nativeId"
+                        )
+                    ABMyAddPrefs?.admInterId =
+                        if (BuildConfig.DEBUG) "/6499/example/interstitial" else tutorialsObject.getString(
+                            "interstialId"
+                        )
+                    ABMyAddPrefs?.admBannerId =
+                        if (BuildConfig.DEBUG) "/6499/example/banner" else tutorialsObject.getString(
+                            "bannerId"
+                        )
+                    ABMyAddPrefs?.admAppOpenId =
+                        if (BuildConfig.DEBUG) "ca-app-pub-3940256099942544/9257395921" else tutorialsObject.getString(
+                            "appopenId"
+                        )
+                    ABMyAddPrefs?.admShowclick =
+                        Integer.parseInt(tutorialsObject.getString("afterClick"));
+                    ABMyAddPrefs?.buttonColor = tutorialsObject.getString("addButtonColor")
 
 
-                val tutorialsObject2 = tutorialsObject.getJSONObject("extraFields")
-                ABMyAddPrefs?.admInlineBannerId = tutorialsObject2.getString("inline_banner")
-                //                    ABAddPrefs?.setSplashInterAppOpen(
-                //                        tutorialsObject2.getString("splash_inter_appopen").toInt()
-                //                    )
+                    val tutorialsObject2 = tutorialsObject.getJSONObject("extraFields")
+                    ABMyAddPrefs?.admInlineBannerId = tutorialsObject2.getString("inline_banner")
+                    //                    ABAddPrefs?.setSplashInterAppOpen(
+                    //                        tutorialsObject2.getString("splash_inter_appopen").toInt()
+                    //                    )
 
-                tutorialsObject.toGson().log()
-                MyAppOpenManager(ctx);
+                    tutorialsObject.toGson().log()
+                    MyAppOpenManager(ctx);
 
-                // Load an ad.
-                //                        loadAd();
-            } catch (e: JSONException) {
-                e.printStackTrace()
-                Log.e("FATZ", "onResponse: " + e.message)
-            }
-        }) { error -> Log.e("FATZ", "onErrorResponse: $error") }
+                    // Load an ad.
+                    //                        loadAd();
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                    Log.e("FATZ", "onResponse: " + e.message)
+                }
+            }) { error -> Log.e("FATZ", "onErrorResponse: $error") }
         requestQueue.add(req)
     }
 }

@@ -22,6 +22,8 @@ import com.gallery.photos.editpic.Extensions.startActivityWithBundle
 import com.gallery.photos.editpic.Extensions.viewBinding
 import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.databinding.ActivityPermissionBinding
+import com.gallery.photos.editpic.myadsworld.MyAppOpenManager
+import com.google.android.gms.ads.appopen.AppOpenAd
 
 class PermissionActivity : AppCompatActivity() {
 
@@ -45,6 +47,7 @@ class PermissionActivity : AppCompatActivity() {
         setLanguageCode(this, MyApplicationClass.getString(PREF_LANGUAGE_CODE)!!)
         setContentView(binding.root)
 
+
         shineAnimation()
 
         // Register for overlay permission result
@@ -67,7 +70,6 @@ class PermissionActivity : AppCompatActivity() {
             }
 
         binding.btnGrant.setOnClickListener {
-
             checkReadPhoneStatePermission()
         }
     }
@@ -116,7 +118,7 @@ class PermissionActivity : AppCompatActivity() {
     }
 
     private fun goToNextActivity() {
-        /*  startActivity(Intent(this, MainActivity::class.java).apply {
+        /*  startActivity(Intent(this, LanguageAct::class.java).apply {
               addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
               addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
               addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -125,14 +127,19 @@ class PermissionActivity : AppCompatActivity() {
           finishAffinity()*/
 
         val nextActivity = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            MainActivity::class.java
+            LanguageAct::class.java
         } else {
-            MainActivity::class.java
+            LanguageAct::class.java
         }
         startActivity(Intent(this, nextActivity).apply {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
         })
         finishAffinity()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        MyAppOpenManager.appOpenAd = null
     }
 
     private fun shineAnimation() {

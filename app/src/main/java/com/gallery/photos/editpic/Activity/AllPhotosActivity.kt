@@ -36,6 +36,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.Locale
 
 class AllPhotosActivity : AppCompatActivity() {
     lateinit var bind: ActivityAllimagesmediaBinding
@@ -200,7 +201,7 @@ class AllPhotosActivity : AppCompatActivity() {
                                     } catch (e: Exception) {
                                         Log.e(
                                             "FileOperation",
-                                            "Error during file ${fromWhere.toLowerCase()}: ${e.message}"
+                                            "Error during file ${fromWhere.lowercase(Locale.getDefault())}: ${e.message}"
                                         )
                                     }
                                 } else {
@@ -221,11 +222,13 @@ class AllPhotosActivity : AppCompatActivity() {
                             progressDialog.dismiss() // Hide loader
 
                             if (successCount == selectionArrayList.size) {
-                                "${successCount} files ${fromWhere.toLowerCase()}d successfully".tos(
+                                "${successCount} files ${fromWhere.lowercase(Locale.getDefault())}d successfully".tos(
                                     this@AllPhotosActivity
                                 )
                             } else {
-                                "Some files failed to ${fromWhere.toLowerCase()}".tos(this@AllPhotosActivity)
+                                "Some files failed to ${fromWhere.lowercase(Locale.getDefault())}".tos(
+                                    this@AllPhotosActivity
+                                )
                             }
 
                             setResult(RESULT_OK)

@@ -17,7 +17,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 2
-        versionName = "1.1"
+        versionName = "2.0"
     }
 
     buildTypes {
@@ -61,16 +61,10 @@ android {
             enableSplit = false
         }
     }
-
-    packagingOptions {
-        pickFirst("lib/arm64-v8a/libCGE.so")
-        pickFirst("lib/armeabi-v7a/libCGE.so")
-    }
 }
 
 dependencies {
 
-//    implementation(project(":patternlockview"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -82,8 +76,6 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.volley)
-    implementation(libs.firebase.common.ktx)
-    implementation(libs.firebase.crashlytics.ktx)
     annotationProcessor(libs.compiler)
 
     // ViewModel and LiveData
@@ -113,6 +105,7 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
     annotationProcessor(libs.androidx.room.room.compiler)
+
     //Swipe to refresh
     implementation(libs.androidx.swiperefreshlayout)
     implementation("androidx.fragment:fragment-ktx:1.6.2")
@@ -120,6 +113,9 @@ dependencies {
     implementation("com.airbnb.android:lottie:6.1.0")
     implementation("com.github.chrisbanes:PhotoView:2.3.0")
     implementation(libs.relativepopupwindow)
+
+    //Editing Module
+//    implementation("com.burhanrashid52:photoeditor:3.0.2")
 
 //     AD
     implementation(libs.play.services.ads)
@@ -132,9 +128,18 @@ dependencies {
     implementation("androidx.multidex:multidex:2.0.0")
     implementation("androidx.exifinterface:exifinterface:1.0.0-alpha1")
     implementation("com.github.steelkiwi:cropiwa:-SNAPSHOT")
+//    implementation("org.tensorflow:tensorflow-android:1.4.0")
     implementation("com.github.Commit451:NativeStackBlur:1.0.7")
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation("com.github.yukuku:ambilwarna:2.0.1")
     implementation("androidx.palette:palette:1.0.0-alpha1")
     implementation("ro.holdone:keyboardheightprovider:1.0.3")
+//    implementation("net.sf.kxml:kxml2:2.3.0")
+
+
+    //Firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.0.0")) // Use the latest version
+    implementation("com.google.firebase:firebase-analytics-ktx")
+    implementation(libs.firebase.common.ktx)
+    implementation(libs.firebase.crashlytics.ktx)
 }

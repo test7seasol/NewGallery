@@ -36,6 +36,7 @@ import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.databinding.ActivityMainBinding
 import com.gallery.photos.editpic.myadsworld.MyAddPrefs
 import com.gallery.photos.editpic.myadsworld.MyAllAdCommonClass
+import com.google.firebase.analytics.FirebaseAnalytics
 
 class MainActivity : BaseActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -64,7 +65,11 @@ class MainActivity : BaseActivity() {
 
         //Calldorado..
 
-
+        val firebaseAnalytics = FirebaseAnalytics.getInstance(this)
+        val bundle = Bundle().apply {
+            putString(FirebaseAnalytics.Param.METHOD, "MainActivity_Gallery")
+        }
+        firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle)
         hideBottomNavigationBar(R.color.white)
 
         handleBackPress {

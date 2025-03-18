@@ -20,16 +20,22 @@ import com.gallery.photos.editpic.myadsworld.MyAddPrefs
 import com.gallery.photos.editpic.myadsworld.MyAllAdCommonClass
 import com.gallery.photos.editpic.myadsworld.MyAppOpenManager
 import com.gallery.photos.editpic.myadsworld.nativetemplates.TemplateView
+import com.google.android.gms.ads.appopen.AppOpenAd
 
 @Keep
 data class LanguageModel(
-    var src: Int, var language_code: String, var language: String = "en", var sub_language: String = "English", var isSelected: Boolean = false
+    var src: Int,
+    var language_code: String,
+    var language: String = "en",
+    var sub_language: String = "English",
+    var isSelected: Boolean = false
 )
 
 class LanguageAct : BaseActivity() {
     var list: ArrayList<LanguageModel> = arrayListOf()
 
     var selectedLanguage = "en"
+    var isFrom = ""
     lateinit var bind: ActivityLanguageBinding
 
     @SuppressLint("NotifyDataSetChanged")
@@ -38,6 +44,8 @@ class LanguageAct : BaseActivity() {
         setLanguageCode(this, MyApplicationClass.getString(PREF_LANGUAGE_CODE)!!)
         bind = ActivityLanguageBinding.inflate(layoutInflater)
         setContentView(bind.root)
+
+        isFrom = intent.extras?.getString("From").toString()
 
         list.add(LanguageModel(R.drawable.flag_en, "en", "English", "English", false))
         list.add(LanguageModel(R.drawable.flag_hi, "hi", "Hindi", "हिन्दी", false))
@@ -69,16 +77,20 @@ class LanguageAct : BaseActivity() {
             bind.donebtnid.gone()
 
             rvlanguageid.adapter = RVLanguageAdapter(this@LanguageAct, list) {
-                selectedLanguage = it.language_code
                 MyAppOpenManager.appOpenAd = null
+
+                selectedLanguage = it.language_code
                 setLanguageCode(this@LanguageAct, selectedLanguage)
                 MyApplicationClass.putBoolean(ISONETIME, true)
+
                 if (!Settings.canDrawOverlays(this@LanguageAct)) {
                     val intent = Intent(this@LanguageAct, PermissionActivity::class.java)
+
                     startActivity(intent)
                     finish()
                 } else {
                     ("Select Language code: ${it.language}").log()
+
                     startActivityWithBundle<MainActivity>()
                     finishAffinity()
                 }

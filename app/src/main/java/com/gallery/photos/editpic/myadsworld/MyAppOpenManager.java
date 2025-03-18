@@ -38,7 +38,7 @@ public class MyAppOpenManager implements LifecycleObserver {
     @OnLifecycleEvent(ON_START)
     public void onStart() {
         Log.d("FFL", "OnstartCallback");
-//        showAdIfAvailable();
+        showAdIfAvailable();
     }
 
     public static void fetchAd() {

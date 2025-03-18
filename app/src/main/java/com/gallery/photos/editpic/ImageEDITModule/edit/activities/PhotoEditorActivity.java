@@ -236,6 +236,14 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
         return false;
     }
 
+    private void applyStatusBarColor() {
+        Window window = getWindow();
+        window.setStatusBarColor(getResources().getColor(android.R.color.black, getTheme())); // Set black status bar
+        window.getDecorView().setSystemUiVisibility(0); // Ensures white text/icons
+        window.setNavigationBarColor(getResources().getColor(android.R.color.black, getTheme())); // Set black navigation bar
+    }
+
+
     @SuppressLint("MissingInflatedId")
     @Override
     // androidx.fragment.app.FragmentActivity, androidx.activity.ComponentActivity, androidx.core.app.ComponentActivity, android.app.Activity
@@ -244,6 +252,7 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
 //        makeFullScreen();
         setContentView(R.layout.activity_photo_editor);
 
+        applyStatusBarColor();
 
         MyAllAdCommonClass.showAdmobBanner(
                 PhotoEditorActivity.this,

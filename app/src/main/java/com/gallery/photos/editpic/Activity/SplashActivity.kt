@@ -15,7 +15,6 @@ import com.gallery.photos.editpic.Extensions.ISONETIME
 import com.gallery.photos.editpic.Extensions.PREF_LANGUAGE_CODE
 import com.gallery.photos.editpic.Extensions.beGone
 import com.gallery.photos.editpic.Extensions.beVisible
-import com.gallery.photos.editpic.Extensions.delayTime
 import com.gallery.photos.editpic.Extensions.setLanguageCode
 import com.gallery.photos.editpic.Extensions.viewBinding
 import com.gallery.photos.editpic.databinding.ActivitySplashBinding
@@ -40,10 +39,8 @@ class SplashActivity : AppCompatActivity() {
         }
 
         if (MyApplicationClass.getBoolean("ISAPPOPENONE") == false) {
-            delayTime(1000) {
 //        launchActivity()
                 onNextActivity()
-            }
         } else {
             onNextActivity()
         }
@@ -77,9 +74,7 @@ class SplashActivity : AppCompatActivity() {
             }
         } else {
             binding.progressid.beGone()
-            delayTime(500) {
                 onNextActivity()
-            }
         }
     }
 
@@ -124,7 +119,7 @@ class SplashActivity : AppCompatActivity() {
         MyApplicationClass.putBoolean("ISAPPOPENONE", true)
 
         if (MyApplicationClass.getBoolean(ISONETIME) == false) {
-            startActivity(Intent(this, LanguageAct::class.java))
+            startActivity(Intent(this, PermissionActivity::class.java))
             finish()
         } else {
             if (canDrawOverlays(this)) {
