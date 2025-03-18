@@ -6,7 +6,7 @@
 
         <item name="android:statusBarColor">@android:color/white</item>
         <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+<!--        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>-->
         <item name="android:navigationBarColor">@color/white</item>
         <item name="android:windowLightNavigationBar">true</item>
         <item name="cardBackgroundColor">@color/white</item>
@@ -48,7 +48,7 @@
     <style name="CdoAppTheme1" parent="@style/Theme.VoiceRecorder1">
         <item name="android:statusBarColor">@android:color/white</item>
         <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+<!--        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>-->
         <item name="android:navigationBarColor">@color/white</item>
         <item name="android:windowLightNavigationBar">true</item>
     </style>
@@ -218,7 +218,7 @@
         <item name="colorPrimaryDark">@color/BackgroundColor</item>
         <item name="android:statusBarColor">@android:color/white</item>
         <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+<!--        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>-->
         <item name="android:windowLightNavigationBar">true</item>
     </style>
 

@@ -10,14 +10,14 @@ plugins {
 
 android {
     namespace = "com.gallery.photos.editpic"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.gallery.photos.editpic"
         minSdk = 24
-        targetSdk = 35
-        versionCode = 2
-        versionName = "2.0"
+        targetSdk = 34
+        versionCode = 3
+        versionName = "3.0"
     }
 
     buildTypes {
@@ -73,7 +73,7 @@ dependencies {
 
     //Glide
     implementation(libs.glide)
-    implementation(libs.androidx.work.runtime.ktx)
+//    implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.volley)
     annotationProcessor(libs.compiler)
