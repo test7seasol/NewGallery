@@ -16,8 +16,8 @@ android {
         applicationId = "com.gallery.photos.editpic"
         minSdk = 24
         targetSdk = 34
-        versionCode = 3
-        versionName = "3.0"
+        versionCode = 4
+        versionName = "4.0"
     }
 
     buildTypes {
@@ -142,4 +142,7 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation(libs.firebase.common.ktx)
     implementation(libs.firebase.crashlytics.ktx)
+
+    //Call Doraado
+    implementation("org.lsposed.hiddenapibypass:hiddenapibypass:4.3")
 }

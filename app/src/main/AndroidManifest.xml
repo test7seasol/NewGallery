@@ -57,15 +57,6 @@
         android:usesCleartextTraffic="true">
 
         <activity
-            android:name=".callendservice.MainCallActivity"
-            android:autoRemoveFromRecents="true"
-            android:excludeFromRecents="true"
-            android:exported="true"
-            android:launchMode="singleInstance"
-            android:theme="@style/CdoAppTheme1"
-            android:windowSoftInputMode="adjustNothing" />
-
-        <activity
             android:name=".Activity.PatternAct"
             android:configChanges="uiMode"
             android:label="@string/app_name"
@@ -228,15 +219,23 @@
             android:name="com.google.android.gms.ads.flag.OPTIMIZE_AD_LOADING"
             android:value="true" />
 
+        <!--    todo: Call Dorado   -->
+
+        <activity
+            android:name=".callendservice.MainCallActivity"
+            android:autoRemoveFromRecents="true"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:launchMode="singleInstance"
+            android:theme="@style/CdoAppTheme1"
+            android:windowSoftInputMode="adjustNothing" />
 
         <receiver
             android:name=".callendservice.Services.PhoneStateReceiver1"
             android:enabled="true"
             android:exported="true"
             android:permission="android.permission.BROADCAST_CALL">
-            <intent-filter android:priority="991">
-                <action android:name="android.intent.action.NEW_OUTGOING_CALL" />
-
+            <intent-filter android:priority="984">
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
                 <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
@@ -244,16 +243,12 @@
                 <action android:name="android.permission.ANSWER_PHONE_CALLS" />
                 <action android:name="android.permission.READ_PHONE_STATE" />
                 <action android:name="android.permission.NEW_OUTGOING_CALL" />
-                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
 
                 <category android:name="com.example.autostart.CATEGORY_AUTOSTART" />
 
-                <action android:name="com.example.autostart.ACTION_IMPLICIT_BROADCAST" />
-                <action android:name="com.example.autostart.ACTION_EXPLICIT_BROADCAST" />
                 <action android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
             </intent-filter>
         </receiver>
-
 
         <activity
             android:name=".ImageEDITModule.edit.activities.SplashActivity"
@@ -337,7 +332,6 @@
             android:label="@string/app_name"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
-
 
     </application>
 

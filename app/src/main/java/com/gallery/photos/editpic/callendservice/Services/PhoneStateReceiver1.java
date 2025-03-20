@@ -1,5 +1,9 @@
 package com.gallery.photos.editpic.callendservice.Services;
 
+
+import static com.gallery.photos.editpic.Extensions.ExtKt.isConnected;
+import static com.gallery.photos.editpic.myadsworld.MyAllAdCommonClass.loadednative;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -9,8 +13,11 @@ import android.util.Log;
 
 import com.gallery.photos.editpic.Activity.MyApplicationClass;
 import com.gallery.photos.editpic.callendservice.MainCallActivity;
+import com.gallery.photos.editpic.callendservice.adutils.AdsCachingUtils;
 import com.gallery.photos.editpic.callendservice.utils.PreferencesManager;
-import com.gallery.photos.editpic.myadsworld.MyAllAdCommonClass;
+import com.gallery.photos.editpic.myadsworld.MyAddPrefs;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.RequestConfiguration;
 
 import java.util.Date;
 
@@ -39,18 +46,25 @@ public class PhoneStateReceiver1 extends BroadcastReceiver {
         }
         try {
             Log.i("PhoneStateReceiver1", "onReceive: " + isAdsConfig);
+            try {
+                if (MobileAds.getInitializationStatus() == null) {
+                    MobileAds.initialize(context);
+                    MobileAds.setRequestConfiguration(new RequestConfiguration.Builder().setTestDeviceIds(new MyApplicationClass().getTestDeviceIdList()).build());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             if (!isAdsConfig) {
-                if (MyApplicationClass.Companion.isConnected(context)) {
-                    MyApplicationClass.Companion.getCtx().getData(context);
+                if (isConnected(context)) {
+                    new MyApplicationClass().getData(context, false);
                 }
                 isAdsConfig = true;
             }
             String stringExtra = intent.getStringExtra("state");
             Log.e("PhoneStateReceiver1", "ON_RECEIVE >>> " + stringExtra + " IS_NOT_SHOW_SCREEN >>> " + isShowScreen + " "
-                    + MyApplicationClass.Companion.getStoreBooleanValue("isSHowCallerID"));
-            if (Settings.canDrawOverlays(context) && /*QKApplication.Companion.getStoreBooleanValue("isSHowCallerID") &&*/ MyAllAdCommonClass.loadednative == null) {
-//                AdsCachingUtils.preLoadBannerCdoAds(context, new MyAddPrefs(context).getAdmBannerId());
-                MyAllAdCommonClass.startNativeLoad(context);
+                    + MyApplicationClass.Companion.getBoolean("isSHowCallerID"));
+            if (Settings.canDrawOverlays(context) && MyApplicationClass.Companion.getBoolean("isSHowCallerID") && loadednative == null) {
+                AdsCachingUtils.preLoadBannerCdoAds(context, new MyAddPrefs(context).getAdmInlineBannerId());
             }
             String str = outgoingSavedNumber;
             if (str == null || str.isEmpty()) {
@@ -63,7 +77,7 @@ public class PhoneStateReceiver1 extends BroadcastReceiver {
                     isOutgoingCall = false;
                 }
                 String str2 = isIncomingCall ? "Incoming" : isMissCall ? "Missed Call" : "Outgoing";
-                if (!isShowScreen/* && QKApplication.Companion.getStoreBooleanValue("isSHowCallerID")*/) {
+                if (!isShowScreen && MyApplicationClass.Companion.getBoolean("isSHowCallerID")) {
                     sendToMixpanel("Call_End");
                     openNewActivity(context, outgoingSavedNumber, this.callStartTime, new Date(), str2);
                     isShowScreen = true;
@@ -86,7 +100,6 @@ public class PhoneStateReceiver1 extends BroadcastReceiver {
                 isShowScreen = false;
             }
         } catch (Exception e2) {
-            Log.i("PhoneStateReceiver1", "onReceive: " + e2.getMessage());
             e2.printStackTrace();
         }
     }

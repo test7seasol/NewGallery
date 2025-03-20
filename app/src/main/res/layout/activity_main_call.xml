@@ -26,7 +26,7 @@
                 android:layout_alignParentEnd="true"
                 android:layout_marginTop="@dimen/_5sdp"
                 android:layout_marginEnd="@dimen/_10sdp"
-                android:src="@mipmap/ic_launcher"
+                android:src="@drawable/applogo"
                 app:strokeColor="@null" />
 
             <TextView
@@ -40,7 +40,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:singleLine="true"
-                android:text="Private Numbers"
+                android:text="Private Number"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_16sdp"
                 app:layout_constraintStart_toStartOf="parent"
@@ -229,31 +229,30 @@
             android:orientation="vertical">
 
             <RelativeLayout
+                android:id="@+id/loutFullBannerAd"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_10sdp"
+                android:background="@drawable/bg_banner_ad_container_medium"
+                android:gravity="center">
 
-                <com.facebook.shimmer.ShimmerFrameLayout
-                    android:id="@+id/banner_shimmer"
+                <androidx.appcompat.widget.LinearLayoutCompat
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:shimmer_auto_start="true"
-                    app:shimmer_base_color="#ccc">
+                    android:layout_centerInParent="true">
 
-                    <androidx.appcompat.widget.AppCompatTextView
+                    <View
+                        android:id="@+id/viewForSpaceFull"
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/_205sdp"
-                        android:layout_centerInParent="true"
-                        android:gravity="center"
-                        android:text="LOADING AD"
-                        android:textStyle="normal" />
+                        android:layout_height="@dimen/_250sdp"
+                        android:background="@color/ad_simmer_color" />
 
-                </com.facebook.shimmer.ShimmerFrameLayout>
-
-                <FrameLayout
-                    android:id="@+id/fram_banner"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/_205sdp" />
-
+                    <FrameLayout
+                        android:id="@+id/adContainerFullBanner"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center" />
+                </androidx.appcompat.widget.LinearLayoutCompat>
             </RelativeLayout>
 
 

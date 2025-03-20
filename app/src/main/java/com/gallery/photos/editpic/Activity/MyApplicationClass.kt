@@ -5,6 +5,9 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.net.ConnectivityManager
 import android.util.Log
+import android.view.View
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.android.volley.Request
@@ -23,6 +26,7 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import org.json.JSONException
 import org.json.JSONObject
+import java.util.ArrayList
 
 class MyApplicationClass : Application() {
     companion object {
@@ -56,6 +60,19 @@ class MyApplicationClass : Application() {
         fun getString(key: String) = sharedPreferences?.getString(key, "")
 
         fun getBoolean(key: String) = sharedPreferences?.getBoolean(key, false)
+        fun setStatuaryPadding(root: View?) {
+            ViewCompat.setOnApplyWindowInsetsListener(root!!) { view: View, insets: WindowInsetsCompat ->
+                val statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
+                val navBarHeight = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+                view.setPadding(
+                    0,
+                    statusBarHeight,
+                    0,
+                    navBarHeight
+                ) // Adds padding so content starts below the status bar
+                insets
+            }
+        }
     }
 
     override fun onCreate() {
@@ -89,9 +106,21 @@ class MyApplicationClass : Application() {
         }
     }
 
+    fun getTestDeviceIdList(): List<String> {
+        val arrayList = ArrayList<String>()
+        try {
+            arrayList.add("7F816931291832C442047C2FA281EA79")
+            arrayList.add("04173C3D642EF3F97DD931279FEC32D9")
+            arrayList.add("A4AE7EE024E1129EA7DF637BE76C3210")
+            arrayList.add("DB413AEE6812CCEE0F60921013179773")
+        }catch (e: java.lang.Exception) {
+            e.printStackTrace()
+        }
+        return arrayList
+    }
     var ABMyAddPrefs: MyAddPrefs? = null
 
-    fun getData(context: Context?) {
+    fun getData(context: Context?, isCall: Boolean = true) {
         Log.d(
             "TAG", "getDatassss: " + MyAESUTIL.decrypt(
                 MyAllAdCommonClass.JSON_URL
@@ -126,13 +155,16 @@ class MyApplicationClass : Application() {
 
 
                     val tutorialsObject2 = tutorialsObject.getJSONObject("extraFields")
-                    ABMyAddPrefs?.admInlineBannerId = tutorialsObject2.getString("inline_banner")
+                    ABMyAddPrefs?.admInlineBannerId =   if (BuildConfig.DEBUG) "/6499/example/banner" else tutorialsObject2.getString("inline_banner")
                     //                    ABAddPrefs?.setSplashInterAppOpen(
                     //                        tutorialsObject2.getString("splash_inter_appopen").toInt()
                     //                    )
 
                     tutorialsObject.toGson().log()
-                    MyAppOpenManager(ctx);
+                    if (isCall) {
+                        MyAppOpenManager(ctx);
+                    }
+
 
                     // Load an ad.
                     //                        loadAd();

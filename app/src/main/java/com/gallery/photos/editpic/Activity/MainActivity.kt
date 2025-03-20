@@ -70,6 +70,8 @@ class MainActivity : BaseActivity() {
             putString(FirebaseAnalytics.Param.METHOD, "MainActivity_Gallery")
         }
         firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle)
+
+
         hideBottomNavigationBar(R.color.white)
 
         handleBackPress {

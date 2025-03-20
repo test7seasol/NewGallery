@@ -8,22 +8,24 @@ import android.os.Bundle
 import android.telephony.PhoneNumberUtils
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
+import android.view.ViewParent
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import com.bumptech.glide.Glide
 import com.gallery.photos.editpic.Activity.MyApplicationClass
 import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.callendservice.adapter.CallerScreenAdapter
+import com.gallery.photos.editpic.callendservice.adutils.AdsCachingUtils
+import com.gallery.photos.editpic.callendservice.adutils.SetAdListener
 import com.gallery.photos.editpic.callendservice.interfaces.OnKeyboardOpenListener
 import com.gallery.photos.editpic.callendservice.model.ContactCDO
 import com.gallery.photos.editpic.callendservice.utils.AppUtils
-import com.gallery.photos.editpic.callendservice.utils.CDOUtiler
-import com.gallery.photos.editpic.callendservice.utils.ConstantsKt
 import com.gallery.photos.editpic.callendservice.utils.Utils
 import com.gallery.photos.editpic.databinding.ActivityMainCallBinding
+import com.gallery.photos.editpic.myadsworld.MyAddPrefs
 import com.gallery.photos.editpic.myadsworld.MyAllAdCommonClass
-import com.gallery.photos.editpic.myadsworld.loadBanner
-import com.google.android.gms.ads.AdSize
-import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.LoadAdError
 import com.google.android.material.tabs.TabLayoutMediator
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -42,9 +44,10 @@ class MainCallActivity : BaseActivity(), OnKeyboardOpenListener {
         binding = ActivityMainCallBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        loadBanner(
-            binding.bannerShimmer, AdView(this), binding.framBanner, this, AdSize.MEDIUM_RECTANGLE
-        )
+        MyApplicationClass.setStatuaryPadding(binding.root)
+
+        loadNativeOrBannerAds()
+
         setThemeData()
         init()
         UIComponent()
@@ -84,17 +87,14 @@ class MainCallActivity : BaseActivity(), OnKeyboardOpenListener {
 
     private fun init() {
         try {
-            intent?.let {
-                val startTime = it.getLongExtra("StartTime", 0L)
-                val endTime = it.getLongExtra("EndTime", 0L)
-                time = getTimeDiff(startTime, endTime)
-                number = it.getStringExtra("mobile_number").orEmpty()
-                callStatus = it.getStringExtra("CallType").orEmpty()
-                Log.d("TAG", "initnumber: $number")
-                Log.d("TAG-Bundle", it.extras.toString())
+            if (intent != null) {
+                val longExtra = intent.getLongExtra("StartTime", 0L)
+                this.time = getTimeDiff(longExtra, intent.getLongExtra("EndTime", 0L))
+                this.number = java.lang.String.valueOf(intent.getStringExtra("mobile_number"))
+                this.callStatus = java.lang.String.valueOf(intent.getStringExtra("CallType"))
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
+        } catch (e2: java.lang.Exception) {
+            e2.printStackTrace()
         }
     }
 
@@ -119,58 +119,174 @@ class MainCallActivity : BaseActivity(), OnKeyboardOpenListener {
 
     @SuppressLint("SetTextI18n", "SimpleDateFormat")
     private fun UIComponent() {
-        if (!AppUtils.isEmptyString(number)) {
-            val contact = Utils.getContact(this, number)
-            if (contact == null) {
-                binding.txtAppName.text = PhoneNumberUtils.formatNumber(number, "IN")
+        if (!AppUtils.isEmptyString(this.number)) {
+            if (Utils.getContact(this, this.number) == null) {
+                binding.txtAppName.text = PhoneNumberUtils.formatNumber(this.number, "IN")
                 binding.ImageView.visibility = View.VISIBLE
                 binding.txtUserProName.visibility = View.GONE
                 binding.callerAvatar.visibility = View.GONE
                 binding.itemTvContactFirstLetter.visibility = View.GONE
             } else {
-                contact1 = contact
-                contactName = contact.nameSuffix
-                contactId = contact.contactId.toString()
+                val contact = Utils.getContact(this, this.number)
+                this.contact1 = contact
+                this.contactName = contact.nameSuffix
+                this.contactId = java.lang.String.valueOf(contact.contactId)
                 binding.txtAppName.text = contact.nameSuffix
                 binding.ImageView.visibility = View.GONE
                 binding.itemTvContactFirstLetter.visibility = View.GONE
                 binding.callerAvatar.visibility = View.GONE
-
                 val contactPhotoUri = contact.contactPhotoUri
-                if (!contactPhotoUri.isNullOrEmpty()) {
+                var z = true
+                if (!(contactPhotoUri == null || contactPhotoUri.isEmpty())) {
                     binding.callerAvatar.visibility = View.VISIBLE
                     binding.txtUserProName.visibility = View.GONE
-                    Glide.with(this).load(contactPhotoUri).into(binding.callerAvatar)
+                    val load = Glide.with(this as FragmentActivity).load(contact.contactPhotoUri)
+                    load.into(binding.callerAvatar)
                 } else {
-                    binding.txtUserProName.visibility = View.VISIBLE
-                    binding.callerAvatar.visibility = View.GONE
-                    binding.txtUserProName.text = Utils.firstStringer(contact.nameSuffix)
+                    val contactPhotoThumbUri = contact.contactPhotoThumbUri
+                    if (contactPhotoThumbUri != null && contactPhotoThumbUri.length != 0) {
+                        z = false
+                    }
+                    if (!z) {
+                        binding.callerAvatar.visibility = View.VISIBLE
+                        binding.txtUserProName.visibility = View.GONE
+                        val load2 =
+                            Glide.with(this as FragmentActivity).load(contact.contactPhotoThumbUri)
+                        load2.into(binding.callerAvatar)
+                    } else {
+                        binding.txtUserProName.visibility = View.VISIBLE
+                        binding.callerAvatar.visibility = View.GONE
+                        binding.txtUserProName.text = Utils.firstStringer(contact.nameSuffix)
+                    }
                 }
             }
         }
 
         setAdapterData()
 
-        binding.txtCalliInfo.text = time
+        binding.txtCalliInfo.text = "" + this.time
         binding.txtCallStatus.text = callStatus
-        binding.txtTime.text = SimpleDateFormat("hh:mm").format(Calendar.getInstance().time)
+        val time = Calendar.getInstance().time
+        binding.txtTime.text = SimpleDateFormat("hh:mm").format(time).toString()
+        binding.txtCalliInfo.text = "" + this.time
 
         binding.imgAppIcon.setOnClickListener {
-            packageManager.getLaunchIntentForPackage(packageName)?.let {
-                if (!AppUtils.isAppRunning) {
-                    startActivity(it)
-                    finish()
-                } else {
-                    finish()
-                    CDOUtiler.isClickAppIcon = true
+            try {
+                val launchIntentForPackage = packageManager.getLaunchIntentForPackage(
+                    packageName
+                )
+                if (launchIntentForPackage != null) {
+                    if (!AppUtils.isAppRunning) {
+                        startActivity(launchIntentForPackage)
+                        finish()
+                    } else {
+                        finish()
+                    }
                 }
+            } catch (e: java.lang.Exception) {
             }
         }
 
         binding.imgCalliCall.setOnClickListener {
-            Utils.openDialerPad(this, number)
+            Utils.openDialerPad(this@MainCallActivity, number)
             finishAndRemoveTask()
         }
+    }
+
+    private fun loadNativeOrBannerAds() {
+//        CDOUtiler.initializeAllAdsConfigs(this);
+
+        try {
+            if (AdsCachingUtils.isCDOBannerAvailable()) {
+                Log.e(
+                    "package:mine FullScreenBannerAds",
+                    "loadNativeOrBannerAds: isCDOBannerAvailable showFullScreenBannerAds"
+                )
+                showFullScreenBannerAds()
+                return
+            }
+            Log.e(
+                "FullScreenBannerAds",
+                "loadNativeOrBannerAds: else " + AdsCachingUtils.isBannerCDOAdLoadProcessing + ' ' + AdsCachingUtils.isBannerCDOAdLoadFailed
+            )
+            if (AdsCachingUtils.isBannerCDOAdLoadProcessing && !AdsCachingUtils.isBannerCDOAdLoadFailed) {
+                AdsCachingUtils.setAdListenerFullScreenBanner(object : SetAdListener {
+                    override fun onAdLoad() {
+                        Log.e("FullScreenBannerAds", "loadNativeOrBannerAds: onAdLoad ")
+                        showFullScreenBannerAds()
+                    }
+
+                    override fun onAdFailedToLoad(loadAdError: LoadAdError?) {
+                        Log.e("FullScreenBannerAds", "loadNativeOrBannerAds: onAdFailedToLoad ")
+                        if (AdsCachingUtils.isBannerCDOAdShow) {
+                            return
+                        }
+                        loadAndShowSecondBannerAds()
+                    }
+
+                    override fun onAdImpression() {
+                        Log.e("FullScreenBannerAds", "loadNativeOrBannerAds: onAdImpression ")
+                    }
+                })
+                return
+            }
+            Log.e(
+                "FullScreenBannerAds",
+                "loadNativeOrBannerAds:  else else " + AdsCachingUtils.isBannerCDOAdLoadProcessing + ' ' + AdsCachingUtils.isBannerCDOAdLoadFailed
+            )
+            loadAndShowSecondBannerAds()
+        } catch (e2: java.lang.Exception) {
+            e2.printStackTrace()
+        }
+
+        /*  try {
+            if (MyAllAdCommonClass.AM_SHOW_CALLENDNative && MyAllAdCommonClass.AM_SHOW_CALLEND_INLINE)
+            {
+                if (MyApplication.Companion.getStoreBooleanValue("isNativeShow"))
+                {
+                    MyApplication.Companion.setStoreBooleanValue("isNativeShow", false);
+                    loadNative();
+                }
+                else {
+                    MyApplication.Companion.setStoreBooleanValue("isNativeShow", true);
+                    loadInlineBanner();
+                }
+
+            } else if (MyAllAdCommonClass.AM_SHOW_CALLENDNative)
+            {
+              loadNative();
+            }
+            else if (MyAllAdCommonClass.AM_SHOW_CALLEND_INLINE){
+                loadInlineBanner();
+            }
+            else {
+                binding.cardBottom.setVisibility(View.INVISIBLE);
+                binding.shimmerViewContainer.setVisibility(View.INVISIBLE);
+            }
+
+        } catch (Exception e2) {
+            Log.d("TAG", "loadNativeOrBannerAd--catch---" + e2.getMessage());
+            e2.printStackTrace();
+        }*/
+    }
+
+    fun loadAndShowSecondBannerAds() {
+        AdsCachingUtils.loadAndShowLargeBannerAdsWithRequest(
+            this, MyAddPrefs(this).admInlineBannerId, binding.loutFullBannerAd,
+            binding.viewForSpaceFull, binding.adContainerFullBanner
+        )
+    }
+
+    fun showFullScreenBannerAds() {
+        binding.viewForSpaceFull.setVisibility(View.GONE)
+        binding.adContainerFullBanner.setVisibility(View.VISIBLE)
+        if (AdsCachingUtils.mBannerCDOAd.getParent() != null) {
+            val parent: ViewParent = AdsCachingUtils.mBannerCDOAd.getParent()
+            (parent as ViewGroup).removeView(AdsCachingUtils.mBannerCDOAd)
+        }
+        binding.adContainerFullBanner.removeAllViews()
+        binding.adContainerFullBanner.addView(AdsCachingUtils.mBannerCDOAd)
+        AdsCachingUtils.isBannerCDOAdShow = true
     }
 
     override fun onBackPressed() {

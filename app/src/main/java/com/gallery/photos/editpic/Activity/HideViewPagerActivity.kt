@@ -60,7 +60,6 @@ class HideViewPagerActivity : BaseActivity() {
 
         hideBottomNavigationBar(R.color.black)
 
-
         MyAllAdCommonClass.showAdmobBanner(
             this@HideViewPagerActivity,
             binding.bannerContainer,
