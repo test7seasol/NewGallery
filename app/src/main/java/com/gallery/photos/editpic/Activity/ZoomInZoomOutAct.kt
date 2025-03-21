@@ -1,5 +1,6 @@
 package com.gallery.photos.editpic.Activity
 
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.OnBackPressedCallback
@@ -14,6 +15,8 @@ class ZoomInZoomOutAct : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         bind = ZoomlayoutLayoutBinding.inflate(layoutInflater)
         setContentView(bind.root)
+
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
         window.setFlags(
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS

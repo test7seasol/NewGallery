@@ -1,3 +1,5 @@
+package com.gallery.photos.editpic.Dialogs
+
 import android.app.Activity
 import android.app.Dialog
 import android.app.ProgressDialog
@@ -38,10 +40,9 @@ class CreateNewFolderDialog(
             )
         }
 
-
-
-        activity.findViewById<RelativeLayout>(R.id.mainTopTabsContainer).gone()
-        activity.findViewById<RelativeLayout>(R.id.footer).gone()
+        // **Check if views exist before modifying them**
+        activity.findViewById<RelativeLayout>(R.id.mainTopTabsContainer)?.let { it.gone() }
+        activity.findViewById<RelativeLayout>(R.id.footer)?.let { it.gone() }
 
         view.root.post {
             view.edAlbum.requestFocus()
@@ -49,14 +50,14 @@ class CreateNewFolderDialog(
         }
 
         view.tvCancel.setOnClickListener {
-            activity.findViewById<RelativeLayout>(R.id.mainTopTabsContainer).visible()
-            activity.findViewById<RelativeLayout>(R.id.footer).visible()
+            activity.findViewById<RelativeLayout>(R.id.mainTopTabsContainer)?.let { it.visible() }
+            activity.findViewById<RelativeLayout>(R.id.footer)?.let { it.visible() }
             dialog.dismiss()
         }
 
         dialog.setOnDismissListener {
-            activity.findViewById<RelativeLayout>(R.id.mainTopTabsContainer).visible()
-            activity.findViewById<RelativeLayout>(R.id.footer).visible()
+            activity.findViewById<RelativeLayout>(R.id.mainTopTabsContainer)?.let { it.visible() }
+            activity.findViewById<RelativeLayout>(R.id.footer)?.let { it.visible() }
         }
 
         view.tvCreate.setOnClickListener {

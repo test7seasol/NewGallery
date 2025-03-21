@@ -1,6 +1,6 @@
 package com.gallery.photos.editpic.Fragment
 
-import CreateNewFolderDialog
+import com.gallery.photos.editpic.Dialogs.CreateNewFolderDialog
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK

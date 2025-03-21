@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ViewConfiguration;
 import android.widget.RelativeLayout;
+
 import androidx.core.content.ContextCompat;
 import androidx.core.view.MotionEventCompat;
 import androidx.core.view.ViewCompat;
@@ -25,6 +26,7 @@ import com.gallery.photos.editpic.ImageEDITModule.edit.event.FlipHorizontallyEve
 import com.gallery.photos.editpic.ImageEDITModule.edit.event.ZoomIconEvent;
 import com.gallery.photos.editpic.ImageEDITModule.edit.utils.SystemUtil;
 import com.gallery.photos.editpic.R;
+
 import java.io.File;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

@@ -44,14 +44,24 @@ public class FilterUtils {
     }
 
     public static Bitmap getBlackAndWhiteImageFromBitmap(Bitmap bitmap) {
+        if (bitmap == null || bitmap.getWidth() <= 0 || bitmap.getHeight() <= 0) {
+            return null; // Or return a default bitmap instead
+        }
+
         SharedContext create = SharedContext.create();
         create.makeCurrent();
+
         CGEImageHandler cGEImageHandler = new CGEImageHandler();
         cGEImageHandler.initWithBitmap(bitmap);
         cGEImageHandler.setFilterWithConfig("@adjust saturation 0");
         cGEImageHandler.processFilters();
+
         Bitmap resultBitmap = cGEImageHandler.getResultBitmap();
+
         create.release();
-        return resultBitmap;
+
+        return (resultBitmap != null && resultBitmap.getWidth() > 0 && resultBitmap.getHeight() > 0)
+                ? resultBitmap
+                : bitmap; // Return original bitmap if processing failed
     }
 }

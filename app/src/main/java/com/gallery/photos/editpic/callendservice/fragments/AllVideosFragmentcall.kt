@@ -1,10 +1,9 @@
 package com.gallery.photos.editpic.Fragment
 
-import CreateNewFolderDialog
+import com.gallery.photos.editpic.Dialogs.CreateNewFolderDialog
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK
-import android.app.ProgressDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -14,49 +13,31 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.RelativeLayout
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
-import com.gallery.photos.editpic.Activity.AllPhotosActivity
 import com.gallery.photos.editpic.Activity.MainActivity
-import com.gallery.photos.editpic.Activity.VideoViewPagerActivity
 import com.gallery.photos.editpic.Adapter.VideoAdapter
-import com.gallery.photos.editpic.Dialogs.AllFilesAccessDialog
-import com.gallery.photos.editpic.Dialogs.DeleteWithRememberDialog
-import com.gallery.photos.editpic.Extensions.formatDate
 import com.gallery.photos.editpic.Extensions.gone
-import com.gallery.photos.editpic.Extensions.hasAllFilesAccessAs
-import com.gallery.photos.editpic.Extensions.isVideoFile
 import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.name.getMediaDatabase
 import com.gallery.photos.editpic.Extensions.notifyGalleryRoot
-import com.gallery.photos.editpic.Extensions.onClick
-import com.gallery.photos.editpic.Extensions.shareMultipleFilesVideo
 import com.gallery.photos.editpic.Extensions.tos
 import com.gallery.photos.editpic.Extensions.visible
 import com.gallery.photos.editpic.Model.DeleteMediaModel
 import com.gallery.photos.editpic.Model.FavouriteMediaModel
-import com.gallery.photos.editpic.PopupDialog.PicturesBottomPopup
-import com.gallery.photos.editpic.PopupDialog.TopMenuVideosCustomPopup
-import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.RoomDB.Dao.DeleteMediaDao
 import com.gallery.photos.editpic.RoomDB.Dao.FavouriteMediaDao
 import com.gallery.photos.editpic.Utils.SelectionAlLPhotos.selectionArrayList
+import com.gallery.photos.editpic.Utils.SelectionModeListener
 import com.gallery.photos.editpic.Utils.VideoMediaStoreSingleton
 import com.gallery.photos.editpic.ViewModel.VideoViewModel
 import com.gallery.photos.editpic.ViewModel.VideoViewModelFactory
-import com.gallery.photos.editpic.databinding.FragmentVideosBinding
 import com.gallery.photos.editpic.databinding.FragmentVideosCallBinding
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
 
@@ -230,7 +211,12 @@ class AllVideosFragmentcall : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        videoAdapter = VideoAdapter(requireActivity(), {
+        videoAdapter = VideoAdapter(requireActivity(), object : SelectionModeListener {
+            override fun toggleTopBar(show: Boolean) {
+                toggleTopBarVisibility(show)
+            }
+
+        }, {
             VideoMediaStoreSingleton.videoimageList = ArrayList(videoAdapter.currentList)
             VideoMediaStoreSingleton.videoselectedPosition = videoAdapter.currentList.indexOf(it)
             val intent = Intent(requireActivity(), MainActivity::class.java)

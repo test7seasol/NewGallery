@@ -520,11 +520,11 @@ public class MirrorActivity extends AppCompatActivity {
         public void onDraw(Canvas canvas) {
             Bitmap bitmap;
             canvas.drawColor(getResources().getColor(this.defaultColor));
-            if (MirrorActivity.this.filterBitmap == null) {
-                drawMode(canvas, MirrorActivity.this.sourceBitmap, this.mirrorModeList[this.currentModeIndex], this.f510I);
-            } else {
-                drawMode(canvas, MirrorActivity.this.filterBitmap, this.mirrorModeList[this.currentModeIndex], this.f510I);
+            Bitmap bitmapToDraw = MirrorActivity.this.filterBitmap == null ? MirrorActivity.this.sourceBitmap : MirrorActivity.this.filterBitmap;
+            if (bitmapToDraw != null && !bitmapToDraw.isRecycled()) {
+                drawMode(canvas, bitmapToDraw, this.mirrorModeList[this.currentModeIndex], this.f510I);
             }
+
             if (this.d3Mode && (bitmap = this.d3Bitmap) != null && !bitmap.isRecycled()) {
                 canvas.setMatrix(this.f510I);
                 canvas.drawBitmap(this.d3Bitmap, (Rect) null, this.mirrorModeList[this.currentModeIndex].rectTotalArea, this.framePaint);
@@ -747,7 +747,7 @@ public class MirrorActivity extends AppCompatActivity {
         super.onResume();
     }
 
-    @Override // androidx.appcompat.app.AppCompatActivity, androidx.fragment.app.FragmentActivity, android.app.Activity
+  /*  @Override // androidx.appcompat.app.AppCompatActivity, androidx.fragment.app.FragmentActivity, android.app.Activity
     public void onDestroy() {
         super.onDestroy();
         Bitmap bitmap = this.sourceBitmap;
@@ -757,6 +757,18 @@ public class MirrorActivity extends AppCompatActivity {
         Bitmap bitmap2 = this.filterBitmap;
         if (bitmap2 != null) {
             bitmap2.recycle();
+        }
+    }*/
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        // Only recycle bitmaps if they are no longer needed
+        if (this.sourceBitmap != null && !this.sourceBitmap.isRecycled()) {
+            this.sourceBitmap.recycle();
+        }
+        if (this.filterBitmap != null && !this.filterBitmap.isRecycled()) {
+            this.filterBitmap.recycle();
         }
     }
 

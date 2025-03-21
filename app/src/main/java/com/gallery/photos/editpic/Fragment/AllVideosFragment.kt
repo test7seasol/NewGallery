@@ -1,6 +1,6 @@
 package com.gallery.photos.editpic.Fragment
 
-import CreateNewFolderDialog
+import com.gallery.photos.editpic.Dialogs.CreateNewFolderDialog
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK
@@ -45,6 +45,7 @@ import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.RoomDB.Dao.DeleteMediaDao
 import com.gallery.photos.editpic.RoomDB.Dao.FavouriteMediaDao
 import com.gallery.photos.editpic.Utils.SelectionAlLPhotos.selectionArrayList
+import com.gallery.photos.editpic.Utils.SelectionModeListener
 import com.gallery.photos.editpic.Utils.VideoMediaStoreSingleton
 import com.gallery.photos.editpic.ViewModel.VideoViewModel
 import com.gallery.photos.editpic.ViewModel.VideoViewModelFactory
@@ -405,7 +406,12 @@ class AllVideosFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        videoAdapter = VideoAdapter(requireActivity(), {
+        videoAdapter = VideoAdapter(requireActivity(),object : SelectionModeListener{
+            override fun toggleTopBar(show: Boolean) {
+                toggleTopBarVisibility(show)
+            }
+
+        },{
             VideoMediaStoreSingleton.videoimageList = ArrayList(videoAdapter.currentList)
             VideoMediaStoreSingleton.videoselectedPosition = videoAdapter.currentList.indexOf(it)
             val intent = Intent(requireActivity(), VideoViewPagerActivity::class.java)

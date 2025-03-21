@@ -1,6 +1,6 @@
 package com.gallery.photos.editpic.Activity
 
-import CreateNewFolderDialog
+import com.gallery.photos.editpic.Dialogs.CreateNewFolderDialog
 import android.annotation.SuppressLint
 import android.app.ProgressDialog
 import android.content.Intent

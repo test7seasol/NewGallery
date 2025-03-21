@@ -26,6 +26,7 @@ import com.gallery.photos.editpic.callendservice.overlayscreen.OverlayUtil
 import com.gallery.photos.editpic.callendservice.overlayscreen.XiomiGuideActivity
 import com.gallery.photos.editpic.databinding.ActivityPermissionBinding
 import com.gallery.photos.editpic.myadsworld.MyAllAdCommonClass
+import com.gallery.photos.editpic.myadsworld.MyAppOpenManager
 import java.util.Timer
 import java.util.TimerTask
 
@@ -312,6 +313,7 @@ class PermissionActivity : AppCompatActivity() {
 
     fun gonext() {
         MyApplicationClass.putBoolean("isSHowCallerID", true)
+        MyAppOpenManager.appOpenAd = null
 
         startActivity(
             Intent(

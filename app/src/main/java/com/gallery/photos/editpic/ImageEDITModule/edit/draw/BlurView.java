@@ -15,6 +15,7 @@ import android.graphics.Rect;
 import android.graphics.Shader;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -281,6 +282,42 @@ public class BlurView extends ImageView {
     }
 
     public void updatePreviewPaint() {
+        // Ensure bitmapClear is valid
+        if (BlurActivity.bitmapClear == null || BlurActivity.bitmapClear.getWidth() <= 0 || BlurActivity.bitmapClear.getHeight() <= 0) {
+            Log.e("BlurView", "bitmapClear is invalid");
+            return;
+        }
+
+        // Calculate resRatio
+        if (BlurActivity.bitmapClear.getWidth() > BlurActivity.bitmapClear.getHeight()) {
+            resRatio = (BlurActivity.displayWidth / BlurActivity.bitmapClear.getWidth()) * this.saveScale;
+        } else {
+            resRatio = (this.origHeight / BlurActivity.bitmapClear.getHeight()) * this.saveScale;
+        }
+
+        // Ensure resRatio is valid
+        if (resRatio <= 0 || Float.isNaN(resRatio)) {
+            Log.e("BlurView", "Invalid resRatio: " + resRatio);
+            resRatio = 1.0f; // Fallback to a default value
+        }
+
+        // Update stroke width
+        this.drawPaint.setStrokeWidth(this.radius * resRatio);
+
+        // Calculate blur radius
+        float blurRadius = resRatio * 30.0f;
+
+        // Ensure blur radius is valid
+        if (blurRadius <= 0 || Float.isNaN(blurRadius)) {
+            Log.e("BlurView", "Invalid blurRadius: " + blurRadius);
+            blurRadius = 1.0f; // Fallback to a default value
+        }
+
+        // Set the blur mask filter
+        this.drawPaint.setMaskFilter(new BlurMaskFilter(blurRadius, BlurMaskFilter.Blur.NORMAL));
+    }
+
+  /*  public void updatePreviewPaint() {
         if (BlurActivity.bitmapClear.getWidth() > BlurActivity.bitmapClear.getHeight()) {
             resRatio = (BlurActivity.displayWidth / BlurActivity.bitmapClear.getWidth()) * this.saveScale;
         } else {
@@ -288,7 +325,7 @@ public class BlurView extends ImageView {
         }
         this.drawPaint.setStrokeWidth(this.radius * resRatio);
         this.drawPaint.setMaskFilter(new BlurMaskFilter(resRatio * 30.0f, BlurMaskFilter.Blur.NORMAL));
-    }
+    }*/
 
     private void sharedConstructing(Context context2) {
         super.setClickable(true);

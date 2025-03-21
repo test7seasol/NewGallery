@@ -2,6 +2,7 @@ package com.gallery.photos.editpic.Activity
 
 import android.Manifest
 import android.Manifest.permission.READ_EXTERNAL_STORAGE
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -22,6 +23,7 @@ import com.gallery.photos.editpic.myadsworld.MyAppOpenManager
 import com.gallery.photos.editpic.myadsworld.MySplashAppOpenAds
 import com.google.android.gms.ads.MobileAds
 
+@SuppressLint("CustomSplashScreen")
 class SplashActivity : AppCompatActivity() {
 
     private val binding by viewBinding(ActivitySplashBinding::inflate)

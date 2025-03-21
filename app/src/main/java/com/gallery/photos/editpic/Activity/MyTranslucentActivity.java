@@ -1,5 +1,7 @@
 package com.gallery.photos.editpic.Activity;
 
+import android.annotation.SuppressLint;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.View;
 
@@ -17,12 +19,17 @@ public class MyTranslucentActivity extends AppCompatActivity {
         super.onCreate(bundle);
         binding = TranslucentActivityMyBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        // Set orientation programmatically after the activity is created
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
         binding.translayRel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 finish();
             }
         });
+
         String stringExtra = getIntent().getStringExtra("autostart");
         if (stringExtra != null) {
             binding.textTrans.setText(stringExtra);

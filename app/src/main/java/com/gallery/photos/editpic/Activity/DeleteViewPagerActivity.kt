@@ -49,6 +49,15 @@ class DeleteViewPagerActivity : BaseActivity() {
 
 //        ("Delete onPageSelected: $viewpagerselectedPosition").log()
 
+
+        if (imageListDelete.isEmpty()) {
+            Log.e("DeleteViewPagerActivity", "No images available for deletion.")
+            finish()  // Exit the activity to prevent the crash
+            return
+        }
+
+        // Ensure valid index
+        viewpagerselectedPosition = viewpagerselectedPosition.coerceIn(0, imageListDelete.size - 1)
         deleteMediaModel = imageListDelete[viewpagerselectedPosition]
 
         setupViewPager(imageListDelete, viewpagerselectedPosition)
@@ -133,9 +142,13 @@ class DeleteViewPagerActivity : BaseActivity() {
                             if (imageListDelete.isEmpty()) {
                                 finish()
                             } else {
-                                setupViewPager(imageListDelete, viewpagerselectedPosition)
+                                setupViewPager(
+                                    imageListDelete,
+                                    viewpagerselectedPosition.coerceAtMost(imageListDelete.size - 1)
+                                )
                             }
                         }
+
                     } else {
                         Log.e(
                             "RestoreFile", "Failed to restore file to: ${originalFile.absolutePath}"
@@ -191,6 +204,11 @@ class DeleteViewPagerActivity : BaseActivity() {
     }
 
     private fun setupViewPager(imageList: ArrayList<DeleteMediaModel>, currentPosition: Int) {
+        if (imageList.isEmpty()) {
+            finish() // Exit activity if no images left
+            return
+        }
+
         viewPagerAdapter = DeleteViewPagerAdapter(this, imageList)
         binding.viewPager.adapter = viewPagerAdapter
         binding.viewPager.setCurrentItem(currentPosition, false)
@@ -213,7 +231,9 @@ class DeleteViewPagerActivity : BaseActivity() {
     }
 
     private fun updateImageTitle(position: Int) {
-        val fileName = File(imageListDelete[position].binPath).name  // Extract file name from path
+        if (position >= imageListDelete.size) return // Prevent crash
+        val fileName = File(imageListDelete[position].binPath).name
         binding.tvtitile.text = fileName
     }
+
 }

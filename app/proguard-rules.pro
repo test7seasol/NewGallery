@@ -22,6 +22,10 @@
 -keepclassmembers class org.wysaid.nativePort.CGEImageHandler { *; }
 
 
+# Keep Fragment and Activity names
+-keepnames class * extends androidx.fragment.app.Fragment
+-keepnames class * extends android.app.Activity
+
 # Picasso
 -dontwarn javax.annotation.**
 -keepnames class okhttp3.internal.publicsuffix.PublicSuffixDatabase
@@ -205,6 +209,19 @@
 
 # Other existing rules...
 
+
+#todo -------------- All Log gone -----------------
+-assumenosideeffects class android.util.Log {
+    public static boolean isLoggable(java.lang.String, int);
+    public static int v(...);
+    public static int i(...);
+    public static int w(...);
+    public static int d(...);
+    public static int e(...);
+    public static int wtf(...);
+}
+
+
 # Keep XML parsing classes
 -keep class org.xmlpull.** { *; }
 -keep class android.content.res.XmlResourceParser { *; }
@@ -224,3 +241,4 @@
 
 
 
+-keep class org.wysaid.nativePort.CGENativeLibrary { *; }

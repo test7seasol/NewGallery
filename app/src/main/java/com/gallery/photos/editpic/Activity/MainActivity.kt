@@ -1,5 +1,6 @@
 package com.gallery.photos.editpic.Activity
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Color
@@ -56,6 +57,7 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    @SuppressLint("SuspiciousIndentation")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)

@@ -81,6 +81,12 @@ public class SaveFileUtils {
     }
 
     public static File saveBitmapFileRemoveBg(Context context, Bitmap bitmap, String fileName, String subFolder) throws IOException {
+        if (bitmap == null || bitmap.isRecycled()) {
+            Log.e(TAG, "Bitmap is null or already recycled. Skipping save operation.");
+            return null;
+        }
+
+
         if (Build.VERSION.SDK_INT >= 29) {
             if (!isExternalStorageWritable()) {
                 return null;

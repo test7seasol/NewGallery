@@ -31,6 +31,7 @@ public class OverlayFile {
     }
 
     public static List<Bitmap> getListBitmapOverlayEffect(Bitmap bitmap) {
+
         ArrayList arrayList = new ArrayList();
         SharedContext create = SharedContext.create();
         create.makeCurrent();

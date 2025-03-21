@@ -14,14 +14,18 @@ import com.gallery.photos.editpic.Extensions.formatDate
 import com.gallery.photos.editpic.Extensions.gone
 import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.visible
-import com.gallery.photos.editpic.Fragment.AllVideosFragment
 import com.gallery.photos.editpic.Model.VideoModel
 import com.gallery.photos.editpic.R
+import com.gallery.photos.editpic.Utils.SelectionModeListener
 import com.gallery.photos.editpic.Views.FastScroller
 import com.gallery.photos.editpic.databinding.ItemVideoBinding
 
-class VideoAdapter(var activity: Activity, var onItemClick: (VideoModel) -> Unit
-,var onLongItemClick:(Boolean) -> Unit) :
+class VideoAdapter(
+    var activity: Activity,
+    private val listener: SelectionModeListener,
+    var onItemClick: (VideoModel) -> Unit,
+    var onLongItemClick: (Boolean) -> Unit
+) :
     ListAdapter<VideoModel, VideoAdapter.VideoViewHolder>(VideoModel.DiffCallback()),
     FastScroller.SectionIndexer {
 
@@ -157,21 +161,25 @@ class VideoAdapter(var activity: Activity, var onItemClick: (VideoModel) -> Unit
             disableSelectionMode() // Exit selection mode if everything is deselected
         }
         updateSelectionUI()
-        activity.findViewById<TextView>(R.id.tvTitalVideo).text = "${selectedItems.size} selected"
+        if (activity != null)
+            activity.findViewById<TextView>(R.id.tvTitalVideo)?.text =
+                "${selectedItems.size} selected"
     }
-
 
     @SuppressLint("NotifyDataSetChanged")
     private fun enableSelectionMode() {
-        (activity as AllVideosFragment).toggleTopBarVisibility(true) // Hide top bar
-        notifyDataSetChanged() // Refresh list to show selection icons
+        listener.toggleTopBar(true) // Use the listener
+        notifyDataSetChanged()
+        /*notifyDataSetChanged()
+        (activity as? AllVideosFragment)?.toggleTopBar(true) // Hide top bar
+        notifyDataSetChanged() // Refresh list to show selection icons*/
     }
-
 
     @SuppressLint("NotifyDataSetChanged")
     fun disableSelectionMode() {
         selectedItems.clear()
-        (activity as AllVideosFragment).toggleTopBarVisibility(false)
+        listener.toggleTopBar(false)
+//        (activity as AllVideosFragment).toggleTopBarVisibility(false)
         notifyDataSetChanged()
         onLongItemClick.invoke(false)
     }

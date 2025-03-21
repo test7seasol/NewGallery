@@ -287,32 +287,46 @@ class AllPhotosActivity : AppCompatActivity() {
     }
 
     fun getFolderPathByBucketId(bucketId: String): String? {
-        Log.d("BucketDebug", "Searching for bucketId: $bucketId") // Log bucketId for debugging
+        Log.d("BucketDebug", "Searching for bucketId: $bucketId")
 
-
-        val projection = arrayOf(
-            MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
-            MediaStore.Images.Media.DATA,
-            MediaStore.Images.Media.RELATIVE_PATH
-        )
+        // SAFELY define projection without referencing RELATIVE_PATH on pre-Q
+        val projection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Use string literal for relative_path to avoid class loading issues
+            arrayOf(
+                MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
+                MediaStore.Images.Media.DATA,
+                "relative_path"  // Avoid constant; use direct column name
+            )
+        } else {
+            arrayOf(
+                MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
+                MediaStore.Images.Media.DATA
+            )
+        }
 
         val selection = "${MediaStore.Images.Media.BUCKET_ID} = ?"
         val selectionArgs = arrayOf(bucketId)
 
         contentResolver.query(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, selection, selectionArgs, null
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            projection,
+            selection,
+            selectionArgs,
+            null
         )?.use { cursor ->
             if (cursor.moveToFirst()) {
-                val bucketName =
-                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME))
+                val bucketName = cursor.getString(
+                    cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME)
+                )
                 Log.d("BucketDebug", "Found folder: $bucketName")
 
                 return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                    // Pre-Q path: Use DATA column
                     val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
-                    File(cursor.getString(dataColumn)).parent // Returns actual file directory
+                    File(cursor.getString(dataColumn)).parent
                 } else {
-                    val relativePathColumn =
-                        cursor.getColumnIndexOrThrow(MediaStore.Images.Media.RELATIVE_PATH)
+                    // Post-Q path: Use string literal for column name
+                    val relativePathColumn = cursor.getColumnIndexOrThrow("relative_path")
                     val fullPath = "${Environment.getExternalStorageDirectory()}/${
                         cursor.getString(relativePathColumn)
                     }".removeSuffix("/")
@@ -324,11 +338,62 @@ class AllPhotosActivity : AppCompatActivity() {
             }
         }
 
-//        logAllBucketIds()
-
         return null
     }
 
+//    fun getFolderPathByBucketId(bucketId: String): String? {
+//        Log.d("BucketDebug", "Searching for bucketId: $bucketId")
+//
+//        // Define projection based on Android version
+//        val projection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//            arrayOf(
+//                MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
+//                MediaStore.Images.Media.DATA,
+//                MediaStore.Images.Media.RELATIVE_PATH
+//            )
+//        } else {
+//            arrayOf(
+//                MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
+//                MediaStore.Images.Media.DATA
+//            )
+//        }
+//
+//        val selection = "${MediaStore.Images.Media.BUCKET_ID} = ?"
+//        val selectionArgs = arrayOf(bucketId)
+//
+//        contentResolver.query(
+//            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+//            projection,
+//            selection,
+//            selectionArgs,
+//            null
+//        )?.use { cursor ->
+//            if (cursor.moveToFirst()) {
+//                val bucketName =
+//                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME))
+//                Log.d("BucketDebug", "Found folder: $bucketName")
+//
+//                return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+//                    // Pre-Q: Use DATA column to get parent directory
+//                    val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+//                    File(cursor.getString(dataColumn)).parent
+//                } else {
+//                    // Q+: Use RELATIVE_PATH from projection
+//                    val relativePathColumn =
+//                        cursor.getColumnIndexOrThrow(MediaStore.Images.Media.RELATIVE_PATH)
+//                    val fullPath = "${Environment.getExternalStorageDirectory()}/${
+//                        cursor.getString(relativePathColumn)
+//                    }".removeSuffix("/")
+//                    Log.d("BucketDebug", "Resolved path: $fullPath")
+//                    fullPath
+//                }
+//            } else {
+//                Log.e("BucketDebug", "No folder found for bucketId: $bucketId")
+//            }
+//        }
+//
+//        return null
+//    }
 //    todo: below android 15 work
 //    fun getFolderPathByBucketId(bucketId: String): String? {
 //        val projection =

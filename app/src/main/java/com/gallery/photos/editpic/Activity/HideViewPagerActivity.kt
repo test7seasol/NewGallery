@@ -214,11 +214,15 @@ class HideViewPagerActivity : BaseActivity() {
     }
 
     private fun updateImageTitle(position: Int) {
-        val fileName = hideImageListDelete[position].mediaName  // Extract file name from path
+        if (position < 0 || position >= hideImageListDelete.size) {
+            Log.e("HideViewPagerActivity", "Invalid index: $position, list size: ${hideImageListDelete.size}")
+            return
+        }
+        val fileName = hideImageListDelete[position].mediaName
         binding.tvtitile.text = fileName
-//        binding.bottomActions.bottomEdit.visibility =
-//            if (isVideoFile(hideImageListDelete[position].mediaPath)) View.GONE else View.VISIBLE
     }
+
+
     private fun applyStatusBarColor() {
         window.statusBarColor =
             resources.getColor(android.R.color.black, theme) // Set black status bar

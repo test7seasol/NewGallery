@@ -7,6 +7,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.viewpager2.widget.ViewPager2
 import com.gallery.photos.editpic.Adapter.ViewPagerAdapter
 import com.gallery.photos.editpic.Dialogs.AllFilesAccessDialog
@@ -83,27 +84,37 @@ class ViewPagerActivity : BaseActivity() {
         hideMediaDao = getMediaDatabase(this).hideMediaDao()
         favouriteMediaDao = getMediaDatabase(this).favouriteMediaDao()
 
-        imageList[viewpagerselectedPosition].apply {
-            deleteMediaModel!!.mediaId = mediaId
-            deleteMediaModel!!.mediaName = mediaName
-            deleteMediaModel!!.mediaPath = mediaPath
-            deleteMediaModel!!.mediaMimeType = mediaMimeType
-            deleteMediaModel!!.mediaDateAdded = mediaDateAdded
-            deleteMediaModel!!.isVideo = isVideo
-            deleteMediaModel!!.displayDate = displayDate
-            deleteMediaModel!!.isSelect = isSelect
+        if (imageList.isNotEmpty() && viewpagerselectedPosition in imageList.indices) {
+            val media = imageList[viewpagerselectedPosition]
+            media.apply {
+                deleteMediaModel!!.mediaId = mediaId
+                deleteMediaModel!!.mediaName = mediaName
+                deleteMediaModel!!.mediaPath = mediaPath
+                deleteMediaModel!!.mediaMimeType = mediaMimeType
+                deleteMediaModel!!.mediaDateAdded = mediaDateAdded
+                deleteMediaModel!!.isVideo = isVideo
+                deleteMediaModel!!.displayDate = displayDate
+                deleteMediaModel!!.isSelect = isSelect
 
-            favouriteMediaModel!!.mediaId = mediaId
-            favouriteMediaModel!!.mediaName = mediaName
-            favouriteMediaModel!!.mediaPath = mediaPath
-            favouriteMediaModel!!.mediaMimeType = mediaMimeType
-            favouriteMediaModel!!.mediaDateAdded = mediaDateAdded
-            favouriteMediaModel!!.isVideo = isVideo
-            favouriteMediaModel!!.displayDate = displayDate
-            favouriteMediaModel!!.isSelect = isSelect
-            favouriteMediaModel!!.isFav = isFav
+                favouriteMediaModel!!.mediaId = mediaId
+                favouriteMediaModel!!.mediaName = mediaName
+                favouriteMediaModel!!.mediaPath = mediaPath
+                favouriteMediaModel!!.mediaMimeType = mediaMimeType
+                favouriteMediaModel!!.mediaDateAdded = mediaDateAdded
+                favouriteMediaModel!!.isVideo = isVideo
+                favouriteMediaModel!!.displayDate = displayDate
+                favouriteMediaModel!!.isSelect = isSelect
+                favouriteMediaModel!!.isFav = isFav
+            }
+        } else {
+            Log.e(
+                "ViewPagerActivity",
+                "imageList is empty or invalid position: $viewpagerselectedPosition"
+            )
+            Toast.makeText(this, "No images to display", Toast.LENGTH_SHORT).show()
+            finish()
+            return
         }
-
 
         setupViewPager(imageList, viewpagerselectedPosition)
 
@@ -312,7 +323,7 @@ class ViewPagerActivity : BaseActivity() {
         val parentDir = originalFile.parentFile
         val newFileName = ".${originalFile.name}"  // Prefix the filename with a dot
         val hiddenFile = File(parentDir, newFileName)
-
+        if (imageList.isNotEmpty() && viewpagerselectedPosition in imageList.indices) {
         imageList[viewpagerselectedPosition].mediaName = newFileName
 //        updateImageTitle(viewpagerselectedPosition)
         binding.tvtitile.text = newFileName
@@ -326,6 +337,7 @@ class ViewPagerActivity : BaseActivity() {
             hideMediaModel!!.isVideo = isVideo
             hideMediaModel!!.displayDate = displayDate
             hideMediaModel!!.isSelect = isSelect
+        }
         }
 
         CoroutineScope(Dispatchers.IO).launch {
@@ -426,14 +438,18 @@ class ViewPagerActivity : BaseActivity() {
     var isOneTimeVisibleTools = false
 
     private fun setupViewPager(imageList: List<MediaModel>, currentPosition: Int) {
+        if (imageList.isEmpty()) {
+            binding.tvtitile.text = "No images to display"
+            binding.viewPager.visibility = View.GONE
+            return
+        }
         viewPagerAdapter = ViewPagerAdapter(this, imageList) {
             ("onClick").log()
             isOneTimeVisibleTools = !isOneTimeVisibleTools
             if (isOneTimeVisibleTools) {
                 binding.bottomActions.root.visibility = View.INVISIBLE
                 binding.rltop.visibility = View.INVISIBLE
-                window.decorView.systemUiVisibility =
-                    View.SYSTEM_UI_FLAG_FULLSCREEN // Hide status bar
+                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
                 hideNavigationBar(this)
             } else {
                 if (isFromSlideShow) {
@@ -441,63 +457,62 @@ class ViewPagerActivity : BaseActivity() {
                 }
                 binding.bottomActions.root.visibility = View.VISIBLE
                 binding.rltop.visibility = View.VISIBLE
-                window.decorView.systemUiVisibility =
-                    View.SYSTEM_UI_FLAG_VISIBLE // Show status bar & navbar
+                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
                 hideNavigationBar(this)
             }
         }
-
         binding.viewPager.adapter = viewPagerAdapter
         binding.viewPager.setCurrentItem(currentPosition, false)
-
         binding.viewPager.offscreenPageLimit = 1
-        // Set initial image title
         updateImageTitle(currentPosition)
 
-        // Change title when page is scrolled
         binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
-                viewpagerselectedPosition = position
-                imageList[position].apply {
-                    deleteMediaModel!!.mediaId = mediaId
-                    deleteMediaModel!!.mediaName = mediaName
-                    deleteMediaModel!!.mediaPath = mediaPath
-                    deleteMediaModel!!.mediaMimeType = mediaMimeType
-                    deleteMediaModel!!.mediaDateAdded = mediaDateAdded
-                    deleteMediaModel!!.isVideo = isVideo
-                    deleteMediaModel!!.displayDate = displayDate
-                    deleteMediaModel!!.isSelect = isSelect
+                if (imageList.isNotEmpty()) {
+                    viewpagerselectedPosition = position
+                    imageList[position].apply {
+                        deleteMediaModel!!.mediaId = mediaId
+                        deleteMediaModel!!.mediaName = mediaName
+                        deleteMediaModel!!.mediaPath = mediaPath
+                        deleteMediaModel!!.mediaMimeType = mediaMimeType
+                        deleteMediaModel!!.mediaDateAdded = mediaDateAdded
+                        deleteMediaModel!!.isVideo = isVideo
+                        deleteMediaModel!!.displayDate = displayDate
+                        deleteMediaModel!!.isSelect = isSelect
 
-                    favouriteMediaModel!!.mediaId = mediaId
-                    favouriteMediaModel!!.mediaName = mediaName
-                    favouriteMediaModel!!.mediaPath = mediaPath
-                    favouriteMediaModel!!.mediaMimeType = mediaMimeType
-                    favouriteMediaModel!!.mediaDateAdded = mediaDateAdded
-                    favouriteMediaModel!!.isVideo = isVideo
-                    favouriteMediaModel!!.displayDate = displayDate
-                    favouriteMediaModel!!.isSelect = isSelect
-                    favouriteMediaModel!!.isFav = isFav
+                        favouriteMediaModel!!.mediaId = mediaId
+                        favouriteMediaModel!!.mediaName = mediaName
+                        favouriteMediaModel!!.mediaPath = mediaPath
+                        favouriteMediaModel!!.mediaMimeType = mediaMimeType
+                        favouriteMediaModel!!.mediaDateAdded = mediaDateAdded
+                        favouriteMediaModel!!.isVideo = isVideo
+                        favouriteMediaModel!!.displayDate = displayDate
+                        favouriteMediaModel!!.isSelect = isSelect
+                        favouriteMediaModel!!.isFav = isFav
+                    }
+                    updateImageTitle(position)
                 }
-                updateImageTitle(position)
             }
         })
-    }
 
-    private fun updateImageTitle(position: Int) {
-        val fileName = imageList[position]
-        binding.tvtitile.text = fileName.mediaName
-
-        binding.bottomActions.bottomEdit.visibility =
-            if (isVideoFile(imageList[position].mediaPath)) View.GONE else View.VISIBLE
-
-        CoroutineScope(Dispatchers.IO).launch {
-            favouriteMediaDao?.let { dao ->
-                val isFav = dao.isMediaFavorite(fileName.mediaId)
-                runOnUiThread {
-                    binding.bottomActions.bottomFavorite.setImageResource(if (isFav) R.drawable.fillfavourite else R.drawable.unfillfavourite)
+    }    private fun updateImageTitle(position: Int) {
+        if (position in imageList.indices) {
+            val fileName = imageList[position]
+            binding.tvtitile.text = fileName.mediaName
+            binding.bottomActions.bottomEdit.visibility =
+                if (isVideoFile(imageList[position].mediaPath)) View.GONE else View.VISIBLE
+            CoroutineScope(Dispatchers.IO).launch {
+                favouriteMediaDao?.let { dao ->
+                    val isFav = dao.isMediaFavorite(fileName.mediaId)
+                    runOnUiThread {
+                        binding.bottomActions.bottomFavorite.setImageResource(if (isFav) R.drawable.fillfavourite else R.drawable.unfillfavourite)
+                    }
                 }
             }
+        } else {
+            Log.e("ViewPagerActivity", "Invalid position: $position for imageList size ${imageList.size}")
+            binding.tvtitile.text = "No image"
         }
     }
 }

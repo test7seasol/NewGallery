@@ -1,6 +1,6 @@
 package com.gallery.photos.editpic.Activity
 
-import CreateNewFolderDialog
+import com.gallery.photos.editpic.Dialogs.CreateNewFolderDialog
 import android.annotation.SuppressLint
 import android.app.ProgressDialog
 import android.content.Intent
@@ -86,7 +86,7 @@ class PictureActivity : AppCompatActivity() {
 //                    it.log()
 //                }
 
-                var isFromMy = (data.extras?.getString("where")!!)
+                val isFromMy = (data.extras?.getString("where")!!)
 
                 CreateNewFolderDialog(
                     this,

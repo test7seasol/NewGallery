@@ -89,11 +89,13 @@ public class CGENativeLibrary {
     }
 
     public static TextureResult loadTextureByName(String str) {
+
         LoadImageCallback loadImageCallback2 = loadImageCallback;
         if (loadImageCallback2 == null) {
             Log.i("libCGE_java", "The loading callback is not set!");
             return null;
         }
+
         Bitmap loadImage = loadImageCallback2.loadImage(str, callbackArg);
         if (loadImage == null) {
             return null;

@@ -150,15 +150,35 @@ class RecentPictureAdapter(
             if (recentFragment == null)  recentFragment =
                 activity.supportFragmentManager.findFragmentById(R.id.framecontainer) as? RecentsPictureFragment
 
+            var itemWidth = 3
             val displayMetrics = binding.root.context.resources.displayMetrics
+
             val screenWidth = displayMetrics.widthPixels
-            val itemWidth = screenWidth / recentFragment!!.gridLayoutManager.spanCount
+            itemWidth = try {
+                (screenWidth / (recentFragment?.gridLayoutManager?.spanCount!!))
+                    ?: 3
+            } catch (e: Exception) {
+                3
+            }
             binding.root.layoutParams.height = itemWidth
             binding.root.requestLayout()
 
-            Glide.with(binding.imageViewMedia.context).load(media.mediaPath)
-                .placeholder(R.color.appgrey).error(R.color.appgrey).centerCrop()
-                .into(binding.imageViewMedia)
+            Glide.with(binding.imageViewMedia.context)
+                .load(media.mediaPath)
+                .error(
+                    Glide.with(binding.imageViewMedia.context)
+                        .load(media.mediaPath) // Fallback to JPEG
+                        .placeholder(R.color.appgrey)
+                        .error(R.color.appgrey)
+                        .centerCrop()
+                )
+                .placeholder(R.color.appgrey)
+                .centerCrop()
+                .into(binding.imageViewMedia);
+
+            /*   Glide.with(binding.imageViewMedia.context).load(media.mediaPath)
+                   .placeholder(R.color.appgrey).error(R.color.appgrey).centerCrop()
+                   .into(binding.imageViewMedia)*/
 
             binding.imageViewVideoIcon.visibility = if (media.isVideo) View.VISIBLE else View.GONE
 
