@@ -46,6 +46,7 @@ class AllFilesAccessDialog(private val activity: Activity, val callback: () -> U
                 val intent = Intent(ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
                 intent.data = Uri.parse("package:${activity.packageName}")
                 activity.startActivity(intent) // ✅ Start the intent properly
+
             } catch (e: Exception) {
                 Log.e("TAG", "requestAllFilesPermission Error: ${e.message}")
                 e.printStackTrace()

@@ -1,11 +1,13 @@
 package com.gallery.photos.editpic.Activity
 
-import com.gallery.photos.editpic.Dialogs.CreateNewFolderDialog
 import android.annotation.SuppressLint
 import android.app.ProgressDialog
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.provider.OpenableColumns
 import android.transition.TransitionManager
 import android.util.Log
 import android.view.ScaleGestureDetector
@@ -19,6 +21,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.gallery.photos.editpic.Adapter.FavouriteAdapter
 import com.gallery.photos.editpic.Dialogs.AllFilesAccessDialog
+import com.gallery.photos.editpic.Dialogs.CreateNewFolderDialog
 import com.gallery.photos.editpic.Dialogs.DeleteWithRememberDialog
 import com.gallery.photos.editpic.Dialogs.SlideShowDialog
 import com.gallery.photos.editpic.Extensions.PREF_LANGUAGE_CODE
@@ -514,6 +517,74 @@ class FavoriteAct : AppCompatActivity() {
     }
 
     fun moveToRecycleBin(originalFilePath: String): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {  // Android 11+ (API 30+)
+            moveToRecycleBinScopedStorage(originalFilePath)
+        } else {
+            moveToRecycleBinLegacy(originalFilePath)
+        }
+    }
+
+    // ✅ Android 11+ (Scoped Storage) - Uses ContentResolver
+    fun moveToRecycleBinScopedStorage(originalFilePath: String): Boolean {
+        val uri = Uri.parse(originalFilePath)
+        val contentResolver = contentResolver
+
+        val inputStream = try {
+            contentResolver.openInputStream(uri)
+        } catch (e: Exception) {
+            Log.e("MoveToRecycleBin", "Failed to open InputStream: ${e.message}")
+            null
+        }
+
+        if (inputStream == null) {
+            Log.e(
+                "MoveToRecycleBin",
+                "File does not exist or cannot be accessed: $originalFilePath"
+            )
+            return false
+        }
+
+        val recycleBin = createRecycleBin() // Function to create a recycle bin directory
+        val recycledFile = File(recycleBin, getFileNameFromUri(uri) ?: "deleted_file")
+
+        return try {
+            recycledFile.outputStream().use { output -> inputStream.copyTo(output) }
+            inputStream.close()
+
+            Log.d("MoveToRecycleBin", "File copied to recycle bin: ${recycledFile.absolutePath}")
+
+            // Delete from MediaStore
+            val deleteCount = contentResolver.delete(uri, null, null)
+            if (deleteCount > 0) {
+                Log.d("MoveToRecycleBin", "Original file deleted successfully")
+            } else {
+                Log.e("MoveToRecycleBin", "Failed to delete original file from MediaStore")
+            }
+
+            true
+        } catch (e: IOException) {
+            Log.e("MoveToRecycleBin", "IOException: ${e.message}")
+            e.printStackTrace()
+            false
+        }
+    }
+
+    fun getFileNameFromUri(uri: Uri): String? {
+        var name: String? = null
+        val cursor = contentResolver.query(uri, null, null, null, null)
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (nameIndex != -1) {
+                    name = it.getString(nameIndex)
+                }
+            }
+        }
+        return name
+    }
+
+    // ✅ Android 10 and Below - Uses Direct File Access
+    fun moveToRecycleBinLegacy(originalFilePath: String): Boolean {
         val originalFile = File(originalFilePath)
         if (!originalFile.exists()) {
             Log.e("MoveToRecycleBin", "File does not exist: $originalFilePath")
@@ -524,27 +595,22 @@ class FavoriteAct : AppCompatActivity() {
         val recycledFile = File(recycleBin, originalFile.name)
 
         return try {
-            Log.d("MoveToRecycleBin", "Moving file to recycle bin: ${originalFile.absolutePath}")
-
             originalFile.copyTo(recycledFile, overwrite = true)  // Copy to recycle bin
             Log.d("MoveToRecycleBin", "File copied to recycle bin: ${recycledFile.absolutePath}")
 
             if (originalFile.delete()) {
-                Log.d("MoveToRecycleBin", "Original file deleted: ${originalFile.absolutePath}")
-                true
+                Log.d("MoveToRecycleBin", "Original file deleted")
             } else {
-                Log.e(
-                    "MoveToRecycleBin",
-                    "Failed to delete original file: ${originalFile.absolutePath}"
-                )
-                false
+                Log.e("MoveToRecycleBin", "Failed to delete original file")
             }
+
+            true
         } catch (e: IOException) {
-            Log.e("MoveToRecycleBin", "IOException occurred: ${e.message}", e)
+            Log.e("MoveToRecycleBin", "IOException: ${e.message}")
+            e.printStackTrace()
             false
         }
     }
-
 
     private fun openViewPagerSlideShowActivity(position: Int, sec: Int) {
         FavouriteMediaStoreSingleton.favouriteimageList = favouriteList

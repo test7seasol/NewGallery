@@ -6,12 +6,16 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.widget.RelativeLayout;
+
 import androidx.core.content.ContextCompat;
-import com.gallery.photos.editpic.R;
+
 import com.gallery.photos.editpic.ImageEDITModule.edit.sticker.StickerView;
+import com.gallery.photos.editpic.R;
+
+import org.wysaid.view.ImageGLSurfaceView;
+
 import java.util.ArrayList;
 import java.util.List;
-import org.wysaid.view.ImageGLSurfaceView;
 
 /* loaded from: classes.dex */
 public class PhotoEditorView extends StickerView {
@@ -75,29 +79,47 @@ public class PhotoEditorView extends StickerView {
     }
 
     public void setImageSource(final Bitmap bitmap) {
+        try {
+            if (bitmap == null || bitmap.isRecycled()) {
+                Log.e("PhotoEditorView", "Attempted to set a recycled or null bitmap");
+                return;
+            }
+
         this.filterImageView.setImageBitmap(bitmap);
+
         if (this.imageGLSurfaceView.getImageHandler() != null) {
             this.imageGLSurfaceView.setImageBitmap(bitmap);
         } else {
-            this.imageGLSurfaceView.setSurfaceCreatedCallback(new ImageGLSurfaceView.OnSurfaceCreatedCallback() { // from class: com.gallery.photos.editphotovideo.Editor.PhotoEditorView.1
-                @Override // org.wysaid.view.ImageGLSurfaceView.OnSurfaceCreatedCallback
-                public void surfaceCreated() {
-                    PhotoEditorView.this.imageGLSurfaceView.setImageBitmap(bitmap);
-                }
-            });
+            this.imageGLSurfaceView.setSurfaceCreatedCallback(() ->
+                    PhotoEditorView.this.imageGLSurfaceView.setImageBitmap(bitmap));
         }
+
         this.currentBitmap = bitmap;
-        this.bitmaplist.add(Bitmap.createBitmap(bitmap));
-        this.index++;
+
+            try {
+                // Create a new mutable copy of the bitmap
+                Bitmap copy = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+                this.bitmaplist.add(copy);
+                this.index++;
+            } catch (Exception e) {
+                Log.e("PhotoEditorView", "Failed to create bitmap copy", e);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void setImageSourceUndoRedo(final Bitmap bitmap) {
+        if (bitmap == null || bitmap.isRecycled()) {
+            return;
+        }
+
         this.filterImageView.setImageBitmap(bitmap);
         if (this.imageGLSurfaceView.getImageHandler() != null) {
             this.imageGLSurfaceView.setImageBitmap(bitmap);
         } else {
-            this.imageGLSurfaceView.setSurfaceCreatedCallback(new ImageGLSurfaceView.OnSurfaceCreatedCallback() { // from class: com.gallery.photos.editphotovideo.Editor.PhotoEditorView.2
-                @Override // org.wysaid.view.ImageGLSurfaceView.OnSurfaceCreatedCallback
+            this.imageGLSurfaceView.setSurfaceCreatedCallback(new ImageGLSurfaceView.OnSurfaceCreatedCallback() {
+                @Override
                 public void surfaceCreated() {
                     PhotoEditorView.this.imageGLSurfaceView.setImageBitmap(bitmap);
                 }

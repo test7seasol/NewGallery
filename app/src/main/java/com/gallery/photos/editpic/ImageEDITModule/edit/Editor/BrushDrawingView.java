@@ -12,6 +12,7 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -443,22 +444,51 @@ public class BrushDrawingView extends View {
     }
 
     public Bitmap getDrawBitmap(Bitmap bitmap) {
+        // Validate input bitmap
+        if (bitmap == null || bitmap.isRecycled()) {
+            Log.e("BrushDrawingView", "Input bitmap is null or recycled");
+            // Return a blank bitmap or throw an exception based on your needs
+            int width = getWidth();
+            int height = getHeight();
+            return Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        }
+
+        // Create the output bitmap
         int width = getWidth();
         int height = getHeight();
         Bitmap createBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(createBitmap);
         RectF rectF = new RectF(0.0f, 0.0f, width, height);
-        canvas.drawBitmap(bitmap, null, rectF, null);
+
+        // Draw the input bitmap
+        try {
+            canvas.drawBitmap(bitmap, null, rectF, null);
+        } catch (IllegalArgumentException e) {
+            Log.e("BrushDrawingView", "Failed to draw input bitmap", e);
+            // Bitmap was recycled; return what we have so far
+            return createBitmap;
+        }
+
+        // Iterate through points and draw overlays
         Iterator<Point> it = this.mPoints.iterator();
         while (it.hasNext()) {
             Point next = it.next();
             if (next.vector2 != null) {
+                // Validate the overlay bitmap
+                if (next.vector2.bitmap == null || next.vector2.bitmap.isRecycled()) {
+                    Log.w("BrushDrawingView", "Skipping recycled or null vector2 bitmap at point");
+                    continue;
+                }
                 this.tempRect.set(next.vector2.x, next.vector2.y, next.vector2.x1, next.vector2.y1);
-                canvas.drawBitmap(next.vector2.bitmap, (Rect) null, this.tempRect, this.bitmapPaint);
+                try {
+                    canvas.drawBitmap(next.vector2.bitmap, null, this.tempRect, this.bitmapPaint);
+                } catch (IllegalArgumentException e) {
+                    Log.w("BrushDrawingView", "Failed to draw vector2 bitmap", e);
+                }
             } else if (next.linePath != null) {
                 canvas.drawPath(next.linePath.getDrawPath(), next.linePath.getDrawPaint());
             }
         }
+
         return createBitmap;
-    }
-}
+    }}

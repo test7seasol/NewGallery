@@ -1,6 +1,6 @@
 package com.gallery.photos.editpic.Activity
 
-import android.content.pm.ActivityInfo
+import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.OnBackPressedCallback
@@ -16,11 +16,17 @@ class ZoomInZoomOutAct : AppCompatActivity() {
         bind = ZoomlayoutLayoutBinding.inflate(layoutInflater)
         setContentView(bind.root)
 
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        if (Build.VERSION.SDK_INT == 26 || Build.VERSION.SDK_INT == 27) {
 
-        window.setFlags(
-            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+        } else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                window.setStatusBarColor(getColor(android.R.color.transparent));
+            }
+            getWindow().setFlags(
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
+        }
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {

@@ -3,6 +3,7 @@ package com.gallery.photos.editpic.Activity
 import android.app.Activity
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.gallery.photos.editpic.BuildConfig
 import com.gallery.photos.editpic.callendservice.utils.CDOUtiler
 
 
@@ -17,6 +18,7 @@ open class BaseActivity : AppCompatActivity() {
     }
     public override fun onCreate(bundle: Bundle?) {
         super.onCreate(bundle)
+        if (!BuildConfig.DEBUG)
         try {
             CDOUtiler.hideNavigationBar(this)
         } catch (e: Exception) {
@@ -26,6 +28,7 @@ open class BaseActivity : AppCompatActivity() {
 
     public override fun onResume() {
         super.onResume()
+        if (!BuildConfig.DEBUG)
         try {
             CDOUtiler.hideNavigationBar(this)
         } catch (e: Exception) {
@@ -35,6 +38,7 @@ open class BaseActivity : AppCompatActivity() {
 
     override fun onWindowFocusChanged(z: Boolean) {
         super.onWindowFocusChanged(z)
+        if (!BuildConfig.DEBUG)
         if (z) {
             try {
                 CDOUtiler.hideNavigationBar(this)

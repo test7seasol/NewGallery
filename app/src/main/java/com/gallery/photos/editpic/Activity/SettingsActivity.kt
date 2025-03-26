@@ -54,7 +54,9 @@ class SettingsActivity : AppCompatActivity() {
             }
 
             llLanguage.onClick {
-                startActivityWithBundle<LanguageAct>()
+                startActivityWithBundle<LanguageAct>(Bundle().apply {
+                    putString("From","Setting")
+                })
             }
             llHidepassowrd.onClick {
                 luancher.launch(

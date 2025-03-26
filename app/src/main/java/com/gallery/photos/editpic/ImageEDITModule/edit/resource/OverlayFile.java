@@ -1,10 +1,12 @@
 package com.gallery.photos.editpic.ImageEDITModule.edit.resource;
 
 import android.graphics.Bitmap;
-import java.util.ArrayList;
-import java.util.List;
+
 import org.wysaid.common.SharedContext;
 import org.wysaid.nativePort.CGEImageHandler;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /* loaded from: classes.dex */
 public class OverlayFile {
@@ -31,7 +33,7 @@ public class OverlayFile {
     }
 
     public static List<Bitmap> getListBitmapOverlayEffect(Bitmap bitmap) {
-
+        try {
         ArrayList arrayList = new ArrayList();
         SharedContext create = SharedContext.create();
         create.makeCurrent();
@@ -44,6 +46,9 @@ public class OverlayFile {
         }
         create.release();
         return arrayList;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public static List<Bitmap> getListBitmapGradientEffect(Bitmap bitmap) {

@@ -105,21 +105,24 @@ public class Utils {
         return i == 0 ? bitmap : Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
     }
 
-    public static int calculateInSampleSize(BitmapFactory.Options options, int i, int i2) {
-        int i3 = options.outHeight;
-        int i4 = options.outWidth;
-        int i5 = 1;
-        if (i3 > i2 || i4 > i) {
-            int i6 = i3 / 2;
-            int i7 = i4 / 2;
-            while (true) {
-                if (i6 / i5 <= i2 && i7 / i5 <= i) {
-                    break;
-                }
-                i5 *= 2;
+    public static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) >= reqHeight
+                    && (halfWidth / inSampleSize) >= reqWidth) {
+                inSampleSize *= 2;
             }
         }
-        return i5;
+        return inSampleSize;
     }
 
     public static double getLeftSizeOfMemory() {

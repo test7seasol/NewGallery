@@ -1,12 +1,20 @@
 package com.gallery.photos.editpic.Activity
 
+import android.content.ContentUris
+import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
+import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.MediaStore
+import android.provider.OpenableColumns
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.viewpager2.widget.ViewPager2
 import com.gallery.photos.editpic.Adapter.FavouriteViewPagerAdapter
 import com.gallery.photos.editpic.Dialogs.AllFilesAccessDialog
@@ -22,7 +30,6 @@ import com.gallery.photos.editpic.Extensions.name.getMediaDatabase
 import com.gallery.photos.editpic.Extensions.onClick
 import com.gallery.photos.editpic.Extensions.setLanguageCode
 import com.gallery.photos.editpic.Extensions.shareFile
-import com.gallery.photos.editpic.Extensions.startActivityWithBundle
 import com.gallery.photos.editpic.Extensions.tos
 import com.gallery.photos.editpic.ImageEDITModule.edit.activities.PhotoEditorActivity
 import com.gallery.photos.editpic.ImageEDITModule.edit.picker.PhotoPicker
@@ -45,7 +52,9 @@ import com.gallery.photos.editpic.myadsworld.MyAllAdCommonClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.util.Timer
 import java.util.TimerTask
@@ -103,10 +112,31 @@ class FavouriteViewPagerActivity : BaseActivity() {
         }
 
         binding.bottomActions.bottomEdit.onClick {
-            val intent2 = Intent(applicationContext, PhotoEditorActivity::class.java as Class<*>)
-            intent2.putExtra(PhotoPicker.KEY_SELECTED_PHOTOS, favouriteimageList[viewpagerselectedPosition].mediaPath)
-            startActivity(intent2)
+            val mediaUriString = imageListFavourite[viewpagerselectedPosition].mediaPath
+            val mediaUri = fixMalformedUri(mediaUriString)
+            val filePath = getFilePathFromUri(this@FavouriteViewPagerActivity, mediaUri)
+
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
+                if (filePath == null) {
+                    Log.e("FilePath", "Could not resolve file path from Uri: $mediaUri")
+                    Toast.makeText(
+                        this@FavouriteViewPagerActivity, "Unable to load image", Toast.LENGTH_SHORT
+                    ).show()
+                    return@onClick
+                }
+            }
+
+            Timber.tag("FilePath")
+                .d(filePath) // Should log something like /storage/emulated/0/DCIM/GPS Camera/4156165.jpg
+
+            val intent = Intent(this@FavouriteViewPagerActivity, PhotoEditorActivity::class.java)
+            intent.putExtra(
+                PhotoPicker.KEY_SELECTED_PHOTOS,
+                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) filePath else mediaUriString
+            ) // Pass the file path
+            startActivity(intent)
         }
+
 
         binding.apply {
             ivMore.onClick {
@@ -114,24 +144,28 @@ class FavouriteViewPagerActivity : BaseActivity() {
                     ViewPagerHidePopupManager(this@FavouriteViewPagerActivity) {
                         when (it) {
                             "hiddentoid" -> {
+
                                 if (!hasAllFilesAccessAs(this@FavouriteViewPagerActivity)) {
                                     (getString(R.string.all_files_access_required)).tos(this@FavouriteViewPagerActivity)
-                                    AllFilesAccessDialog(this@FavouriteViewPagerActivity){
+                                    AllFilesAccessDialog(this@FavouriteViewPagerActivity) {
 
                                     }
-//                                    startActivityWithBundle<AllFilePermissionActivity>(Bundle().apply {
-//                                        putString("isFrom", "Activitys")
-//                                    })
+//                    startActivityWithBundle<AllFilePermissionActivity>(Bundle().apply {
+//                        putString("isFrom", "Activitys")
+//                    })
                                     return@ViewPagerHidePopupManager
                                 }
 
-                                renameAndHidePhoto(deleteMediaModel!!.mediaPath)
-                                favouriteimageList.removeAt(viewpagerselectedPosition)
+                                renameFileToHide(
+                                    this@FavouriteViewPagerActivity,
+                                    deleteMediaModel!!.mediaPath
+                                )
+                                imageListFavourite.removeAt(viewpagerselectedPosition)
                                 binding.viewPager.currentItem = viewpagerselectedPosition
 
-                                if (favouriteimageList.isEmpty()) {
+                                if (imageListFavourite.isEmpty()) {
                                     finish()
-                                } else setupViewPager(favouriteimageList, viewpagerselectedPosition)
+                                } else setupViewPager(imageListFavourite, viewpagerselectedPosition)
                             }
                         }
                     }
@@ -214,7 +248,38 @@ class FavouriteViewPagerActivity : BaseActivity() {
                             favouriteMediaDao?.getMediaById(currentMedia.mediaId)
                                 ?.let { favouriteMediaDao?.deleteMedia(it) }
                         }
-                        moveToRecycleBin(deleteMediaModel!!.mediaPath)
+                        val isMoved = moveToRecycleBin(deleteMediaModel!!.mediaPath)
+                        if (isMoved) {
+                            deleteMediaModel!!.binPath = File(
+                                createRecycleBin(), deleteMediaModel!!.mediaName
+                            ).absolutePath
+
+                            CoroutineScope(Dispatchers.IO).launch {
+                                deleteMediaDao!!.insertMedia(deleteMediaModel!!)  // Insert into Room DB
+                            }
+
+                            viewpagerselectedPosition = binding.viewPager.currentItem
+
+                            runOnUiThread {
+                                imageListFavourite.removeAt(viewpagerselectedPosition)
+                                viewpagerselectedPosition = binding.viewPager.currentItem
+
+                                viewPagerAdapter.notifyDataSetChanged()
+
+                                if (imageListFavourite.isNotEmpty()) {
+//                                (imageListFavourite.toList())
+                                    binding.viewPager.setCurrentItem(
+                                        viewpagerselectedPosition, false
+                                    )
+                                    updateImageTitle(viewpagerselectedPosition)
+                                } else {
+                                    finish() // Close activity if no more images
+                                }
+                            }
+                        } else {
+                            Timber.tag("FileDeletion")
+                                .e("Failed to move file: ${deleteMediaModel!!.mediaPath}")
+                        }
                     }
                 }
             }
@@ -231,6 +296,50 @@ class FavouriteViewPagerActivity : BaseActivity() {
     }
 
     var isOneTimeVisibleTools = false
+
+    fun fixMalformedUri(uriString: String): Uri {
+        val decoded = Uri.decode(uriString) // Decodes %3A to :
+        if (decoded.startsWith("file:///content:")) {
+            val corrected = decoded.replace("file:///", "")
+            return Uri.parse(corrected) // Should become content://media/external/file/1000025614
+        }
+        return Uri.parse(uriString) // Fallback to original
+    }
+
+    fun getFilePathFromUri(context: Context, uri: Uri): String? {
+        when (uri.scheme) {
+            "content" -> {
+                // Query MediaStore for the file path
+                val projection = arrayOf(MediaStore.Images.Media.DATA)
+                context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        val columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+                        return cursor.getString(columnIndex)
+                    }
+                }
+            }
+
+            "file" -> {
+                // Directly use the file path from the Uri
+                return uri.path
+            }
+        }
+
+        // Fallback: Copy to a temp file if direct path isn’t available
+        return try {
+            val inputStream = context.contentResolver.openInputStream(uri)
+            val tempFile = File.createTempFile("temp_image", ".jpg", context.cacheDir)
+            inputStream?.use { input ->
+                tempFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+            tempFile.absolutePath
+        } catch (e: Exception) {
+            Log.e("FilePath", "Failed to get path from Uri: $uri", e)
+            null
+        }
+    }
 
     private fun startTimerTask() {
         timer = Timer()
@@ -266,6 +375,78 @@ class FavouriteViewPagerActivity : BaseActivity() {
 
     private var timer: Timer? = null
     private val handler = Handler(Looper.getMainLooper())
+
+    fun renameFileToHide(context: Context, originalFilePath: String): Boolean {
+        val originalFile = File(originalFilePath)
+        if (!originalFile.exists()) {
+            Log.e("RenameFile", "File not found: $originalFilePath")
+            return false
+        }
+
+        return if (Build.VERSION.SDK_INT == Build.VERSION_CODES.R || Build.VERSION.SDK_INT == Build.VERSION_CODES.S) {
+            val parentDir = originalFile.parentFile
+            val newFileName =
+                if (!originalFile.name.startsWith(".")) ".${originalFile.name}" else originalFile.name
+            val hiddenFile = File(parentDir, newFileName)
+
+            CoroutineScope(Dispatchers.IO).launch {
+                favouriteMediaDao!!.getMediaById(hideMediaModel!!.mediaId)
+                    ?.let { favouriteMediaDao!!.deleteMedia(it) }
+                hideMediaModel?.let { hideMediaDao!!.insertMedia(it) }
+            }
+
+            renameFileUsingMediaStore(context, originalFilePath, newFileName)
+        } else {
+            renameAndHidePhoto(originalFilePath)/*    if (originalFile.renameTo(hiddenFile)) {
+                    Log.d("RenameFile", "File renamed: ${hiddenFile.absolutePath}")
+                    notifySystemGallery(context, hiddenFile.absolutePath)
+                    true
+                } else {
+                    Log.e("RenameFile", "Failed to rename file.")
+                    false
+                }*/
+        }
+    }
+
+    private fun renameFileUsingMediaStore(
+        context: Context, originalFilePath: String, newFileName: String
+    ): Boolean {
+        val contentResolver = context.contentResolver
+        val collectionUri =
+            if (originalFilePath.contains("/DCIM") || originalFilePath.contains("/Pictures")) {
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            } else {
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+            }
+
+        val projection = arrayOf(MediaStore.MediaColumns._ID)
+        val selection = "${MediaStore.MediaColumns.DATA} = ?"
+        val selectionArgs = arrayOf(originalFilePath)
+
+        contentResolver.query(collectionUri, projection, selection, selectionArgs, null)
+            ?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val idColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
+                    val id = cursor.getLong(idColumn)
+                    val contentUri = ContentUris.withAppendedId(collectionUri, id)
+
+                    // Rename file (without moving)
+                    val values = ContentValues().apply {
+                        put(MediaStore.MediaColumns.DISPLAY_NAME, newFileName)
+                    }
+
+                    val updatedRows = contentResolver.update(contentUri, values, null, null)
+                    return if (updatedRows > 0) {
+                        Log.d("RenameFile", "File renamed using MediaStore: $newFileName")
+                        true
+                    } else {
+                        Log.e("RenameFile", "Failed to rename file using MediaStore.")
+                        false
+                    }
+                }
+            }
+        return false
+    }
 
     fun renameAndHidePhoto(originalFilePath: String): Boolean {
         val originalFile = File(originalFilePath)
@@ -332,8 +513,222 @@ class FavouriteViewPagerActivity : BaseActivity() {
         return recycleBin
     }
 
-
     fun moveToRecycleBin(originalFilePath: String): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {  // Android 11+ (API 30+)
+            moveToRecycleBinScopedStorage(originalFilePath)
+        } else {
+            moveToRecycleBinLegacy(originalFilePath)
+        }
+    }
+
+    // ✅ Android 11+ (Scoped Storage) - Uses ContentResolver
+    fun moveToRecycleBinScopedStorage(originalFilePath: String): Boolean {
+        Log.e("MoveToRecycleBin", "Cannotath: " + originalFilePath)
+        val context = applicationContext
+        val contentResolver = context.contentResolver
+
+        // 1. Get proper URI for the source file
+        val sourceUri = when {
+            originalFilePath.startsWith("content://") -> Uri.parse(originalFilePath)
+            else -> getMediaStoreUriFromPath(context, originalFilePath) ?: run {
+                Log.e("MoveToRecycleBin", "Cannot find MediaStore URI for path: $originalFilePath")
+                return false
+            }
+        }
+
+
+        // 2. Get file information with proper extension handling
+        val (fileName, mimeType) = getFileInfo(context, sourceUri, originalFilePath)
+
+        // 3. Prepare recycle bin directory
+        val recycleBin = File(context.getExternalFilesDir(null), ".gallery_recycleBin").apply {
+            if (!exists()) mkdirs()
+        }
+        val destinationFile = File(recycleBin, fileName)
+
+        return try {
+            // 4. Copy the file
+            contentResolver.openInputStream(sourceUri)?.use { inputStream ->
+                FileOutputStream(destinationFile).use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            } ?: return false.also {
+                Log.e("MoveToRecycleBin", "Failed to open input stream")
+            }
+
+            // 5. Delete original only if copy succeeded
+            if (destinationFile.exists()) {
+                val deleteSuccess = when {
+                    sourceUri.scheme == "content" -> contentResolver.delete(
+                        sourceUri, null, null
+                    ) > 0
+
+                    sourceUri.scheme == "file" -> File(sourceUri.path!!).delete()
+                    else -> false
+                }
+
+                if (deleteSuccess) {
+                    // Notify adapter about item removal
+                    // Notify MediaStore about changes
+                    MediaScannerConnection.scanFile(
+                        context, arrayOf(destinationFile.absolutePath), arrayOf(mimeType), null
+                    )
+                } else {
+                    Log.w("MoveToRecycleBin", "Original file deletion failed, but copy succeeded")
+                    return false
+                }
+            }
+
+            true
+        } catch (e: Exception) {
+            Log.e("MoveToRecycleBin", "Error: ${e.message}")
+            false
+        }
+    }
+
+    // Enhanced file information extractor with extension support
+    private fun getFileInfo(
+        context: Context, uri: Uri, originalPath: String
+    ): Pair<String, String> {
+        // Get original filename or generate one
+        val originalName = getFileNameFromUri(context, uri) ?: originalPath.substringAfterLast('/')
+
+        // Determine extension from filename or path
+        val fileExt = when {
+            originalName.contains('.') -> originalName.substringAfterLast('.')
+            originalPath.contains('.') -> originalPath.substringAfterLast('.')
+            else -> "dat"
+        }.lowercase()
+
+        // Generate proper filename
+        val fileName = if (originalName.contains('.')) {
+            originalName
+        } else {
+            "deleted_${System.currentTimeMillis()}.$fileExt"
+        }
+
+        // Determine MIME type
+        val mimeType = when (fileExt) {
+            "jpg", "jpeg" -> "image/jpeg"
+            "png" -> "image/png"
+            "gif" -> "image/gif"
+            "heic", "heif" -> "image/heif"
+            "mp4", "m4v" -> "video/mp4"
+            "mov" -> "video/quicktime"
+            "ts" -> "video/mp2t"
+            "webp" -> "image/webp"
+            "bmp" -> "image/bmp"
+            "svg" -> "image/svg+xml"
+            else -> contentResolver.getType(uri) ?: "application/octet-stream"
+        }
+
+        return Pair(fileName, mimeType)
+    }
+
+
+    private fun getFileNameFromUri(context: Context, uri: Uri): String? {
+
+        return when (uri.scheme) {
+            "content" -> {
+                context.contentResolver.query(
+                    uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null
+                )?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME))
+                    } else null
+                }
+            }
+
+            "file" -> uri.lastPathSegment
+            else -> uri.lastPathSegment
+        }
+    }
+
+
+    private fun findInMediaStore(
+        context: Context, contentUri: Uri, fileName: String, relativePath: String
+    ): Uri? {
+        val projection = arrayOf(MediaStore.MediaColumns._ID)
+        val selection =
+            "${MediaStore.MediaColumns.RELATIVE_PATH} = ? AND ${MediaStore.MediaColumns.DISPLAY_NAME} = ?"
+        val selectionArgs = arrayOf(relativePath, fileName)
+
+        return context.contentResolver.query(
+            contentUri, projection, selection, selectionArgs, null
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
+                ContentUris.withAppendedId(contentUri, id)
+            } else null
+        }
+    }
+
+    private fun getMediaStoreUriFromPath(context: Context, filePath: String): Uri? {
+        val file = File(filePath)
+        val fileName = file.name
+        val relativePath = filePath.substringAfterLast("/DCIM/").substringBeforeLast("/")
+
+        // Supported media collections to search
+        val mediaCollections = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            listOf(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                MediaStore.Files.getContentUri("external")
+            )
+        } else {
+            TODO("VERSION.SDK_INT < Q")
+        }
+
+        // Try each media collection
+        for (contentUri in mediaCollections) {
+            findInMediaStore(context, contentUri, fileName, "DCIM/$relativePath/")?.let {
+                return it
+            }
+        }
+
+        // Fallback to search by absolute path
+        return findInMediaStoreByData(context, filePath)
+    }
+
+    private fun findInMediaStoreByData(context: Context, filePath: String): Uri? {
+        val file = File(filePath)
+        val fileName = file.name
+
+        // Supported media collections to search
+        val mediaCollections = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            listOf(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                MediaStore.Files.getContentUri("external")
+            )
+        } else {
+            TODO("VERSION.SDK_INT < Q")
+        }
+
+        for (contentUri in mediaCollections) {
+            val projection = arrayOf(MediaStore.MediaColumns._ID)
+            val selection =
+                "${MediaStore.MediaColumns.DATA} = ? OR ${MediaStore.MediaColumns.DISPLAY_NAME} = ?"
+            val selectionArgs = arrayOf(filePath, fileName)
+
+            context.contentResolver.query(
+                contentUri, projection, selection, selectionArgs, null
+            )?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val id =
+                        cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
+                    return ContentUris.withAppendedId(contentUri, id)
+                }
+            }
+        }
+
+        return null
+    }
+
+    // ✅ Android 10 and Below - Uses Direct File Access
+    fun moveToRecycleBinLegacy(originalFilePath: String): Boolean {
         val originalFile = File(originalFilePath)
         if (!originalFile.exists()) {
             Log.e("MoveToRecycleBin", "File does not exist: $originalFilePath")
@@ -344,45 +739,39 @@ class FavouriteViewPagerActivity : BaseActivity() {
         val recycledFile = File(recycleBin, originalFile.name)
 
         return try {
-            Log.d("MoveToRecycleBin", "Moving file to recycle bin: ${originalFile.absolutePath}")
-
             originalFile.copyTo(recycledFile, overwrite = true)  // Copy to recycle bin
             Log.d("MoveToRecycleBin", "File copied to recycle bin: ${recycledFile.absolutePath}")
 
             if (originalFile.delete()) {
-                Log.d("MoveToRecycleBin", "Original file deleted: ${originalFile.absolutePath}")
+                Log.d("MoveToRecycleBin", "Original file deleted")
             } else {
-                Log.e(
-                    "MoveToRecycleBin",
-                    "Failed to delete original file: ${originalFile.absolutePath}"
-                )
+                Log.e("MoveToRecycleBin", "Failed to delete original file")
             }
 
-            CoroutineScope(Dispatchers.IO).launch {
-                Log.d("MoveToRecycleBin", "Inserting media record into Room database.")
-                deleteMediaModel!!.binPath = recycledFile.absolutePath
-//                videoMediaModel!!.randomMediaId = randomMediaId
-
-                deleteMediaDao!!.insertMedia(deleteMediaModel!!)  // Save path for restoration
-//                imageList.removeAt(viewpagerselectedPosition)
-//                MediaStoreSingleton.imageList.removeAt(viewpagerselectedPosition)
-                runOnUiThread {
-//                    binding.viewPager.currentItem = viewpagerselectedPosition + 1
-                    favouriteimageList.removeAt(viewpagerselectedPosition)
-                    runOnUiThread {
-//                        DeleteMediaStoreSingleton.deleteimageList.removeAt(viewpagerselectedPosition)
-                        if (favouriteimageList.isEmpty()) {
-                            finish()
-                        } else setupViewPager(imageListFavourite, viewpagerselectedPosition)
-                    }
-                }
-                Log.d("MoveToRecycleBin", "Media record inserted into Room database.")
-            }
+            saveToDatabase(recycledFile.absolutePath)
             true
         } catch (e: IOException) {
-            Log.e("MoveToRecycleBin", "IOException occurred: ${e.message}")
+            Log.e("MoveToRecycleBin", "IOException: ${e.message}")
             e.printStackTrace()
             false
+        }
+    }
+
+    fun saveToDatabase(binPath: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            deleteMediaModel!!.binPath = binPath
+            deleteMediaModel!!.mediaDateAdded =
+                imageListFavourite[viewpagerselectedPosition].mediaDateAdded
+
+            deleteMediaDao!!.insertMedia(deleteMediaModel!!)  // Save path for restoration
+
+            runOnUiThread {
+                imageListFavourite.removeAt(viewpagerselectedPosition)
+                if (imageListFavourite.isEmpty()) {
+                    finish()
+                } else setupViewPager(imageListFavourite, viewpagerselectedPosition)
+            }
+            Log.d("MoveToRecycleBin", "Media record inserted into Room database.")
         }
     }
 
@@ -419,19 +808,34 @@ class FavouriteViewPagerActivity : BaseActivity() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
                 ("Delete onPageSelected: $position").log()
+
+                try {
+                    if (favimageList.isEmpty() || position >= favimageList.size) {
+                        Log.e(
+                            "ViewPager",
+                            "Invalid position: $position, List size: ${favimageList.size}"
+                        )
+                        return // Prevent crash if list is empty or index is out of bounds
+                    }
+
                 viewpagerselectedPosition = position
                 deleteselectedPosition = position
+
                 favimageList[position].apply {
-                    deleteMediaModel!!.mediaId = mediaId
-                    deleteMediaModel!!.mediaName = mediaName
-                    deleteMediaModel!!.mediaPath = mediaPath
-                    deleteMediaModel!!.mediaMimeType = mediaMimeType
-                    deleteMediaModel!!.mediaDateAdded = mediaDateAdded
-                    deleteMediaModel!!.isVideo = isVideo
-                    deleteMediaModel!!.displayDate = displayDate
-                    deleteMediaModel!!.isSelect = isSelect
+                    deleteMediaModel?.mediaId = mediaId
+                    deleteMediaModel?.mediaName = mediaName
+                    deleteMediaModel?.mediaPath = mediaPath
+                    deleteMediaModel?.mediaMimeType = mediaMimeType
+                    deleteMediaModel?.mediaDateAdded = mediaDateAdded
+                    deleteMediaModel?.isVideo = isVideo
+                    deleteMediaModel?.displayDate = displayDate
+                    deleteMediaModel?.isSelect = isSelect
                 }
                 updateImageTitle(position)
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         })
     }

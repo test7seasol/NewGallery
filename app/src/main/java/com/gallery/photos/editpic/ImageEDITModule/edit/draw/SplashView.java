@@ -28,6 +28,7 @@ import com.gallery.photos.editpic.ImageEDITModule.edit.activities.SplashActivity
 import com.gallery.photos.editpic.ImageEDITModule.edit.utils.FilePath;
 import com.gallery.photos.editpic.ImageEDITModule.edit.utils.SystemUtil;
 import com.gallery.photos.editpic.R;
+
 import java.util.ArrayList;
 
 /* loaded from: classes.dex */
@@ -282,6 +283,7 @@ public class SplashView extends ImageView {
     }
 
     public void updatePreviewPaint() {
+        try {
         if (SplashActivity.colorBitmap.getWidth() > SplashActivity.colorBitmap.getHeight()) {
             resRatio = (SplashActivity.displayWidth / SplashActivity.colorBitmap.getWidth()) * this.saveScale;
         } else {
@@ -290,6 +292,9 @@ public class SplashView extends ImageView {
         this.drawPaint.setStrokeWidth(this.radius * resRatio);
         this.drawPaint.setMaskFilter(new BlurMaskFilter(resRatio * 15.0f, BlurMaskFilter.Blur.NORMAL));
         this.drawPaint.getShader().setLocalMatrix(this.matrix);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void sharedConstructing(Context context2) {
@@ -469,7 +474,16 @@ public class SplashView extends ImageView {
 
     @Override // android.widget.ImageView, android.view.View
     public void onMeasure(int i, int i2) {
-        super.onMeasure(i, i2);
+        try {
+            int width = MeasureSpec.getSize(i2);
+            int height = MeasureSpec.getSize(i2);
+
+            // Skip if dimensions are invalid
+            if (width <= 0 || height <= 0) {
+                super.onMeasure(i2, i2);
+                return;
+            }
+
         if (this.onMeasureCalled) {
             return;
         }
@@ -488,10 +502,26 @@ public class SplashView extends ImageView {
             fitScreen();
         }
         this.onMeasureCalled = true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            super.onMeasure(i, i2);
+        }
     }
 
     public void fitScreen() {
-        Drawable drawable = getDrawable();
+        try {
+            Drawable drawable = getDrawable();
+            if (drawable == null || drawable.getIntrinsicWidth() == 0 || drawable.getIntrinsicHeight() == 0) {
+                return;
+            }
+
+            // Ensure valid dimensions
+            if (this.viewWidth <= 0 || this.viewHeight <= 0) {
+                return;
+            }
+
+
         if (drawable == null || drawable.getIntrinsicWidth() == 0 || drawable.getIntrinsicHeight() == 0) {
             return;
         }
@@ -510,5 +540,10 @@ public class SplashView extends ImageView {
         setImageMatrix(this.matrix);
         this.matrix.getValues(this.m);
         fixTrans();
+            // Rest of your existing fitScreen logic...
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

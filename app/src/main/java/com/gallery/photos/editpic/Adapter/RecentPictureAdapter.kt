@@ -145,90 +145,110 @@ class RecentPictureAdapter(
         private val onItemClick: (List<MediaModel>, Int) -> Unit,
         private val allItems: List<MediaListItem>
     ) : RecyclerView.ViewHolder(binding.root) {
+
         fun bind(media: MediaModel) {
+            try {
+                // Initialize item width with safe default
+                var itemWidth = 3
 
-            if (recentFragment == null)  recentFragment =
-                activity.supportFragmentManager.findFragmentById(R.id.framecontainer) as? RecentsPictureFragment
+                // Safely calculate item dimensions
+                val context = binding.root.context
+                val displayMetrics = context.resources?.displayMetrics
+                val screenWidth = displayMetrics?.widthPixels ?: 1080 // Default to 1080 if null
 
-            var itemWidth = 3
-            val displayMetrics = binding.root.context.resources.displayMetrics
+                // Safely get span count with null checks
+                val spanCount = try {
+                    if (recentFragment == null) {
+                        recentFragment = activity.supportFragmentManager
+                            .findFragmentById(R.id.framecontainer) as? RecentsPictureFragment
+                    }
+                    recentFragment?.gridLayoutManager?.spanCount ?: 3
+                } catch (e: Exception) {
+                    3
+                }
 
-            val screenWidth = displayMetrics.widthPixels
-            itemWidth = try {
-                (screenWidth / (recentFragment?.gridLayoutManager?.spanCount!!))
-                    ?: 3
+                itemWidth = screenWidth / spanCount
+                binding.root.layoutParams?.let {
+                    it.height = itemWidth
+                    binding.root.layoutParams = it
+                }
+
+                // Load image with Glide - with proper error handling
+                Glide.with(binding.imageViewMedia)
+                    .load(media.mediaPath)
+                    .placeholder(R.color.appgrey)
+                    .error(
+                        Glide.with(binding.imageViewMedia)
+                            .load(media.mediaPath)
+                            .placeholder(R.color.appgrey)
+                            .error(R.color.appgrey)
+                    )
+                    .centerCrop()
+                    .into(binding.imageViewMedia)
+
+                // Set video icon visibility
+                binding.imageViewVideoIcon.visibility =
+                    if (media.isVideo) View.VISIBLE else View.GONE
+
+                // Handle selection states
+                updateSelectionUI(media)
+
+                // Set favorite icon visibility
+                binding.ivFav.visibility =
+                    if (media.isFav) View.VISIBLE else View.GONE
+
+                // Set click listeners
+                binding.root.setOnClickListener {
+                    handleItemClick(media)
+                }
+
+                binding.root.setOnLongClickListener {
+                    handleLongClick(media)
+                    true
+                }
             } catch (e: Exception) {
-                3
+                Log.e("RecentPictureAdapter", "Error binding media item", e)
             }
-            binding.root.layoutParams.height = itemWidth
-            binding.root.requestLayout()
+        }
 
-            Glide.with(binding.imageViewMedia.context)
-                .load(media.mediaPath)
-                .error(
-                    Glide.with(binding.imageViewMedia.context)
-                        .load(media.mediaPath) // Fallback to JPEG
-                        .placeholder(R.color.appgrey)
-                        .error(R.color.appgrey)
-                        .centerCrop()
-                )
-                .placeholder(R.color.appgrey)
-                .centerCrop()
-                .into(binding.imageViewMedia);
-
-            /*   Glide.with(binding.imageViewMedia.context).load(media.mediaPath)
-                   .placeholder(R.color.appgrey).error(R.color.appgrey).centerCrop()
-                   .into(binding.imageViewMedia)*/
-
-            binding.imageViewVideoIcon.visibility = if (media.isVideo) View.VISIBLE else View.GONE
-
+        private fun updateSelectionUI(media: MediaModel) {
             if (selectedItems.isNotEmpty()) {
-                // We are in selection mode
                 if (selectedItems.contains(media)) {
-                    // Item is selected → Show BLUE CHECK icon
-                    binding.selectionOverlay.visibility = View.VISIBLE
-                    binding.selectionOverlay.setImageResource(R.drawable.baseline_check_circle_24) // Blue icon
-                    binding.selectionOverlay1.visibility = View.GONE // Hide unselected icon
+                    binding.selectionOverlay.visible()
+                    binding.selectionOverlay.setImageResource(R.drawable.baseline_check_circle_24)
+                    binding.selectionOverlay1.gone()
                     binding.selectView.visible()
                 } else {
-                    // Item is NOT selected → Show GREY UNSELECTED icon
-                    binding.selectionOverlay.visibility = View.GONE
-                    binding.selectionOverlay1.visibility = View.VISIBLE
-                    binding.selectionOverlay1.setImageResource(R.drawable.baseline_radio_button_unchecked_24) // Grey icon
+                    binding.selectionOverlay.gone()
+                    binding.selectionOverlay1.visible()
+                    binding.selectionOverlay1.setImageResource(R.drawable.baseline_radio_button_unchecked_24)
                     binding.selectView.gone()
                 }
             } else {
-                // Selection mode is NOT active → Hide both icons
-                binding.selectionOverlay.visibility = View.GONE
-                binding.selectionOverlay1.visibility = View.GONE
-                binding.selectView.visibility = View.GONE
+                binding.selectionOverlay.gone()
+                binding.selectionOverlay1.gone()
+                binding.selectView.gone()
             }
+        }
 
-//            binding.ivFav.visibility = if (media.isFav) View.VISIBLE else View.GONE
-            binding.ivFav.visibility = if (media.isFav) View.VISIBLE else View.GONE
-
-            binding.root.setOnClickListener {
-                if (selectedItems.isEmpty()) {
-                    val mediaList = currentList.filterIsInstance<MediaListItem.Media>().map { it.media }
-                    val correctPosition = mediaList.indexOf(media)
-
-                    if (correctPosition != -1) {
-                        Log.e(
-                            "TAGdd", "Adapter clicked: $correctPosition, Media: ${media.mediaPath}"
-                        )
-                        onItemClick.invoke(mediaList, correctPosition) // Pass correct list & index
-                    }
-                } else {
-                    toggleSelection(media)
+        private fun handleItemClick(media: MediaModel) {
+            if (selectedItems.isEmpty()) {
+                val mediaList = currentList
+                    .filterIsInstance<MediaListItem.Media>()
+                    .map { it.media }
+                val position = mediaList.indexOfFirst { it.mediaPath == media.mediaPath }
+                if (position != -1) {
+                    onItemClick(mediaList, position)
                 }
-            }
-
-            binding.root.setOnLongClickListener {
-                enableSelectionMode()
+            } else {
                 toggleSelection(media)
-                onLongItemClick.invoke(true)
-                true
             }
+        }
+
+        private fun handleLongClick(media: MediaModel) {
+            enableSelectionMode()
+            toggleSelection(media)
+            onLongItemClick(true)
         }
     }
 

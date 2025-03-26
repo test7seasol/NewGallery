@@ -1621,42 +1621,84 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
         }
 
         @Override // android.os.AsyncTask
-        public Void doInBackground(Void... voidArr) {
-            if (PhotoEditorActivity.this.selectedFeatures == FEATURES.OVERLAY) {
-                PhotoEditorActivity.this.lstBitmapWithOverlay.clear();
-                PhotoEditorActivity.this.lstBitmapWithOverlay.addAll(OverlayFile.getListBitmapOverlayEffect(ThumbnailUtils.extractThumbnail(PhotoEditorActivity.this.photo_editor_view.getCurrentBitmap(), 100, 100)));
-                return null;
+        protected Void doInBackground(Void... voids) {
+            try {
+                // Get the current bitmap safely
+                Bitmap currentBitmap = PhotoEditorActivity.this.photo_editor_view.getCurrentBitmap();
+
+                // Check if bitmap exists and isn't recycled
+                if (currentBitmap == null || currentBitmap.isRecycled()) {
+                    Log.e("PhotoEditor", "Current bitmap is null or recycled");
+                    return null;
+                }
+
+                // Create a safe copy of the bitmap for processing
+                Bitmap safeBitmap = currentBitmap.copy(currentBitmap.getConfig(), true);
+                if (safeBitmap == null) {
+                    Log.e("PhotoEditor", "Failed to create bitmap copy");
+                    return null;
+                }
+
+                // Create thumbnail from the safe copy
+                Bitmap thumbnail = ThumbnailUtils.extractThumbnail(safeBitmap, 100, 100);
+
+                // Process based on selected feature
+                switch (PhotoEditorActivity.this.selectedFeatures) {
+                    case OVERLAY:
+                        PhotoEditorActivity.this.lstBitmapWithOverlay.clear();
+                        PhotoEditorActivity.this.lstBitmapWithOverlay.addAll(
+                                OverlayFile.getListBitmapOverlayEffect(thumbnail));
+                        break;
+
+                    case LIGHT:
+                        PhotoEditorActivity.this.lstBitmapWithLight.clear();
+                        PhotoEditorActivity.this.lstBitmapWithLight.addAll(
+                                OverlayFile.getListBitmapLightEffect(thumbnail));
+                        break;
+
+                    case DUST:
+                        PhotoEditorActivity.this.lstBitmapWithDust.clear();
+                        PhotoEditorActivity.this.lstBitmapWithDust.addAll(
+                                OverlayFile.getListBitmapDustEffect(thumbnail));
+                        break;
+
+                    case MASK:
+                        PhotoEditorActivity.this.lstBitmapWithMask.clear();
+                        PhotoEditorActivity.this.lstBitmapWithMask.addAll(
+                                OverlayFile.getListBitmapMaskEffect(thumbnail));
+                        break;
+
+                    case GRADIENT:
+                        PhotoEditorActivity.this.lstBitmapWithGradient.clear();
+                        PhotoEditorActivity.this.lstBitmapWithGradient.addAll(
+                                OverlayFile.getListBitmapGradientEffect(thumbnail));
+                        break;
+
+                    case EFFECT:
+                        PhotoEditorActivity.this.lstBitmapWithOverlay.clear();
+                        PhotoEditorActivity.this.lstBitmapWithOverlay.addAll(
+                                OverlayFile.getListBitmapOverlayEffect(thumbnail));
+                        break;
+                }
+
+                // Clean up
+                if (!safeBitmap.isRecycled()) {
+                    safeBitmap.recycle();
+                }
+                if (thumbnail != null && !thumbnail.isRecycled()) {
+                    thumbnail.recycle();
+                }
+
+            } catch (Exception e) {
+                Log.e("PhotoEditor", "Error in doInBackground", e);
             }
-            if (PhotoEditorActivity.this.selectedFeatures == FEATURES.LIGHT) {
-                PhotoEditorActivity.this.lstBitmapWithLight.clear();
-                PhotoEditorActivity.this.lstBitmapWithLight.addAll(OverlayFile.getListBitmapLightEffect(ThumbnailUtils.extractThumbnail(PhotoEditorActivity.this.photo_editor_view.getCurrentBitmap(), 100, 100)));
-                return null;
-            }
-            if (PhotoEditorActivity.this.selectedFeatures == FEATURES.DUST) {
-                PhotoEditorActivity.this.lstBitmapWithDust.clear();
-                PhotoEditorActivity.this.lstBitmapWithDust.addAll(OverlayFile.getListBitmapDustEffect(ThumbnailUtils.extractThumbnail(PhotoEditorActivity.this.photo_editor_view.getCurrentBitmap(), 100, 100)));
-                return null;
-            }
-            if (PhotoEditorActivity.this.selectedFeatures == FEATURES.MASK) {
-                PhotoEditorActivity.this.lstBitmapWithMask.clear();
-                PhotoEditorActivity.this.lstBitmapWithMask.addAll(OverlayFile.getListBitmapMaskEffect(ThumbnailUtils.extractThumbnail(PhotoEditorActivity.this.photo_editor_view.getCurrentBitmap(), 100, 100)));
-                return null;
-            }
-            if (PhotoEditorActivity.this.selectedFeatures == FEATURES.GRADIENT) {
-                PhotoEditorActivity.this.lstBitmapWithGradient.clear();
-                PhotoEditorActivity.this.lstBitmapWithGradient.addAll(OverlayFile.getListBitmapGradientEffect(ThumbnailUtils.extractThumbnail(PhotoEditorActivity.this.photo_editor_view.getCurrentBitmap(), 100, 100)));
-                return null;
-            }
-            if (PhotoEditorActivity.this.selectedFeatures != FEATURES.EFFECT) {
-                return null;
-            }
-            PhotoEditorActivity.this.lstBitmapWithOverlay.clear();
-            PhotoEditorActivity.this.lstBitmapWithOverlay.addAll(OverlayFile.getListBitmapOverlayEffect(ThumbnailUtils.extractThumbnail(PhotoEditorActivity.this.photo_editor_view.getCurrentBitmap(), 100, 100)));
             return null;
         }
-
         @Override // android.os.AsyncTask
         public void onPostExecute(Void r9) {
+
+            try {
+
             if (PhotoEditorActivity.this.selectedFeatures == FEATURES.OVERLAY) {
                 RecyclerView recyclerView = PhotoEditorActivity.this.recycler_view_overlay;
                 List<Bitmap> list = PhotoEditorActivity.this.lstBitmapWithOverlay;
@@ -1702,6 +1744,9 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
             }
             PhotoEditorActivity.this.mLoading(false);
             PhotoEditorActivity.this.seekbar_overlay.setProgress(100);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -1720,16 +1765,32 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
         @Override // android.os.AsyncTask
         public List<Bitmap> doInBackground(Void... voidArr) {
             Bitmap currentBitmap = PhotoEditorActivity.this.photo_editor_view.getCurrentBitmap();
-            ArrayList arrayList = new ArrayList();
-            arrayList.add(currentBitmap);
-            if (this.isSplashSquared) {
-                arrayList.add(FilterUtils.getBlackAndWhiteImageFromBitmap(currentBitmap));
+
+            try {
+                // Add null check for currentBitmap
+                if (currentBitmap == null || currentBitmap.isRecycled()) {
+                    Log.e("PhotoEditor", "Current bitmap is null or recycled");
+                    return null;
+                }
+                ArrayList arrayList = new ArrayList();
+                arrayList.add(currentBitmap);
+                if (this.isSplashSquared) {
+                    arrayList.add(FilterUtils.getBlackAndWhiteImageFromBitmap(currentBitmap));
+                }
+                return arrayList;
+            } catch (Exception e) {
+                Log.e("PhotoEditor", "Background processing failed", e);
+                return null;
             }
-            return arrayList;
         }
 
         @Override // android.os.AsyncTask
         public void onPostExecute(List<Bitmap> list) {
+            if (list == null && list.isEmpty()) {
+                Toast.makeText(PhotoEditorActivity.this, "Failed to process image", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             if (this.isSplashSquared) {
                 SplashFragment.show(PhotoEditorActivity.this, list.get(0), null, list.get(1), PhotoEditorActivity.this, true);
             }
@@ -2008,8 +2069,14 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
 
         @Override // android.os.AsyncTask
         public void onPostExecute(Bitmap bitmap) {
+            try {
+
             PhotoEditorActivity.this.photo_editor_view.setImageSource(bitmap);
             PhotoEditorActivity.this.updateLayout();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -2043,11 +2110,22 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
                 return null;
             }
         }
-
         @Override // android.os.AsyncTask
         public void onPostExecute(Bitmap bitmap) {
+            if (bitmap == null || bitmap.isRecycled()) {
+                Toast.makeText(PhotoEditorActivity.this,
+                        "Failed to load image", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            try {
             PhotoEditorActivity.this.photo_editor_view.setImageSource(bitmap);
             PhotoEditorActivity.this.updateLayout();
+            } catch (Exception e) {
+                Log.e("PhotoEditor", "Error setting image", e);
+                if (!bitmap.isRecycled()) {
+                    bitmap.recycle();
+                }
+            }
         }
     }
 

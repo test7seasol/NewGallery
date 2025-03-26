@@ -83,6 +83,8 @@ public class FilterFile {
     }
 
     public static Bitmap getBlurImageFromBitmap(Bitmap bitmap, float f) {
+        try {
+
         SharedContext create = SharedContext.create();
         create.makeCurrent();
         CGEImageHandler cGEImageHandler = new CGEImageHandler();
@@ -91,7 +93,13 @@ public class FilterFile {
         cGEImageHandler.processFilters();
         Bitmap resultBitmap = cGEImageHandler.getResultBitmap();
         create.release();
-        return resultBitmap;
+
+            return resultBitmap;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public static Bitmap cloneBitmap(Bitmap bitmap) {

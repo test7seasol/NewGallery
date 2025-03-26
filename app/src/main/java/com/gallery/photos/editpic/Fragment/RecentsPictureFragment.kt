@@ -1,17 +1,21 @@
 package com.gallery.photos.editpic.Fragment
 
-import com.gallery.photos.editpic.Dialogs.CreateNewFolderDialog
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK
 import android.app.AlertDialog
 import android.app.ProgressDialog
+import android.content.ContentUris
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.provider.MediaStore
+import android.provider.OpenableColumns
 import android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS
 import android.transition.TransitionManager
 import android.util.Log
@@ -24,7 +28,9 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -40,6 +46,7 @@ import com.gallery.photos.editpic.Activity.ViewPagerActivity
 import com.gallery.photos.editpic.Activity.ZoomInZoomOutAct
 import com.gallery.photos.editpic.Adapter.RecentPictureAdapter
 import com.gallery.photos.editpic.Dialogs.AllFilesAccessDialog
+import com.gallery.photos.editpic.Dialogs.CreateNewFolderDialog
 import com.gallery.photos.editpic.Dialogs.DeleteWithRememberDialog
 import com.gallery.photos.editpic.Dialogs.SlideShowDialog
 import com.gallery.photos.editpic.Extensions.beGone
@@ -50,7 +57,6 @@ import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.name.getMediaDatabase
 import com.gallery.photos.editpic.Extensions.notifyGalleryRoot
 import com.gallery.photos.editpic.Extensions.onClick
-import com.gallery.photos.editpic.Extensions.shareMultipleFiles
 import com.gallery.photos.editpic.Extensions.startActivityWithBundle
 import com.gallery.photos.editpic.Extensions.tos
 import com.gallery.photos.editpic.Extensions.visible
@@ -78,6 +84,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 
 class RecentsPictureFragment : Fragment() {
@@ -228,7 +235,7 @@ class RecentsPictureFragment : Fragment() {
             llShare.onClick {
                 val selectedFiles = mediaAdapter.selectedItems.distinctBy { it.mediaPath }
                 if (selectedFiles.size <= 100) {
-                    shareMultipleFiles(selectedFiles, requireActivity())
+                    shareMultipleFilesA(selectedFiles, requireActivity())
                 } else {
                     (getString(R.string.max_selection_limit_is_100)).tos(requireActivity())
                 }
@@ -518,6 +525,62 @@ class RecentsPictureFragment : Fragment() {
         binding.recyclerViewRecentPictures.scheduleLayoutAnimation()
     }
 
+    fun shareMultipleFilesA(filePaths: List<MediaModel>, context: Context) {
+        val fileUris = ArrayList<Uri>()
+
+        filePaths.forEach { media ->
+            val uri = Uri.parse(media.mediaPath) // Parse content URI
+            Log.e("ShareFiles", "Checking URI: $uri")
+
+            try {
+                val fileUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    uri // Use the URI directly
+                } else {
+                    FileProvider.getUriForFile(
+                        context,
+                        "${context.packageName}.provider",
+                        File(media.mediaPath)
+                    )
+                }
+
+                if (fileUri != null) {
+                    fileUris.add(fileUri)
+                    Log.d("ShareFiles", "✅ URI added: $fileUri")
+                } else {
+                    Log.e("ShareFiles", "⚠️ Failed to get valid URI for: $uri")
+                }
+            } catch (e: Exception) {
+                Log.e("ShareFiles", "❌ Error processing URI: $uri", e)
+            }
+        }
+
+        fun getCommonMimeType(mimeTypes: List<String>): String {
+            return when {
+                mimeTypes.all { it.startsWith("image/") } -> "image/*"  // If all are images
+                mimeTypes.all { it.startsWith("video/") } -> "video/*"  // If all are videos
+                else -> "*/*"  // Mixed or unknown types
+            }
+        }
+
+        if (fileUris.isNotEmpty()) {
+            val mimeType = getCommonMimeType(filePaths.map { it.mediaMimeType })
+
+            val shareIntent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+                type = mimeType
+                putParcelableArrayListExtra(Intent.EXTRA_STREAM, fileUris)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+
+            try {
+                context.startActivity(Intent.createChooser(shareIntent, "Share Files"))
+            } catch (e: Exception) {
+                Log.e("ShareFiles", "❌ Error starting share intent", e)
+            }
+        } else {
+            Log.e("ShareFiles", "❌ No valid files to share.")
+        }
+    }
+
     class CustomItemAnimator : DefaultItemAnimator() {
         override fun animateChange(
             oldHolder: RecyclerView.ViewHolder,
@@ -617,6 +680,251 @@ class RecentsPictureFragment : Fragment() {
     }
 
     fun moveToRecycleBin(originalFilePath: String): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {  // Android 11+ (API 30+)
+            moveToRecycleBinScopedStorage(originalFilePath)
+        } else {
+            moveToRecycleBinLegacy(originalFilePath)
+        }
+    }
+
+    fun moveToRecycleBinScopedStorage(originalFilePath: String): Boolean {
+        val context = requireActivity().applicationContext
+        val contentResolver = context.contentResolver
+
+        // 1. Get proper URI for the source file
+        val sourceUri = when {
+            originalFilePath.startsWith("content://") -> Uri.parse(originalFilePath)
+            else -> getMediaStoreUriFromPath(context, originalFilePath) ?: run {
+                Log.e("MoveToRecycleBin", "Cannot find MediaStore URI for path: $originalFilePath")
+                return false
+            }
+        }
+
+        // 2. Get file information with proper extension handling
+        val (fileName, mimeType) = getFileInfo(context, sourceUri, originalFilePath)
+
+        // 3. Prepare recycle bin directory
+        val recycleBin = File(context.getExternalFilesDir(null), ".gallery_recycleBin").apply {
+            if (!exists()) mkdirs()
+        }
+        val destinationFile = File(recycleBin, fileName)
+
+        return try {
+            // 4. Copy the file
+            contentResolver.openInputStream(sourceUri)?.use { inputStream ->
+                FileOutputStream(destinationFile).use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            } ?: return false.also {
+                Log.e("MoveToRecycleBin", "Failed to open input stream")
+            }
+
+            // 5. Delete original only if copy succeeded
+            if (destinationFile.exists()) {
+                val deleteSuccess = when {
+                    sourceUri.scheme == "content" -> contentResolver.delete(
+                        sourceUri,
+                        null,
+                        null
+                    ) > 0
+
+                    sourceUri.scheme == "file" -> File(sourceUri.path!!).delete()
+                    else -> false
+                }
+
+                if (deleteSuccess) {
+                    // Notify adapter about item removal
+                    // Notify MediaStore about changes
+                    MediaScannerConnection.scanFile(
+                        context,
+                        arrayOf(destinationFile.absolutePath),
+                        arrayOf(mimeType), null
+                    )
+                } else {
+                    Log.w("MoveToRecycleBin", "Original file deletion failed, but copy succeeded")
+                    return false
+                }
+            }
+
+            true
+        } catch (e: Exception) {
+            Log.e("MoveToRecycleBin", "Error: ${e.message}")
+            false
+        }
+    }
+
+    // Enhanced file information extractor with extension support
+    private fun getFileInfo(
+        context: Context,
+        uri: Uri,
+        originalPath: String
+    ): Pair<String, String> {
+        // Get original filename or generate one
+        val originalName = getFileNameFromUri(context, uri) ?: originalPath.substringAfterLast('/')
+
+        // Determine extension from filename or path
+        val fileExt = when {
+            originalName.contains('.') -> originalName.substringAfterLast('.')
+            originalPath.contains('.') -> originalPath.substringAfterLast('.')
+            else -> "dat"
+        }.lowercase()
+
+        // Generate proper filename
+        val fileName = if (originalName.contains('.')) {
+            originalName
+        } else {
+            "deleted_${System.currentTimeMillis()}.$fileExt"
+        }
+
+        // Determine MIME type
+        val mimeType = when (fileExt) {
+            "jpg", "jpeg" -> "image/jpeg"
+            "png" -> "image/png"
+            "gif" -> "image/gif"
+            "heic", "heif" -> "image/heif"
+            "mp4", "m4v" -> "video/mp4"
+            "mov" -> "video/quicktime"
+            "ts" -> "video/mp2t"
+            "webp" -> "image/webp"
+            "bmp" -> "image/bmp"
+            "svg" -> "image/svg+xml"
+            else -> requireActivity().contentResolver.getType(uri) ?: "application/octet-stream"
+        }
+
+        return Pair(fileName, mimeType)
+    }
+
+    // Enhanced MediaStore URI finder for all media types
+    private fun getMediaStoreUriFromPath(context: Context, filePath: String): Uri? {
+        val file = File(filePath)
+        val fileName = file.name
+        val relativePath = filePath.substringAfterLast("/DCIM/").substringBeforeLast("/")
+
+        // Supported media collections to search
+        val mediaCollections = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            listOf(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                MediaStore.Files.getContentUri("external")
+            )
+        } else {
+            TODO("VERSION.SDK_INT < Q")
+        }
+
+        // Try each media collection
+        for (contentUri in mediaCollections) {
+            findInMediaStore(context, contentUri, fileName, "DCIM/$relativePath/")?.let {
+                return it
+            }
+        }
+
+        // Fallback to search by absolute path
+        return findInMediaStoreByData(context, filePath)
+    }
+
+    private fun findInMediaStore(
+        context: Context,
+        contentUri: Uri,
+        fileName: String,
+        relativePath: String
+    ): Uri? {
+        val projection = arrayOf(MediaStore.MediaColumns._ID)
+        val selection =
+            "${MediaStore.MediaColumns.RELATIVE_PATH} = ? AND ${MediaStore.MediaColumns.DISPLAY_NAME} = ?"
+        val selectionArgs = arrayOf(relativePath, fileName)
+
+        return context.contentResolver.query(
+            contentUri,
+            projection,
+            selection,
+            selectionArgs,
+            null
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
+                ContentUris.withAppendedId(contentUri, id)
+            } else null
+        }
+    }
+
+    private fun findInMediaStoreByData(context: Context, filePath: String): Uri? {
+        val file = File(filePath)
+        val fileName = file.name
+
+        // Supported media collections to search
+        val mediaCollections = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            listOf(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                MediaStore.Files.getContentUri("external")
+            )
+        } else {
+            TODO("VERSION.SDK_INT < Q")
+        }
+
+        for (contentUri in mediaCollections) {
+            val projection = arrayOf(MediaStore.MediaColumns._ID)
+            val selection =
+                "${MediaStore.MediaColumns.DATA} = ? OR ${MediaStore.MediaColumns.DISPLAY_NAME} = ?"
+            val selectionArgs = arrayOf(filePath, fileName)
+
+            context.contentResolver.query(
+                contentUri,
+                projection,
+                selection,
+                selectionArgs,
+                null
+            )?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val id =
+                        cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
+                    return ContentUris.withAppendedId(contentUri, id)
+                }
+            }
+        }
+
+        return null
+    }
+
+    // File name extraction
+    private fun getFileNameFromUri(context: Context, uri: Uri): String? {
+        return when (uri.scheme) {
+            "content" -> {
+                context.contentResolver.query(
+                    uri,
+                    arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null
+                )?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME))
+                    } else null
+                }
+            }
+
+            "file" -> uri.lastPathSegment
+            else -> uri.lastPathSegment
+        }
+    }
+
+    // Helper function to get MediaStore URI from file path
+    // Improved filename extraction
+    fun getFileNameFromUri(uri: Uri): String? {
+        var name: String? = null
+        val cursor = requireActivity().contentResolver.query(uri, null, null, null, null)
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (nameIndex != -1) {
+                    name = it.getString(nameIndex)
+                }
+            }
+        }
+        return name
+    }
+
+    // ✅ Android 10 and Below - Uses Direct File Access
+    fun moveToRecycleBinLegacy(originalFilePath: String): Boolean {
         val originalFile = File(originalFilePath)
         if (!originalFile.exists()) {
             Log.e("MoveToRecycleBin", "File does not exist: $originalFilePath")
@@ -627,23 +935,19 @@ class RecentsPictureFragment : Fragment() {
         val recycledFile = File(recycleBin, originalFile.name)
 
         return try {
-            Log.d("MoveToRecycleBin", "Moving file to recycle bin: ${originalFile.absolutePath}")
-
             originalFile.copyTo(recycledFile, overwrite = true)  // Copy to recycle bin
             Log.d("MoveToRecycleBin", "File copied to recycle bin: ${recycledFile.absolutePath}")
 
             if (originalFile.delete()) {
-                Log.d("MoveToRecycleBin", "Original file deleted: ${originalFile.absolutePath}")
-                true
+                Log.d("MoveToRecycleBin", "Original file deleted")
             } else {
-                Log.e(
-                    "MoveToRecycleBin",
-                    "Failed to delete original file: ${originalFile.absolutePath}"
-                )
-                false
+                Log.e("MoveToRecycleBin", "Failed to delete original file")
             }
+
+            true
         } catch (e: IOException) {
-            Log.e("MoveToRecycleBin", "IOException occurred: ${e.message}", e)
+            Log.e("MoveToRecycleBin", "IOException: ${e.message}")
+            e.printStackTrace()
             false
         }
     }
@@ -655,9 +959,33 @@ class RecentsPictureFragment : Fragment() {
             isOneTime = false
             requestMediaPermission()
         }
-        viewModel.loadRecentMedia()
-//        binding.recyclerViewRecentPictures.adapter?.notifyDataSetChanged() // Ensure UI updates
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
+            if (ContextCompat.checkSelfPermission(
+                    requireActivity(), Manifest.permission.READ_EXTERNAL_STORAGE
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                viewModel.loadRecentMedia()
+            } else {
+                requestStoragePermission()
+            }
+        } else {
+            viewModel.loadRecentMedia()
+        }
 
+        //        binding.recyclerViewRecentPictures.adapter?.notifyDataSetChanged() // Ensure UI updates
+
+    }
+
+    private fun requestStoragePermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q && ContextCompat.checkSelfPermission(
+                requireActivity(), Manifest.permission.READ_EXTERNAL_STORAGE
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+
+            ActivityCompat.requestPermissions(
+                requireActivity(), arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 10
+            )
+        }
     }
 
     var isOneTime: Boolean = true
@@ -734,10 +1062,20 @@ class RecentsPictureFragment : Fragment() {
     }
 
     private fun requestMediaPermission() {
-        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            Manifest.permission.READ_MEDIA_IMAGES
-        } else {
-            Manifest.permission.READ_EXTERNAL_STORAGE
+        val permission = when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
+                Manifest.permission.READ_MEDIA_IMAGES
+            }
+
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
+                // For Android 10 (API 29), READ_EXTERNAL_STORAGE is enough
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            }
+
+            else -> {
+                // For Android 8 & 9 (API 26-28)
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            }
         }
 
         if (ContextCompat.checkSelfPermission(
@@ -745,17 +1083,18 @@ class RecentsPictureFragment : Fragment() {
             ) == PackageManager.PERMISSION_GRANTED
         ) {
             Log.d("PermissionCheck", "Permission already granted: $permission")
+            // Proceed with calling the view model to load media
         } else {
             if (shouldShowRequestPermissionRationale(permission)) {
-                // Show an explanation dialog before requesting again
+                // Show explanation dialog before requesting permission
                 showPermissionRationaleDialog(permission)
             } else {
-                // Directly request permission
-//                showPermissionRationaleDialog(permission)
+                // Request permission
                 requestPermissionLauncher.launch(permission)
             }
         }
     }
+
 
     private fun showPermissionRationaleDialog(permission: String) {
         AlertDialog.Builder(requireContext()).setTitle("Permission Needed")

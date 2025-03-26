@@ -48,15 +48,28 @@ class MainActivity : BaseActivity() {
         ("onAct").log()
 
         if (resultCode == RESULT_OK && requestCode == 120) {
-            ("onAct innner").log()
-            findViewById<RecyclerView>(R.id.recyclerViewRecentPictures).scrollToPosition(0)
-            notifyGalleryRoot(
-                this,
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).path
-            )
+            try {
+                ("onAct inner").log()
+
+                // Safe null-checked reference to RecyclerView
+                val recyclerView = findViewById<RecyclerView>(R.id.recyclerViewRecentPictures)
+
+                // Only proceed if RecyclerView exists and is attached to window
+                if (recyclerView != null && recyclerView.isAttachedToWindow) {
+                    recyclerView.scrollToPosition(0)
+                } else {
+                    Log.w("MainActivity", "RecyclerView not available for scrolling")
+                }
+
+                notifyGalleryRoot(
+                    this,
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).path
+                )
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Error in onActivityResult", e)
+            }
         }
     }
-
     @SuppressLint("SuspiciousIndentation")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,10 +82,9 @@ class MainActivity : BaseActivity() {
 
         val firebaseAnalytics = FirebaseAnalytics.getInstance(this)
         val bundle = Bundle().apply {
-            putString(FirebaseAnalytics.Param.METHOD, "MainActivity_Gallery")
+            putString("MainActivity_Gallery", "MainActivity_Gallery")
         }
-        firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle)
-
+        firebaseAnalytics.logEvent("MainActivity_Gallery", bundle)
 
         hideBottomNavigationBar(R.color.white)
 
@@ -322,11 +334,16 @@ class MainActivity : BaseActivity() {
     }
 
     private fun openPhotos() {
+        val currentFragment = supportFragmentManager.findFragmentById(R.id.framecontainer)
+        if (currentFragment is RecentsPictureFragment) return // Avoid reloading if already on AlbumFragment
+
         loadFragment(RecentsPictureFragment())
     }
 
     private fun openAlbums() {
-//        binding.selectionToolbar.gone()
+        val currentFragment = supportFragmentManager.findFragmentById(R.id.framecontainer)
+        if (currentFragment is AlbumFragment) return // Avoid reloading if already on AlbumFragment
+
         loadFragment(AlbumFragment())
     }
 

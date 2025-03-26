@@ -26,9 +26,10 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import org.json.JSONException
 import org.json.JSONObject
-import java.util.ArrayList
+
 
 class MyApplicationClass : Application() {
+
     companion object {
         fun isConnected(context: Context): kotlin.Boolean {
             return try {
@@ -40,6 +41,7 @@ class MyApplicationClass : Application() {
                 false
             }
         }
+
 
         lateinit var ctx: MyApplicationClass
 
@@ -133,26 +135,43 @@ class MyApplicationClass : Application() {
             ), null, { response ->
                 try {
                     val tutorialsObject = JSONObject(response.toString())
+                    /* ABMyAddPrefs?.admNativeId =
+                         if (BuildConfig.DEBUG) "/6499/example/native" else tutorialsObject.getString(
+                             "nativeId"
+                         )
+                     ABMyAddPrefs?.admInterId =
+                         if (BuildConfig.DEBUG) "/6499/example/interstitial" else tutorialsObject.getString(
+                             "interstialId"
+                         )
+                     ABMyAddPrefs?.admBannerId =
+                         if (BuildConfig.DEBUG) "/6499/example/banner" else tutorialsObject.getString(
+                             "bannerId"
+                         )
+                     ABMyAddPrefs?.admAppOpenId =
+                         if (BuildConfig.DEBUG) "ca-app-pub-3940256099942544/9257395921" else tutorialsObject.getString(
+                             "appopenId"
+                         )*/
+
                     ABMyAddPrefs?.admNativeId =
-                        if (BuildConfig.DEBUG) "/6499/example/native" else tutorialsObject.getString(
+                        if (BuildConfig.DEBUG) "ive" else tutorialsObject.getString(
                             "nativeId"
                         )
                     ABMyAddPrefs?.admInterId =
-                        if (BuildConfig.DEBUG) "/6499/example/interstitial" else tutorialsObject.getString(
+                        if (BuildConfig.DEBUG) "titial" else tutorialsObject.getString(
                             "interstialId"
                         )
                     ABMyAddPrefs?.admBannerId =
-                        if (BuildConfig.DEBUG) "/6499/example/banner" else tutorialsObject.getString(
+                        if (BuildConfig.DEBUG) "nner" else tutorialsObject.getString(
                             "bannerId"
                         )
                     ABMyAddPrefs?.admAppOpenId =
-                        if (BuildConfig.DEBUG) "ca-app-pub-3940256099942544/9257395921" else tutorialsObject.getString(
+                        if (BuildConfig.DEBUG) "395921" else tutorialsObject.getString(
                             "appopenId"
                         )
+
                     ABMyAddPrefs?.admShowclick =
                         Integer.parseInt(tutorialsObject.getString("afterClick"));
                     ABMyAddPrefs?.buttonColor = tutorialsObject.getString("addButtonColor")
-
 
                     val tutorialsObject2 = tutorialsObject.getJSONObject("extraFields")
                     ABMyAddPrefs?.admInlineBannerId =   if (BuildConfig.DEBUG) "/6499/example/banner" else tutorialsObject2.getString("inline_banner")

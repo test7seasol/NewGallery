@@ -10,6 +10,7 @@ import com.gallery.photos.editpic.Adapter.RVLanguageAdapter
 import com.gallery.photos.editpic.Extensions.ISONETIME
 import com.gallery.photos.editpic.Extensions.PREF_LANGUAGE_CODE
 import com.gallery.photos.editpic.Extensions.gone
+import com.gallery.photos.editpic.Extensions.handleBackPress
 import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.onClick
 import com.gallery.photos.editpic.Extensions.setLanguageCode
@@ -20,7 +21,6 @@ import com.gallery.photos.editpic.myadsworld.MyAddPrefs
 import com.gallery.photos.editpic.myadsworld.MyAllAdCommonClass
 import com.gallery.photos.editpic.myadsworld.MyAppOpenManager
 import com.gallery.photos.editpic.myadsworld.nativetemplates.TemplateView
-import com.google.android.gms.ads.appopen.AppOpenAd
 
 @Keep
 data class LanguageModel(
@@ -45,7 +45,26 @@ class LanguageAct : BaseActivity() {
         bind = ActivityLanguageBinding.inflate(layoutInflater)
         setContentView(bind.root)
 
-        isFrom = intent.extras?.getString("From").toString()
+        isFrom = intent.extras?.getString("From", "").toString()
+
+
+        handleBackPress {
+            if (isFrom == "Setting") {
+                finish()
+            } else {
+                setLanguageCode(this@LanguageAct, selectedLanguage)
+                MyApplicationClass.putBoolean(ISONETIME, true)
+
+                if (!Settings.canDrawOverlays(this@LanguageAct)) {
+                    val intent = Intent(this@LanguageAct, PermissionActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                } else {
+                    startActivityWithBundle<MainActivity>()
+                    finishAffinity()
+                }
+            }
+        }
 
         list.add(LanguageModel(R.drawable.flag_en, "en", "English", "English", false))
         list.add(LanguageModel(R.drawable.flag_hi, "hi", "Hindi", "हिन्दी", false))
@@ -100,7 +119,7 @@ class LanguageAct : BaseActivity() {
             }
 
             tvbackid.onClick {
-                finish()
+                onBackPressedDispatcher.onBackPressed()
             }
 
             donebtnid.onClick {

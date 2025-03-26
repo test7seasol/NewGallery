@@ -12,6 +12,10 @@
 #-dontwarn com.gallerymodul.**
 #-dontwarn org.apache.**
 
+-keep class org.wysaid.nativePort.** { *; }
+-keep class org.wysaid.** { *; }
+
+
 -keep class org.wysaid.nativePort.CGENativeLibrary { *; }
 -keepclassmembers class org.wysaid.nativePort.CGENativeLibrary { *; }
 -keepclassmembers class com.gallery.photos.editpic.ModelClass { *; }

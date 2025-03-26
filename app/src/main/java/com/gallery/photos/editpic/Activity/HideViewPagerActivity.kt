@@ -1,6 +1,10 @@
 package com.gallery.photos.editpic.Activity
 
+import android.content.ContentUris
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import androidx.viewpager2.widget.ViewPager2
 import com.gallery.photos.editpic.Adapter.HideViewPagerAdapter
@@ -14,7 +18,6 @@ import com.gallery.photos.editpic.Extensions.name.getMediaDatabase
 import com.gallery.photos.editpic.Extensions.onClick
 import com.gallery.photos.editpic.Extensions.setLanguageCode
 import com.gallery.photos.editpic.Extensions.shareFile
-import com.gallery.photos.editpic.Extensions.startActivityWithBundle
 import com.gallery.photos.editpic.Extensions.tos
 import com.gallery.photos.editpic.Model.HideMediaModel
 import com.gallery.photos.editpic.PopupDialog.TopMenuHideCustomPopup
@@ -158,33 +161,84 @@ class HideViewPagerActivity : BaseActivity() {
 
     fun permanentlyDeleteFile(mediaItem: HideMediaModel) {
         Log.d("PermanentlyDelete", "Bin Path: ${mediaItem.mediaPath}")
+
         CoroutineScope(Dispatchers.IO).launch {
             val binFile = File(mediaItem.mediaPath)
-            if (binFile.exists()) {
-                if (binFile.delete()) {
-                    Log.d("PermanentlyDelete", "File deleted: ${binFile.absolutePath}")
-                    hideMediaDao!!.deleteMedia(mediaItem)  // Remove from Room database
 
-                    runOnUiThread {
-                        (getString(R.string.file_permanently_deleted)).tos(this@HideViewPagerActivity)
-                        hideImageListDelete.removeAt(viewpagerselectedPosition)
-//                        DeleteMediaStoreSingleton.deleteimageList.removeAt(viewpagerselectedPosition)
-                        try {
-                            if (hideImageListDelete.isEmpty()) {
-                                finish()
-                            } else setupViewPager(hideImageListDelete, viewpagerselectedPosition)
-                        } catch (e: IndexOutOfBoundsException) {
-                            hideImageListDelete.clear()
-                            CoroutineScope(Dispatchers.IO).launch {
-                                hideMediaDao!!.deleteAllMedia()
-                            }
-                        }
-                    }
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                // ✅ For Android 9 and below (API 28-)
+                if (binFile.exists() && binFile.delete()) {
+                    Log.d("PermanentlyDelete", "File deleted: ${binFile.absolutePath}")
+                    deleteMediaFromDatabase(mediaItem)
                 } else {
                     Log.e("PermanentlyDelete", "Failed to delete file: ${binFile.absolutePath}")
                 }
             } else {
-                Log.e("PermanentlyDelete", "File not found: ${binFile.absolutePath}")
+                // ✅ For Android 10+ (API 29+), delete via MediaStore
+                val contentResolver = applicationContext.contentResolver
+                val uri = getMediaUri(mediaItem.mediaPath) // Get URI for MediaStore deletion
+
+                if (uri != null) {
+                    val deleteCount = contentResolver.delete(uri, null, null)
+                    if (deleteCount > 0) {
+                        Log.d(
+                            "PermanentlyDelete",
+                            "File deleted via MediaStore: ${mediaItem.mediaPath}"
+                        )
+                        deleteMediaFromDatabase(mediaItem)
+                    } else {
+                        Log.e("PermanentlyDelete", "Failed to delete file via MediaStore")
+                    }
+                } else {
+                    Log.e("PermanentlyDelete", "File URI not found in MediaStore")
+                }
+            }
+        }
+    }
+
+    // ✅ Function to get MediaStore URI (Android 10+)
+    private fun getMediaUri(filePath: String): Uri? {
+        val contentResolver = applicationContext.contentResolver
+        val projection = arrayOf(MediaStore.Images.Media._ID)
+        val selection = MediaStore.Images.Media.DATA + " = ?"
+        val selectionArgs = arrayOf(filePath)
+
+        val queryUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        } else {
+            MediaStore.Files.getContentUri("external")
+        }
+
+        contentResolver.query(queryUri, projection, selection, selectionArgs, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val id = cursor.getLong(0)
+                return ContentUris.withAppendedId(queryUri, id)
+            }
+        }
+        return null
+    }
+
+    // ✅ Function to delete from Room Database and update UI
+    private fun deleteMediaFromDatabase(mediaItem: HideMediaModel) {
+        CoroutineScope(Dispatchers.IO).launch {
+            hideMediaDao?.deleteMedia(mediaItem)  // Remove from Room database
+        }
+
+        runOnUiThread {
+            getString(R.string.file_permanently_deleted).tos(this@HideViewPagerActivity)
+            hideImageListDelete.removeAt(viewpagerselectedPosition)
+
+            try {
+                if (hideImageListDelete.isEmpty()) {
+                    finish()
+                } else {
+                    setupViewPager(hideImageListDelete, viewpagerselectedPosition)
+                }
+            } catch (e: IndexOutOfBoundsException) {
+                hideImageListDelete.clear()
+                CoroutineScope(Dispatchers.IO).launch {
+                    hideMediaDao?.deleteAllMedia()
+                }
             }
         }
     }
@@ -199,19 +253,35 @@ class HideViewPagerActivity : BaseActivity() {
 //        updateImageTitle(currentPosition)
         updateImageTitle(viewpagerselectedPosition)
 
-        // Change title when page is scrolled
         binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
-                ("Delete onPageSelected: $position").log()
+                try {
+                    if (imageList.isEmpty()) {
+                        Log.e("ViewPager", "Error: imageList is empty, skipping onPageSelected")
+                        return  // Exit early to prevent crash
+                    }
+
+                    if (position < 0 || position >= imageList.size) {
+                        Log.e(
+                            "ViewPager",
+                            "Invalid position: $position, list size: ${imageList.size}"
+                        )
+                        return  // Prevent accessing an invalid index
+                    }
+
+                    Log.d("ViewPager", "Delete onPageSelected: $position")
                 viewpagerselectedPosition = position
                 deleteselectedPosition = position
                 hideMediaModel = imageList[position]
                 updateImageTitle(position)
-
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         })
     }
+
 
     private fun updateImageTitle(position: Int) {
         if (position < 0 || position >= hideImageListDelete.size) {

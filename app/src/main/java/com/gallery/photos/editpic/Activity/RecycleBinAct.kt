@@ -1,11 +1,15 @@
 package com.gallery.photos.editpic.Activity
 
 import android.app.ProgressDialog
+import android.content.ContentValues
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.View
+import android.webkit.MimeTypeMap
 import androidx.appcompat.app.AppCompatActivity
 import com.gallery.photos.editpic.Adapter.DeleteAdapter
 import com.gallery.photos.editpic.Dialogs.AllFilesAccessDialog
@@ -18,7 +22,6 @@ import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.name.getMediaDatabase
 import com.gallery.photos.editpic.Extensions.onClick
 import com.gallery.photos.editpic.Extensions.setLanguageCode
-import com.gallery.photos.editpic.Extensions.startActivityWithBundle
 import com.gallery.photos.editpic.Extensions.tos
 import com.gallery.photos.editpic.Extensions.visible
 import com.gallery.photos.editpic.Model.DeleteMediaModel
@@ -221,8 +224,11 @@ class RecycleBinAct : AppCompatActivity() {
                             bind.menuthreeid.gone()
                         }
                         "recyclebinid" -> {
-                            if (deleteList.isNotEmpty())
-                                restoreAllFilesFromRecycleBin(deleteList)
+                            if (deleteList.isNotEmpty()) {
+                                restoreSelectedFilesFromRecycleBin(
+                                    deleteList, true
+                                )
+                            }
                             else
                                 (getString(R.string.do_not_have_any_recent_files)).tos(this@RecycleBinAct)
                         }
@@ -281,15 +287,11 @@ class RecycleBinAct : AppCompatActivity() {
             try {
                 withContext(Dispatchers.IO) {
                     // Launch individual coroutines for each file restore and wait for all of them to complete
-                    deleteList.map { item ->
                         async {
-                            restoreFileFromRecycleBin(
-                                item.binPath,
-                                item.mediaPath,
-                                item.mediaDateAdded
+                            restoreSelectedFilesFromRecycleBin(
+                                deleteList
                             )
                         }
-                    }.awaitAll()  // Wait for all restore operations to finish
 
                     // Delete all records from the recycle bin table
                     deleteMediaDao.deleteAllMedia()
@@ -310,7 +312,10 @@ class RecycleBinAct : AppCompatActivity() {
         }
     }
 
-    fun restoreSelectedFilesFromRecycleBin(selectedList: List<DeleteMediaModel>) {
+    fun restoreSelectedFilesFromRecycleBin(
+        selectedList: List<DeleteMediaModel>,
+        isFromRestoreAll: Boolean = false
+    ) {
         if (selectedList.isEmpty()) {
             Log.e("RestoreSelectedFiles", "No files selected for restoration.")
             return
@@ -324,30 +329,125 @@ class RecycleBinAct : AppCompatActivity() {
                 withContext(Dispatchers.IO) {
                     selectedList.map { item ->
                         async {
-                            restoreSelectFileFromRecycleBin(
-                                item.binPath, item.mediaPath, item.mediaDateAdded, item
-                            )
+                            restoreSelectFileFromRecycleBin(item)
                         }
                     }.awaitAll()  // Wait until all files are restored
                 }
                 withContext(Dispatchers.Main) {
                     progressDialog.dismiss()  // Dismiss the progress dialog
                     ("${selectedList.size} files restored successfully").tos(this@RecycleBinAct)
-//                    deleteAdapter!!.deleteSelectedItems()
                     deleteAdapter!!.unselectAllItems()
                     bind.tvRecycleTital.text = getString(R.string.recycle_bin)
+
+                    if (isFromRestoreAll)
+                        finish()
+
                     Log.d("RestoreSelectedFiles", "All selected files restored successfully.")
+
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     progressDialog.dismiss()
-
                     Log.e("RestoreSelectedFiles", "Error restoring files: ${e.message}")
                     getString(R.string.failed_to_restore_selected_files).tos(this@RecycleBinAct)
                 }
             }
         }
     }
+
+    // ✅ Handles different Android versions for restoring files
+    private fun restoreSelectFileFromRecycleBin(item: DeleteMediaModel) {
+        val sourceFile = File(item.binPath)
+        val destinationFile = File(item.mediaPath)
+
+        if (!sourceFile.exists()) {
+            Log.e("RestoreFile", "Source file not found: ${item.binPath}")
+            return
+        }
+
+        destinationFile.absolutePath.log()
+
+        try {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                // ✅ Android 9 and below: Move file normally
+                val parentDir = destinationFile.parentFile
+                if (parentDir != null && !parentDir.exists()) {
+                    parentDir.mkdirs() // Create parent directories if they don’t exist
+                }
+                sourceFile.copyTo(destinationFile, overwrite = true)
+                sourceFile.delete() // Remove from recycle bin
+            } else {
+                // ✅ Android 10+ (Scoped Storage): Use MediaStore API
+                val contentResolver = applicationContext.contentResolver
+                val mimeType = getMimeType(sourceFile) ?: "image/jpeg" // Default to image/jpeg
+
+                val collectionUri = when {
+                    mimeType.startsWith("image/") -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                    mimeType.startsWith("video/") -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                    mimeType.startsWith("audio/") -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                    else -> MediaStore.Downloads.EXTERNAL_CONTENT_URI // Fallback for non-media files
+                }
+
+                // Extract the relative path from the original mediaPath
+                val originalPath = item.mediaPath
+                val relativePath =
+                    getRelativePath(originalPath) // Custom function to compute relative path
+
+                val values = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, destinationFile.name)
+                    put(
+                        MediaStore.MediaColumns.RELATIVE_PATH,
+                        relativePath
+                    ) // Use original directory
+                    put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+                    put(MediaStore.MediaColumns.IS_PENDING, 1) // Mark as pending
+                }
+
+                val uri = contentResolver.insert(collectionUri, values)
+                uri?.let {
+                    contentResolver.openOutputStream(it)?.use { outputStream ->
+                        sourceFile.inputStream()
+                            .use { inputStream -> inputStream.copyTo(outputStream) }
+                    }
+                    values.clear()
+                    values.put(MediaStore.MediaColumns.IS_PENDING, 0) // Mark as complete
+                    contentResolver.update(it, values, null, null)
+                } ?: run {
+                    Log.e("RestoreFile", "Failed to insert into MediaStore")
+                    return
+                }
+                sourceFile.delete() // Remove from recycle bin
+            }
+
+            // ✅ Remove from Room database
+            CoroutineScope(Dispatchers.IO).launch {
+                deleteMediaDao?.deleteMedia(item)
+            }
+
+            Log.d("RestoreFile", "File restored successfully: ${destinationFile.absolutePath}")
+        } catch (e: Exception) {
+            Log.e("RestoreFile", "Failed to restore file: ${e.message}")
+        }
+    }
+
+    // Helper function to compute the relative path
+    private fun getRelativePath(fullPath: String): String {
+        val storageRoot = "/storage/emulated/0/"
+        return if (fullPath.startsWith(storageRoot)) {
+            val relative = fullPath.substringAfter(storageRoot)
+            val directory = relative.substringBeforeLast("/")
+            directory.ifEmpty { "DCIM" } // Fallback to DCIM if no directory
+        } else {
+            "DCIM" // Fallback if path doesn’t match expected structure
+        }
+    }
+
+    // Helper function to get MIME type (unchanged, assuming you have it)
+    private fun getMimeType(file: File): String? {
+        return MimeTypeMap.getSingleton()
+            .getMimeTypeFromExtension(file.extension.lowercase())
+    }
+    // ✅ Function to get MIME type from file extension
 
     fun notifySystemGallery(filePath: String) {
         val file = File(filePath)

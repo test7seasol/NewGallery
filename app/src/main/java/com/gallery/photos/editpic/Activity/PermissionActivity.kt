@@ -2,7 +2,6 @@ package com.gallery.photos.editpic.Activity
 
 import android.Manifest
 import android.app.AlertDialog
-import android.app.AppOpsManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -10,7 +9,6 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Process
 import android.provider.Settings
 import android.util.Log
 import android.view.animation.Animation
@@ -20,6 +18,8 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.gallery.photos.editpic.Extensions.log
+import com.gallery.photos.editpic.Extensions.startActivityWithBundle
 import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.callendservice.overlayscreen.Autostart
 import com.gallery.photos.editpic.callendservice.overlayscreen.OverlayUtil
@@ -137,58 +137,69 @@ class PermissionActivity : AppCompatActivity() {
 
     private var mPermissionForResult: ActivityResultLauncher<Intent>? = null
 
+    private var overlayPermissionTimer: Timer? = null
+
+    override fun onPause() {
+        super.onPause()
+    }
+
+
     private fun askOverlayPermission() {
         MyAllAdCommonClass.isInterOpen = true
 
-        val appOpsManager = getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
-        if (appOpsManager.checkOpNoThrow(
-                AppOpsManager.OPSTR_SYSTEM_ALERT_WINDOW, android.os.Process.myUid(), packageName
-            ) == AppOpsManager.MODE_ALLOWED
-        ) {
+        // Check if the app already has the overlay permission
+        if (Settings.canDrawOverlays(this)) {
             gonext()
             return
         }
 
-        appOpsManager.startWatchingMode(
-            AppOpsManager.OPSTR_SYSTEM_ALERT_WINDOW,
-            applicationContext.packageName,
-            object : AppOpsManager.OnOpChangedListener {
-                override fun onOpChanged(op: String?, packageName: String?) {
-                    if (appOpsManager.checkOpNoThrow(
-                            AppOpsManager.OPSTR_SYSTEM_ALERT_WINDOW,
-                            Process.myUid(),
-                            this@PermissionActivity.packageName
-                        ) != AppOpsManager.MODE_ALLOWED
-                    ) {
-                        return
-                    }
-                    appOpsManager.stopWatchingMode(this)
-
-                    gonext()
-
+        // Handle overlay permission based on Android version
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                // Android 10 (API 29) and above
+                try {
+                    val intent = Intent(
+                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:$packageName")
+                    )
+                    mPermissionForResult?.launch(intent)
+                } catch (e: Exception) {
+                    Log.e("TAG", "askOverlayPermission: ${e.message}")
+                    e.printStackTrace()
                 }
-            })
-
-        try {
-            mPermissionForResult?.launch(
-                Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
-            )
-        } catch (e: Exception) {
-            Log.d("TAG", "askOverlayPermission: ${e.message}")
-            e.printStackTrace()
+            } else {
+                // Android 6.0 (API 23) to Android 9 (API 28)
+                try {
+                    val intent = Intent(
+                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:$packageName")
+                    )
+                    mPermissionForResult?.launch(intent)
+                } catch (e: Exception) {
+                    Log.e("TAG", "askOverlayPermission: ${e.message}")
+                    e.printStackTrace()
+                }
+            }
+            startActivityWithBundle<MyTranslucentActivity>()
+        } else {
+            // Android 5.1 (API 22) and below - No need to request overlay permission
+            gonext()
         }
 
-        Timer().schedule(object : TimerTask() {
+        // Start a TimerTask to periodically check if the permission is granted
+        overlayPermissionTimer = Timer()
+        overlayPermissionTimer?.schedule(object : TimerTask() {
             override fun run() {
-                startActivity(
-                    Intent(
-                        this@PermissionActivity, MyTranslucentActivity::class.java
-                    ).apply {
-                        flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
-                        putExtra("autostart", getString(R.string.allow_overlay_access))
-                    })
+                ("Run Run ").log()
+                if (Settings.canDrawOverlays(this@PermissionActivity)) {
+                    // Permission granted, navigate to the next screen
+                    runOnUiThread {
+                        gonext()
+                    }
+                    overlayPermissionTimer?.cancel() // Stop the timer
+                }
             }
-        }, 150L)
+        }, 0, 1000) // Check every 1 second
     }
 
     private val launcherOpenSettingPopUP =

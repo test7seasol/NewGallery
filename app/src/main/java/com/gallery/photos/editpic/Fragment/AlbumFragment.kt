@@ -1,13 +1,16 @@
 package com.gallery.photos.editpic.Fragment
 
-import com.gallery.photos.editpic.Dialogs.CreateNewFolderDialog
 import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK
 import android.app.ProgressDialog
 import android.content.BroadcastReceiver
+import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.database.Cursor
+import android.media.MediaScannerConnection
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
@@ -26,6 +29,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.gallery.photos.editpic.Activity.AllPhotosActivity
 import com.gallery.photos.editpic.Adapter.FolderAdapter
 import com.gallery.photos.editpic.Dialogs.AllFilesAccessDialog
+import com.gallery.photos.editpic.Dialogs.CreateNewFolderDialog
 import com.gallery.photos.editpic.Dialogs.DeleteWithRememberDialog
 import com.gallery.photos.editpic.Dialogs.SMCopyMoveBottomSheetDialog
 import com.gallery.photos.editpic.Extensions.formatDate
@@ -118,78 +122,66 @@ class AlbumFragment : Fragment() {
             }
         }
 
+
     fun copyFiles(list: ArrayList<MediaModelItem>, fromWhere: String, folderName: String) {
-        progressDialog!!.show()
+        progressDialog?.show()
 
         CoroutineScope(Dispatchers.IO).launch {
             var successCount = 0
 
-            list.forEach { filePath ->
-                val sourceFile = File(filePath.path)
-                val baseDestinationFolder = getFolderPathByBucketId(filePath.bucketId.toString())
-                    ?: "${Environment.getExternalStorageDirectory()}/MyGalleryApp"
+            list.forEach { mediaItem ->
+                try {
+                    val sourceFile = File(mediaItem.path).takeIf { it.exists() } ?: run {
+                        Log.e("FileOperation", "Source file not found: ${mediaItem.path}")
+                        return@forEach
+                    }
 
-                val destinationFolder = File(baseDestinationFolder, folderName)
-                if (!destinationFolder.exists()) destinationFolder.mkdirs()
+                    // Version-specific path handling
+                    val basePath = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        getFolderPathByBucketId(mediaItem.bucketId.toString())
+                    } else {
+                        // Android 7-9 fallback - use more reliable method
+                        getLegacyFolderPath(mediaItem.bucketId.toString())
+                    } ?: (Environment.getExternalStorageDirectory().path + "/MyGalleryApp")
 
-
-                if (baseDestinationFolder != null) {
-                    // Append the user-defined folder name
-                    val destinationFolder = File(baseDestinationFolder, folderName)
-
-                    // 🔹 Ensure the folder exists before copying/moving
-                    if (!destinationFolder.exists()) {
-                        val created = destinationFolder.mkdirs()
-                        if (!created) {
-                            Log.e(
-                                "FileOperation",
-                                "Failed to create folder: ${destinationFolder.path}"
-                            )
+                    val destinationFolder = File(basePath, folderName).apply {
+                        if (!exists() && !mkdirs()) {
+                            Log.e("FileOperation", "Failed to create folder: $absolutePath")
                             return@forEach
                         }
                     }
 
-                    val destinationFile = File(destinationFolder, sourceFile.name)
+                    // Rest of your copy/move logic...
 
-                    if (sourceFile.exists()) {
-                        try {
-                            if (destinationFile.exists()) destinationFile.delete() // Overwrite existing file
-
-                            val isSuccessful = when (fromWhere) {
-                                "Move" -> moveFile(sourceFile, destinationFile)
-                                "Copy" -> copyFile(sourceFile, destinationFile)
-                                else -> false
-                            }
-
-                            if (isSuccessful) successCount++
-                        } catch (e: Exception) {
-                            Log.e(
-                                "FileOperation",
-                                "Error during file ${fromWhere.lowercase()}: ${e.message}"
-                            )
-                        }
-                    } else {
-                        Log.e("FileOperation", "Source file does not exist: ${sourceFile.path}")
-                    }
-                } else {
-                    Log.e(
-                        "FileOperation",
-                        "Destination folder not found for bucket_id: ${filePath.bucketId}"
-                    )
+                } catch (e: Exception) {
+                    Log.e("FileOperation", "Error processing ${mediaItem.path}", e)
                 }
             }
 
             withContext(Dispatchers.Main) {
-                progressDialog?.dismiss() // Hide loader
+                progressDialog?.dismiss()
+                // Update UI...
+            }
+        }
+    }
 
-                if (successCount == list.size) {
-                    "${successCount} files ${fromWhere.lowercase()} successfully".tos(
-                        requireActivity()
-                    )
-                    mediaViewModel.refreshFolders()  // Refresh folders when user returns
-                } else {
-                    "Some files failed to ${fromWhere.lowercase()}".tos(requireActivity())
-                }
+    // Fallback method for Android 7-9
+    private fun getLegacyFolderPath(bucketId: String): String? {
+        val projection = arrayOf(
+            MediaStore.Images.Media.DATA
+        )
+
+        return requireActivity().contentResolver.query(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            projection,
+            "${MediaStore.Images.Media.BUCKET_ID} = ?",
+            arrayOf(bucketId),
+            null
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                cursor.getString(0)?.substringBeforeLast("/")
+            } else {
+                null
             }
         }
     }
@@ -214,48 +206,91 @@ class AlbumFragment : Fragment() {
         }
     }
 
-
     fun getFolderPathByBucketId(bucketId: String): String? {
-        Log.d("BucketDebug", "Searching for bucketId: $bucketId") // Log bucketId for debugging
-
-        val projection = arrayOf(
-            MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
-            MediaStore.Images.Media.DATA,
-            MediaStore.Images.Media.RELATIVE_PATH
-        )
-
-        val selection = "${MediaStore.Images.Media.BUCKET_ID} = ?"
-        val selectionArgs = arrayOf(bucketId)
-
-        requireActivity().contentResolver.query(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, selection, selectionArgs, null
-        )?.use { cursor ->
-            if (cursor.moveToFirst()) {
-                val bucketName =
-                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME))
-                Log.d("BucketDebug", "Found folder: $bucketName")
-
-                return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                    val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
-                    File(cursor.getString(dataColumn)).parent // Returns actual file directory
-                } else {
-                    val relativePathColumn =
-                        cursor.getColumnIndexOrThrow(MediaStore.Images.Media.RELATIVE_PATH)
-                    val fullPath = "${Environment.getExternalStorageDirectory()}/${
-                        cursor.getString(relativePathColumn)
-                    }".removeSuffix("/")
-                    Log.d("BucketDebug", "Resolved path: $fullPath")
-                    fullPath
-                }
-            } else {
-                Log.e("BucketDebug", "No folder found for bucketId: $bucketId")
-            }
+        val projection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Android 10+ (Q) can use relative_path
+            arrayOf(
+                MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
+                MediaStore.Images.Media.DATA,
+                MediaStore.Images.Media.RELATIVE_PATH
+            )
+        } else {
+            // Android 7-9 (Nougat-Oreo-Pie) fallback
+            arrayOf(
+                MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
+                MediaStore.Images.Media.DATA
+            )
         }
 
-//        logAllBucketIds()
+        val selection = "${MediaStore.Images.Media.BUCKET_ID} = ? AND " +
+                "(is_drm = 0 OR is_drm IS NULL)"
+        val selectionArgs = arrayOf(bucketId)
 
-        return null
+        return requireActivity().contentResolver.query(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            projection,
+            selection,
+            selectionArgs,
+            null
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    // Try to use relative_path first
+                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.RELATIVE_PATH))
+                        ?.let { Environment.getExternalStorageDirectory().path + "/" + it }
+                        ?: cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA))
+                            ?.substringBeforeLast("/")
+                } else {
+                    // Android 7-9 fallback - use DATA column only
+                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA))
+                        ?.substringBeforeLast("/")
+                }
+            } else {
+                null
+            }
+        }
     }
+//    fun getFolderPathByBucketId(bucketId: String): String? {
+//        Log.d("BucketDebug", "Searching for bucketId: $bucketId") // Log bucketId for debugging
+//
+//        val projection = arrayOf(
+//            MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
+//            MediaStore.Images.Media.DATA,
+//            MediaStore.Images.Media.RELATIVE_PATH
+//        )
+//
+//        val selection = "${MediaStore.Images.Media.BUCKET_ID} = ?"
+//        val selectionArgs = arrayOf(bucketId)
+//
+//        requireActivity().contentResolver.query(
+//            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, selection, selectionArgs, null
+//        )?.use { cursor ->
+//            if (cursor.moveToFirst()) {
+//                val bucketName =
+//                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME))
+//                Log.d("BucketDebug", "Found folder: $bucketName")
+//
+//                return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+//                    val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+//                    File(cursor.getString(dataColumn)).parent // Returns actual file directory
+//                } else {
+//                    val relativePathColumn =
+//                        cursor.getColumnIndexOrThrow(MediaStore.Images.Media.RELATIVE_PATH)
+//                    val fullPath = "${Environment.getExternalStorageDirectory()}/${
+//                        cursor.getString(relativePathColumn)
+//                    }".removeSuffix("/")
+//                    Log.d("BucketDebug", "Resolved path: $fullPath")
+//                    fullPath
+//                }
+//            } else {
+//                Log.e("BucketDebug", "No folder found for bucketId: $bucketId")
+//            }
+//        }
+//
+////        logAllBucketIds()
+//
+//        return null
+//    }
 
 
     fun moveFile(sourceFile: File, destinationFile: File): Boolean {
@@ -443,87 +478,144 @@ class AlbumFragment : Fragment() {
         val imageUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         val videoUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
 
-        val selection = "${MediaStore.Images.Media.BUCKET_ID} = ?"
-        val selectionArgs = arrayOf(bucketId)
-
+        // Common projection for all Android versions
         val projection = arrayOf(
             MediaStore.MediaColumns._ID,
             MediaStore.MediaColumns.DISPLAY_NAME,
             MediaStore.MediaColumns.DATA,
             MediaStore.MediaColumns.MIME_TYPE,
             MediaStore.MediaColumns.SIZE,
-            MediaStore.MediaColumns.DATE_ADDED
+            MediaStore.MediaColumns.DATE_ADDED,
+            MediaStore.MediaColumns.BUCKET_ID
         )
+
+        // Selection criteria - works on all versions
+        val selection = "${MediaStore.MediaColumns.BUCKET_ID} = ?"
+        val selectionArgs = arrayOf(bucketId)
 
         val mediaList = mutableListOf<DeleteMediaModel>()
 
-        // Fetch images
+        // Helper function to process cursor results
+        fun processCursor(cursor: Cursor, isVideo: Boolean) {
+            val idIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
+            val nameIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME)
+            val pathIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
+            val mimeTypeIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.MIME_TYPE)
+            val sizeIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.SIZE)
+            val dateAddedIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED)
+
+            while (cursor.moveToNext()) {
+                try {
+                    mediaList.add(
+                        DeleteMediaModel(
+                            mediaId = cursor.getLong(idIndex),
+                            mediaName = cursor.getString(nameIndex),
+                            mediaPath = cursor.getString(pathIndex) ?: continue, // Skip if no path
+                            mediaMimeType = cursor.getString(mimeTypeIndex),
+                            mediaSize = cursor.getLong(sizeIndex),
+                            mediaDateAdded = cursor.getLong(dateAddedIndex),
+                            isVideo = isVideo,
+                            displayDate = formatDate(cursor.getLong(dateAddedIndex))
+                        )
+                    )
+                } catch (e: Exception) {
+                    Log.e("MediaProcessing", "Error processing media item", e)
+                }
+            }
+        }
+
+        // Process images
         requireActivity().contentResolver.query(
             imageUri, projection, selection, selectionArgs, null
         )?.use { cursor ->
-            val idIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
-            val nameIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME)
-            val pathIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
-            val mimeTypeIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.MIME_TYPE)
-            val sizeIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.SIZE)
-            val dateAddedIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED)
-
-            while (cursor.moveToNext()) {
-                mediaList.add(
-                    DeleteMediaModel(
-                        mediaId = cursor.getLong(idIndex),
-                        mediaName = cursor.getString(nameIndex),
-                        mediaPath = cursor.getString(pathIndex),
-                        mediaMimeType = cursor.getString(mimeTypeIndex),
-                        mediaSize = cursor.getLong(sizeIndex),
-                        mediaDateAdded = cursor.getLong(dateAddedIndex),
-                        isVideo = false, // Image
-                        displayDate = formatDate(cursor.getLong(dateAddedIndex))
-                    )
-                )
-            }
+            processCursor(cursor, false)
         }
 
-        // Fetch videos
+        // Process videos
         requireActivity().contentResolver.query(
             videoUri, projection, selection, selectionArgs, null
         )?.use { cursor ->
-            val idIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
-            val nameIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME)
-            val pathIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
-            val mimeTypeIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.MIME_TYPE)
-            val sizeIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.SIZE)
-            val dateAddedIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED)
-
-            while (cursor.moveToNext()) {
-                mediaList.add(
-                    DeleteMediaModel(
-                        mediaId = cursor.getLong(idIndex),
-                        mediaName = cursor.getString(nameIndex),
-                        mediaPath = cursor.getString(pathIndex),
-                        mediaMimeType = cursor.getString(mimeTypeIndex),
-                        mediaSize = cursor.getLong(sizeIndex),
-                        mediaDateAdded = cursor.getLong(dateAddedIndex),
-                        isVideo = true, // Video
-                        displayDate = formatDate(cursor.getLong(dateAddedIndex))
-                    )
-                )
-            }
+            processCursor(cursor, true)
         }
 
-        // Move files to Recycle Bin
+        // Move files to Recycle Bin in background thread
         CoroutineScope(Dispatchers.IO).launch {
             mediaList.forEach { media ->
-                moveToRecycleBin(media)
+                try {
+                    if (moveToRecycleBin(media)) {
+                        // After moving to recycle bin, delete from MediaStore
+                        deleteFromMediaStore(media)
+                    }
+                } catch (e: Exception) {
+                    Log.e("MediaMove", "Error moving media ${media.mediaPath}", e)
+                }
             }
 
-            // Run on UI Thread to refresh RecyclerView
+            // Refresh UI
             withContext(Dispatchers.Main) {
                 refreshAlbums()
             }
         }
     }
 
+    // Helper function to delete from MediaStore
+// Replace the deleteFromMediaStore function with this corrected version
+    private fun deleteFromMediaStore(media: DeleteMediaModel) {
+        val contentUri = if (media.isVideo) {
+            MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+        } else {
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        }
+
+        try {
+            // First delete from MediaStore
+            val rowsDeleted = requireActivity().contentResolver.delete(
+                ContentUris.withAppendedId(contentUri, media.mediaId),
+                null,
+                null
+            )
+
+            if (rowsDeleted > 0) {
+                Log.d("MediaDelete", "Successfully deleted from MediaStore: ${media.mediaPath}")
+
+                // Then refresh MediaStore (different approaches for different API levels)
+                refreshMediaStore(media.mediaPath)
+            } else {
+                Log.e("MediaDelete", "Failed to delete from MediaStore: ${media.mediaPath}")
+            }
+        } catch (e: SecurityException) {
+            Log.e("MediaDelete", "Permission denied for MediaStore delete", e)
+            // Handle Android 10+ scoped storage permission issues
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                try {
+                    // Alternative approach for Android 10+
+                    refreshMediaStore(media.mediaPath)
+                } catch (e: Exception) {
+                    Log.e("MediaDelete", "Alternative delete failed", e)
+                }
+            }
+        }
+    }
+
+    // New helper function to refresh MediaStore
+    private fun refreshMediaStore(filePath: String) {
+        val mediaFile = File(filePath)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            // For Android 9 and below - use broadcast
+            val intent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)
+            intent.data = Uri.fromFile(mediaFile)
+            requireActivity().sendBroadcast(intent)
+        } else {
+            // For Android 10 and above - use MediaScannerConnection
+            MediaScannerConnection.scanFile(
+                requireContext(),
+                arrayOf(filePath),
+                null
+            ) { path, uri ->
+                Log.d("MediaScan", "Scanned $path -> $uri")
+            }
+        }
+    }
     fun createRecycleBin(): File {
         val recycleBin = File(requireActivity().getExternalFilesDir(null), ".gallery_recycleBin")
         if (!recycleBin.exists()) {

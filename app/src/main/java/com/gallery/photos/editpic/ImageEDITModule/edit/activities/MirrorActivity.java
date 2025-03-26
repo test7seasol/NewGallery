@@ -538,31 +538,68 @@ public class MirrorActivity extends AppCompatActivity {
         }
 
         private void drawMode(Canvas canvas, Bitmap bitmap, MirrorImageMode mirrorImageMode, Matrix matrix) {
+            // Validate input bitmap at the start
+            if (bitmap == null || bitmap.isRecycled()) {
+                Log.e("MirrorView", "Input bitmap is null or recycled");
+                return; // Exit early to avoid further processing
+            }
+
+            // Apply initial matrix
             canvas.setMatrix(matrix);
-            canvas.drawBitmap(bitmap, mirrorImageMode.getDrawBitmapSrc(), mirrorImageMode.rect1, this.framePaint);
+            try {
+                canvas.drawBitmap(bitmap, mirrorImageMode.getDrawBitmapSrc(), mirrorImageMode.rect1, this.framePaint);
+            } catch (IllegalArgumentException e) {
+                Log.e("MirrorView", "Failed to draw initial bitmap (recycled)", e);
+                return; // Exit if the first draw fails
+            }
+
+            // Draw first mirrored version
             this.f2071m1.set(mirrorImageMode.matrix1);
             this.f2071m1.postConcat(matrix);
             canvas.setMatrix(this.f2071m1);
             if (bitmap != null && !bitmap.isRecycled()) {
-                canvas.drawBitmap(bitmap, mirrorImageMode.getDrawBitmapSrc(), mirrorImageMode.rect2, this.framePaint);
+                try {
+                    canvas.drawBitmap(bitmap, mirrorImageMode.getDrawBitmapSrc(), mirrorImageMode.rect2, this.framePaint);
+                } catch (IllegalArgumentException e) {
+                    Log.w("MirrorView", "Failed to draw rect2 bitmap (recycled)", e);
+                    return;
+                }
+            } else {
+                Log.w("MirrorView", "Bitmap recycled before drawing rect2");
+                return;
             }
+
+            // Draw additional mirrored versions if count is 4
             if (mirrorImageMode.count == 4) {
                 this.f2072m2.set(mirrorImageMode.matrix2);
                 this.f2072m2.postConcat(matrix);
                 canvas.setMatrix(this.f2072m2);
                 if (bitmap != null && !bitmap.isRecycled()) {
-                    canvas.drawBitmap(bitmap, mirrorImageMode.getDrawBitmapSrc(), mirrorImageMode.rect3, this.framePaint);
+                    try {
+                        canvas.drawBitmap(bitmap, mirrorImageMode.getDrawBitmapSrc(), mirrorImageMode.rect3, this.framePaint);
+                    } catch (IllegalArgumentException e) {
+                        Log.w("MirrorView", "Failed to draw rect3 bitmap (recycled)", e);
+                        return;
+                    }
+                } else {
+                    Log.w("MirrorView", "Bitmap recycled before drawing rect3");
+                    return;
                 }
+
                 this.f2073m3.set(mirrorImageMode.matrix3);
                 this.f2073m3.postConcat(matrix);
                 canvas.setMatrix(this.f2073m3);
-                if (bitmap == null || bitmap.isRecycled()) {
-                    return;
+                if (bitmap != null && !bitmap.isRecycled()) {
+                    try {
+                        canvas.drawBitmap(bitmap, mirrorImageMode.getDrawBitmapSrc(), mirrorImageMode.rect4, this.framePaint);
+                    } catch (IllegalArgumentException e) {
+                        Log.w("MirrorView", "Failed to draw rect4 bitmap (recycled)", e);
+                    }
+                } else {
+                    Log.w("MirrorView", "Bitmap recycled before drawing rect4");
                 }
-                canvas.drawBitmap(bitmap, mirrorImageMode.getDrawBitmapSrc(), mirrorImageMode.rect4, this.framePaint);
             }
         }
-
         @Override // android.view.View
         public boolean onTouchEvent(MotionEvent motionEvent) {
             float x = motionEvent.getX();

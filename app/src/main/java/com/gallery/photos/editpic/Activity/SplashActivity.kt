@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings.canDrawOverlays
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.gallery.photos.editpic.Activity.MyApplicationClass.Companion.ctx
@@ -53,15 +54,20 @@ class SplashActivity : AppCompatActivity() {
 //            return
 //        }
         // Initialize the Mobile Ads SDK.
-        ctx.getData(
-            this@SplashActivity
-        )
+        try {
+            ctx.getData(
+                this@SplashActivity
+            )
 
-        MobileAds.initialize(
-            this
-        ) {
-
+            MobileAds.initialize(this) { initializationStatus ->
+                Log.d("SplashActivity", "Mobile Ads SDK initialized: $initializationStatus")
+            }
+        } catch (e: Exception) {
+            Log.e("SplashActivity", "Failed to initialize Mobile Ads SDK", e)
+            // Optionally, track this failure or notify the user
+            // e.g., Toast.makeText(this, "Ad features unavailable", Toast.LENGTH_SHORT).show()
         }
+
     }
 
 
@@ -120,12 +126,15 @@ class SplashActivity : AppCompatActivity() {
     private fun onNextActivity() {
         MyApplicationClass.putBoolean("ISAPPOPENONE", true)
 
-        if (MyApplicationClass.getBoolean(ISONETIME) == false) {
+        if (!canDrawOverlays(this)) {
             startActivity(Intent(this, PermissionActivity::class.java))
             finish()
         } else {
-            if (canDrawOverlays(this)) {
+            if (canDrawOverlays(this) && MyApplicationClass.getBoolean(ISONETIME) == true) {
                 startActivity(Intent(this, MainActivity::class.java))
+                finish()
+            } else if (MyApplicationClass.getBoolean(ISONETIME) == false) {
+                startActivity(Intent(this, LanguageAct::class.java))
                 finish()
             } else {
                 startActivity(Intent(this, PermissionActivity::class.java))

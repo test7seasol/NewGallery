@@ -279,11 +279,15 @@ public class StickerView extends RelativeLayout {
     @Override // android.view.ViewGroup, android.view.View
     public void dispatchDraw(Canvas canvas) {
         super.dispatchDraw(canvas);
-        if (this.drawCirclePoint && this.onMoving) {
+        try {
+            if (this.drawCirclePoint && this.onMoving) {
             canvas.drawCircle(this.downX, this.downY, this.circleRadius, this.paintCircle);
             canvas.drawLine(this.downX, this.downY, this.currentMoveingX, this.currentMoveingY, this.paintCircle);
         }
         drawStickers(canvas);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void drawStickers(Canvas canvas) {

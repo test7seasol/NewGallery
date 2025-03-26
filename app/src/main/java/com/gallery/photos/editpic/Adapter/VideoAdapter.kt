@@ -7,18 +7,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.gallery.photos.editpic.Extensions.formatDate
 import com.gallery.photos.editpic.Extensions.gone
-import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.visible
 import com.gallery.photos.editpic.Model.VideoModel
 import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.Utils.SelectionModeListener
 import com.gallery.photos.editpic.Views.FastScroller
 import com.gallery.photos.editpic.databinding.ItemVideoBinding
+import java.lang.ref.WeakReference
 
 class VideoAdapter(
     var activity: Activity,
@@ -37,14 +38,25 @@ class VideoAdapter(
         return VideoViewHolder(binding)
     }
 
+    private val weakActivity = WeakReference(activity)
+
+    private fun getSafeActivity(): Activity? {
+        return weakActivity.get()?.takeIf { !it.isFinishing && !it.isDestroyed }
+    }
+
     @SuppressLint("CheckResult", "ResourceType")
     override fun onBindViewHolder(holder: VideoViewHolder, position: Int) {
         val item = currentList[position]
+        val activity = getSafeActivity() ?: return
+
         holder.binding.apply {
 
-            Glide.with(activity).load(item.videoPath).error(activity.getColor(R.color.ripple_color)).placeholder(activity.getColor(R.color.ripple_color)).centerCrop()
+            Glide.with(activity)
+                .load(item.videoPath)
+                .error(ContextCompat.getColor(activity, R.color.ripple_color))
+                .placeholder(ContextCompat.getColor(activity, R.color.ripple_color))
+                .centerCrop()
                 .into(imageViewMedia)
-
             tvDuration.text = formatDuration(item.videoDuration)
 
             ivFav.visibility = if (item.isFav) View.VISIBLE else View.GONE
@@ -99,40 +111,53 @@ class VideoAdapter(
 
     @SuppressLint("NotifyDataSetChanged")
     private fun toggleSelection(media: VideoModel) {
+        try {
+
         if (selectedItems.contains(media)) {
             selectedItems.remove(media)
         } else {
             selectedItems.add(media)
         }
 
-        if (selectedItems.isEmpty()) {
-            disableSelectionMode()
-        } else {
-//            actionbarTxt.text = "${selectedItems.size} Selected"
-            activity.findViewById<TextView>(R.id.tvTitalVideo).text =
+            // Safe update of title text
+            activity?.findViewById<TextView>(R.id.tvTitalVideo)?.text =
+                if (selectedItems.isEmpty()) {
+                    activity.getString(R.string.videos)
+                } else {
                 "${selectedItems.size} selected"
+                }
+
+            if (selectedItems.isEmpty()) {
+                disableSelectionMode()
         }
         notifyDataSetChanged()
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     fun selectAllItems() {
         val allItems = currentList
 
         if (selectedItems.size == allItems.size) {
-            ("11").log()
-            selectedItems.clear() // Deselect all if already selected
-            disableSelectionMode() // Exit selection mode if everythi
-            // ng is deselected
+            selectedItems.clear()
+            disableSelectionMode()
         } else {
-            activity.findViewById<TextView>(R.id.tvTitalVideo)
-                .setText(activity.getString(R.string.videos))
             selectedItems.clear()
             selectedItems.addAll(allItems)
-            activity.findViewById<TextView>(R.id.tvTitalVideo).text =
+            activity?.findViewById<TextView>(R.id.tvTitalVideo)?.text =
                 "${selectedItems.size} selected"
-            ("22").log("allItems: ${allItems.size}")
-            enableSelectionMode() // Ensure selection mode stays active
+            enableSelectionMode()
         }
+        updateSelectionUI()
+    }
+
+    fun unselectAllItems() {
+        selectedItems.clear()
+        activity?.findViewById<TextView>(R.id.tvTitalVideo)?.text =
+            activity?.getString(R.string.videos)
+        disableSelectionMode()
         updateSelectionUI()
     }
 
@@ -148,23 +173,6 @@ class VideoAdapter(
         disableSelectionMode() // Exit selection mode
     }
 
-    fun unselectAllItems() {
-        val allItems = currentList
-
-        if (selectedItems.size == allItems.size) {
-            ("11").log()
-            selectedItems.clear() // Deselect all if already selected
-            disableSelectionMode() // Exit selection mode if everything is deselected
-        } else {
-            selectedItems.clear()
-            ("22").log("allItems: ${allItems.size}")
-            disableSelectionMode() // Exit selection mode if everything is deselected
-        }
-        updateSelectionUI()
-        if (activity != null)
-            activity.findViewById<TextView>(R.id.tvTitalVideo)?.text =
-                "${selectedItems.size} selected"
-    }
 
     @SuppressLint("NotifyDataSetChanged")
     private fun enableSelectionMode() {

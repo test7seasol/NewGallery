@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.ViewGroup
 import android.widget.VideoView
-import androidx.appcompat.app.AppCompatActivity
 import com.gallery.photos.editpic.Adapter.VideoDisplayAdapter
 import com.gallery.photos.editpic.Adapter.VideoPreviousNext
 import com.gallery.photos.editpic.Dialogs.AllFilesAccessDialog
@@ -20,7 +19,6 @@ import com.gallery.photos.editpic.Extensions.name.getMediaDatabase
 import com.gallery.photos.editpic.Extensions.onClick
 import com.gallery.photos.editpic.Extensions.setLanguageCode
 import com.gallery.photos.editpic.Extensions.shareFile
-import com.gallery.photos.editpic.Extensions.startActivityWithBundle
 import com.gallery.photos.editpic.Extensions.tos
 import com.gallery.photos.editpic.Model.DeleteMediaModel
 import com.gallery.photos.editpic.Model.FavouriteMediaModel
@@ -86,6 +84,8 @@ class VideoViewPagerActivity : BaseActivity() {
             MyAddPrefs(this@VideoViewPagerActivity).admBannerId
         )
 
+        try {
+
         imageListVideo[viewpagerselectedPosition].apply {
             deleteMediaModel!!.mediaId = videoId
             deleteMediaModel!!.mediaName = videoName
@@ -96,9 +96,10 @@ class VideoViewPagerActivity : BaseActivity() {
             deleteMediaModel!!.displayDate = ""
             deleteMediaModel!!.isSelect = isSelect
         }
-
-        updateImageTitle(viewpagerselectedPosition)
-
+            updateImageTitle(viewpagerselectedPosition)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
         ("Delete onPageSelected: $viewpagerselectedPosition").log()
 
         setadpter(imageListVideo, viewpagerselectedPosition)
@@ -110,6 +111,7 @@ class VideoViewPagerActivity : BaseActivity() {
         binding.apply {
 
             bottomActions.bottomProperties.onClick {
+                try {
                 PropertiesDialog(
                     this@VideoViewPagerActivity, MediaModel(
                         mediaId = imageListVideo[viewpagerselectedPosition]!!.videoId,
@@ -123,7 +125,11 @@ class VideoViewPagerActivity : BaseActivity() {
                         isFav = false
                     )
                 ) {}
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
+
 
             binding.bottomActions.bottomFavorite.setOnClickListener {
                 val position = viewpagerselectedPosition

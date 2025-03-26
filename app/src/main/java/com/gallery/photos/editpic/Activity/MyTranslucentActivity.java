@@ -21,7 +21,7 @@ public class MyTranslucentActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         // Set orientation programmatically after the activity is created
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+//        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         binding.translayRel.setOnClickListener(new View.OnClickListener() {
             @Override

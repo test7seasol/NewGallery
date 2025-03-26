@@ -1,5 +1,6 @@
 package com.gallery.photos.editpic.ViewModel
 
+import android.os.Build
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -38,8 +39,12 @@ class RecentPictureViewModel(private val repository: RecentPictureRepository) : 
     val mediaLiveData: LiveData<List<MediaListItem>> = _mediaLiveData
 
     fun loadRecentMedia() {
+
         viewModelScope.launch(Dispatchers.IO) {
-            val mediaList = repository.getAllMedia(limit = DATE_LIMIT)  // Load first batch
+            val mediaList =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) repository.getAllMediaBelo12(
+                    limit = DATE_LIMIT
+                ) else repository.getAllMediaAbove12(limit = DATE_LIMIT)
 
             val groupedMedia = mediaList.groupBy { it.displayDate }
             val finalList = mutableListOf<MediaListItem>()
@@ -51,8 +56,11 @@ class RecentPictureViewModel(private val repository: RecentPictureRepository) : 
 
             _mediaLiveData.postValue(finalList)
 
-            // Load remaining media in background (if more than 1000)
-            val remainingMedia = repository.getAllMedia(limit = Int.MAX_VALUE, offset = DATE_LIMIT)
+           /* // Load remaining media in background (if more than 1000)
+            val remainingMedia =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) repository.getAllMediaBelo12(
+                    limit = DATE_LIMIT
+                ) else repository.getAllMediaAbove12(limit = DATE_LIMIT)
             val allMedia = mediaList + remainingMedia
 
             val groupedAllMedia = allMedia.groupBy { it.displayDate }
@@ -62,7 +70,7 @@ class RecentPictureViewModel(private val repository: RecentPictureRepository) : 
                 finalAllList.add(MediaListItem.Header(date))
                 finalAllList.addAll(mediaItems.map { MediaListItem.Media(it) })
             }
-            _mediaLiveData.postValue(finalAllList)
+            _mediaLiveData.postValue(finalAllList)*/
         }
     }
 

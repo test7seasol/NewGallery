@@ -109,21 +109,70 @@ public class ResizeImages extends AppCompatActivity {
     }
 
     private File saveBitMap(Context context, Bitmap bitmap, String str) {
-        File file = new File(new ContextWrapper(context).getDir(str, 0), File.separator + System.currentTimeMillis() + ".jpg");
-        try {
-            file.createNewFile();
-            FileOutputStream fileOutputStream = new FileOutputStream(file);
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
-            fileOutputStream.flush();
-            fileOutputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.i("TAG", "There was an issue saving the image.");
+        // First check if the bitmap is valid and not recycled
+        if (bitmap == null || bitmap.isRecycled()) {
+            Log.e("TAG", "Bitmap is null or already recycled");
+            return null;
         }
-        scanGallery(context, file.getAbsolutePath());
-        return file;
-    }
 
+        File file = null;
+        FileOutputStream fileOutputStream = null;
+
+        try {
+            // Create the directory and file
+            File directory = new ContextWrapper(context).getDir(str, Context.MODE_PRIVATE);
+            file = new File(directory, File.separator + System.currentTimeMillis() + ".jpg");
+
+            // Create parent directories if they don't exist
+            if (!directory.exists()) {
+                directory.mkdirs();
+            }
+
+            // Create the file
+            if (!file.createNewFile()) {
+                Log.e("TAG", "Failed to create new file");
+                return null;
+            }
+
+            // Save the bitmap
+            fileOutputStream = new FileOutputStream(file);
+
+            // Use JPEG format for saving (more efficient for photos)
+            // PNG is lossless but much larger file size
+            if (!bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fileOutputStream)) {
+                Log.e("TAG", "Failed to compress bitmap");
+                return null;
+            }
+
+            // Ensure all bytes are written
+            fileOutputStream.flush();
+
+            // Scan the gallery to make the image visible
+            scanGallery(context, file.getAbsolutePath());
+
+            return file;
+
+        } catch (IOException e) {
+            Log.e("TAG", "Error saving image: " + e.getMessage());
+            e.printStackTrace();
+
+            // Delete the file if creation failed
+            if (file != null && file.exists()) {
+                file.delete();
+            }
+            return null;
+
+        } finally {
+            // Ensure the stream is always closed
+            if (fileOutputStream != null) {
+                try {
+                    fileOutputStream.close();
+                } catch (IOException e) {
+                    Log.e("TAG", "Error closing stream: " + e.getMessage());
+                }
+            }
+        }
+    }
     private void scanGallery(Context context, String str) {
         try {
             MediaScannerConnection.scanFile(context, new String[]{str}, null, new MediaScannerConnection.OnScanCompletedListener() { // from class: com.gallery.photos.editphotovideo.utils.ResizeImages.1

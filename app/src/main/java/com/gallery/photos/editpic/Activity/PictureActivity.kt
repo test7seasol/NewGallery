@@ -1,11 +1,15 @@
 package com.gallery.photos.editpic.Activity
 
-import com.gallery.photos.editpic.Dialogs.CreateNewFolderDialog
 import android.annotation.SuppressLint
 import android.app.ProgressDialog
+import android.content.ContentUris
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.provider.MediaStore
+import android.provider.OpenableColumns
 import android.transition.TransitionManager
 import android.util.Log
 import android.view.ScaleGestureDetector
@@ -17,6 +21,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.gallery.photos.editpic.Adapter.PictureAdapter
 import com.gallery.photos.editpic.Dialogs.AllFilesAccessDialog
+import com.gallery.photos.editpic.Dialogs.CreateNewFolderDialog
 import com.gallery.photos.editpic.Dialogs.DeleteWithRememberDialog
 import com.gallery.photos.editpic.Dialogs.SlideShowDialog
 import com.gallery.photos.editpic.Extensions.PREF_LANGUAGE_CODE
@@ -145,19 +150,19 @@ class PictureActivity : AppCompatActivity() {
         setupPinchToZoomGesture()
         observeMedia()
 
-        // Handle item click to open ViewPagerActivity
+        // Handle item click to open AlbumPicturesViewPagerActivity
         pictureAdapter!!.onItemClick = { selectedMedia ->
             openViewPagerActivity(selectedMedia)
         }
 
         binding.apply {
 
-            llShare.onClick {
-                val selectedFiles = pictureAdapter!!.selectedItems.distinctBy { it.mediaPath }
+            llShare.setOnClickListener {
+                val selectedFiles = pictureAdapter?.selectedItems?.distinctBy { it.mediaPath } ?: emptyList()
                 if (selectedFiles.size <= 100) {
                     shareMultipleFiles(selectedFiles, this@PictureActivity)
                 } else {
-                    (getString(R.string.max_selection_limit_is_100)).tos(this@PictureActivity)
+                    getString(R.string.max_selection_limit_is_100).tos(this@PictureActivity)
                 }
             }
 
@@ -350,6 +355,115 @@ class PictureActivity : AppCompatActivity() {
     }
 
     fun moveToRecycleBin(originalFilePath: String): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {  // Android 11+ (API 30+)
+            moveToRecycleBinScopedStorage(originalFilePath)
+        } else {
+            moveToRecycleBinLegacy(originalFilePath)
+        }
+    }
+
+    // ✅ Android 11+ (Scoped Storage) - Uses ContentResolver
+// ✅ Android 11+ (Scoped Storage) - Uses ContentResolver
+    fun moveToRecycleBinScopedStorage(originalFilePath: String): Boolean {
+        // First get the MediaStore URI for the file
+        val uri = getMediaStoreUriFromPath(originalFilePath) ?: run {
+            Log.e("MoveToRecycleBin", "Could not get MediaStore URI for path: $originalFilePath")
+            return false
+        }
+
+        val contentResolver = contentResolver
+        val inputStream = try {
+            contentResolver.openInputStream(uri)
+        } catch (e: Exception) {
+            Log.e("MoveToRecycleBin", "Failed to open InputStream: ${e.message}")
+            return false
+        }
+
+        val recycleBin = createRecycleBin()
+        val recycledFile = File(
+            recycleBin,
+            getFileNameFromUri(uri) ?: "deleted_file_${System.currentTimeMillis()}"
+        )
+
+        return try {
+            // Copy file to recycle bin
+            recycledFile.outputStream().use { output ->
+                inputStream?.copyTo(output)
+            }
+            inputStream?.close()
+
+            Log.d("MoveToRecycleBin", "File copied to recycle bin: ${recycledFile.absolutePath}")
+
+            // Delete from MediaStore
+            val deleteCount = contentResolver.delete(uri, null, null)
+            if (deleteCount > 0) {
+                Log.d("MoveToRecycleBin", "Original file deleted successfully")
+            } else {
+                Log.e("MoveToRecycleBin", "Failed to delete original file from MediaStore")
+                // If delete failed, delete the copy we made
+                recycledFile.delete()
+                return false
+            }
+
+            // Insert into Room Database
+            CoroutineScope(Dispatchers.IO).launch {
+                deleteMediaModel?.let { model ->
+                    model.binPath = recycledFile.absolutePath
+                    deleteMediaDao?.insertMedia(model)
+                    Log.d(
+                        "MoveToRecycleBin",
+                        "Inserted into Room database: ${recycledFile.absolutePath}"
+                    )
+                }
+            }
+
+            true
+        } catch (e: IOException) {
+            Log.e("MoveToRecycleBin", "IOException: ${e.message}")
+            e.printStackTrace()
+            // Clean up if something went wrong
+            recycledFile.delete()
+            false
+        }
+    }
+
+    // Helper function to get MediaStore URI from file path
+    private fun getMediaStoreUriFromPath(filePath: String): Uri? {
+        val projection = arrayOf(MediaStore.Images.Media._ID)
+        val selection = "${MediaStore.Images.Media.DATA} = ?"
+        val selectionArgs = arrayOf(filePath)
+
+        contentResolver.query(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            projection,
+            selection,
+            selectionArgs,
+            null
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID))
+                return ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+            }
+        }
+        return null
+    }
+
+    fun getFileNameFromUri(uri: Uri): String? {
+        var name: String? = null
+        val cursor = contentResolver.query(uri, null, null, null, null)
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (nameIndex != -1) {
+                    name = it.getString(nameIndex)
+                }
+            }
+        }
+        return name
+    }
+
+    // ✅ Android 10 and Below - Uses Direct File Access
+    fun moveToRecycleBinLegacy(originalFilePath: String): Boolean {
         val originalFile = File(originalFilePath)
         if (!originalFile.exists()) {
             Log.e("MoveToRecycleBin", "File does not exist: $originalFilePath")
@@ -360,37 +474,18 @@ class PictureActivity : AppCompatActivity() {
         val recycledFile = File(recycleBin, originalFile.name)
 
         return try {
-            Log.d("MoveToRecycleBin", "Moving file to recycle bin: ${originalFile.absolutePath}")
-
             originalFile.copyTo(recycledFile, overwrite = true)  // Copy to recycle bin
             Log.d("MoveToRecycleBin", "File copied to recycle bin: ${recycledFile.absolutePath}")
 
             if (originalFile.delete()) {
-                Log.d("MoveToRecycleBin", "Original file deleted: ${originalFile.absolutePath}")
+                Log.d("MoveToRecycleBin", "Original file deleted")
             } else {
-                Log.e(
-                    "MoveToRecycleBin",
-                    "Failed to delete original file: ${originalFile.absolutePath}"
-                )
+                Log.e("MoveToRecycleBin", "Failed to delete original file")
             }
 
-            CoroutineScope(Dispatchers.IO).launch {
-
-                Log.d("MoveToRecycleBin", "Inserting media record into Room database.")
-                deleteMediaModel!!.binPath = recycledFile.absolutePath
-//                videoMediaModel!!.randomMediaId = randomMediaId
-
-                deleteMediaDao!!.insertMedia(deleteMediaModel!!)  // Save path for restoration
-//                imageList.removeAt(viewpagerselectedPosition)
-//                MediaStoreSingleton.imageList.removeAt(viewpagerselectedPosition)
-//                requireActivity().runOnUiThread {
-////                    binding.viewPager.currentItem = viewpagerselectedPosition + 1
-//                }
-                Log.d("MoveToRecycleBin", "Media record inserted into Room database.")
-            }
             true
         } catch (e: IOException) {
-            Log.e("MoveToRecycleBin", "IOException occurred: ${e.message}")
+            Log.e("MoveToRecycleBin", "IOException: ${e.message}")
             e.printStackTrace()
             false
         }
@@ -478,7 +573,7 @@ class PictureActivity : AppCompatActivity() {
         MediaStoreSingleton.imageList = ArrayList(pictureAdapter!!.currentList)
         MediaStoreSingleton.selectedPosition = pictureAdapter!!.currentList.indexOf(selectedMedia)
 
-        val intent = Intent(this, ViewPagerActivity::class.java)
+        val intent = Intent(this, AlbumPicturesViewPagerActivity::class.java)
         startActivity(intent)
     }
     private fun openViewPagerSlideShowActivity(
@@ -486,7 +581,7 @@ class PictureActivity : AppCompatActivity() {
     ) {
         MediaStoreSingleton.imageList = ArrayList(pictureAdapter!!.currentList)
         MediaStoreSingleton.selectedPosition = position
-        val intent = Intent(this, ViewPagerActivity::class.java)
+        val intent = Intent(this, AlbumPicturesViewPagerActivity::class.java)
         intent.putExtra("slideshow", true)
         intent.putExtra("secoundSlideShow", secound)
         startActivity(intent)

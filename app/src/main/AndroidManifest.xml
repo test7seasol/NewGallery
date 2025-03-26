@@ -59,10 +59,17 @@
         android:usesCleartextTraffic="true">
 
         <activity
-            android:name=".Activity.PatternAct"
+            android:name=".Activity.AlbumPicturesViewPagerActivity"
             android:configChanges="uiMode"
             android:label="@string/app_name"
+            android:screenOrientation="portrait"
             android:exported="false" />
+        <activity
+            android:name=".Activity.PatternAct"
+            android:configChanges="uiMode"
+            android:screenOrientation="portrait"
+            android:exported="false"
+            android:label="@string/app_name" />
         <activity
             android:name=".Activity.SearchAct"
             android:configChanges="uiMode"
@@ -84,7 +91,9 @@
         <activity
             android:name=".Activity.ZoomInZoomOutAct"
             android:exported="false"
-            android:theme="@style/TransparentActivityTheme" />
+            android:resizeableActivity="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
             android:name=".Activity.AllPhotosActivity"
             android:configChanges="uiMode"

@@ -1,6 +1,8 @@
 package com.gallery.photos.editpic.ImageEDITModule.edit.utils;
 
 import android.graphics.Bitmap;
+import android.util.Log;
+
 import java.text.MessageFormat;
 import org.wysaid.common.SharedContext;
 import org.wysaid.nativePort.CGEImageHandler;
@@ -43,25 +45,32 @@ public class FilterUtils {
         return resultBitmap;
     }
 
-    public static Bitmap getBlackAndWhiteImageFromBitmap(Bitmap bitmap) {
-        if (bitmap == null || bitmap.getWidth() <= 0 || bitmap.getHeight() <= 0) {
-            return null; // Or return a default bitmap instead
+    public static Bitmap getBlackAndWhiteImageFromBitmap(Bitmap originalBitmap) {
+        // Add null and dimension checks
+        if (originalBitmap == null || originalBitmap.isRecycled()) {
+            Log.e("FilterUtils", "Original bitmap is null or recycled");
+            return null;
         }
 
-        SharedContext create = SharedContext.create();
-        create.makeCurrent();
+        if (originalBitmap.getWidth() <= 0 || originalBitmap.getHeight() <= 0) {
+            Log.e("FilterUtils", "Invalid bitmap dimensions");
+            return null;
+        }
 
-        CGEImageHandler cGEImageHandler = new CGEImageHandler();
-        cGEImageHandler.initWithBitmap(bitmap);
-        cGEImageHandler.setFilterWithConfig("@adjust saturation 0");
-        cGEImageHandler.processFilters();
+        try {
+            CGEImageHandler handler = new CGEImageHandler();
+            handler.initWithBitmap(originalBitmap);
+            handler.setFilterWithConfig("@adjust lut 3dlut/bw.png");
 
-        Bitmap resultBitmap = cGEImageHandler.getResultBitmap();
-
-        create.release();
-
-        return (resultBitmap != null && resultBitmap.getWidth() > 0 && resultBitmap.getHeight() > 0)
-                ? resultBitmap
-                : bitmap; // Return original bitmap if processing failed
-    }
-}
+            // Add additional safety check
+            Bitmap result = handler.getResultBitmap();
+            if (result == null) {
+                Log.e("FilterUtils", "Failed to get result bitmap");
+                return originalBitmap.copy(Bitmap.Config.ARGB_8888, true);
+            }
+            return result;
+        } catch (Exception e) {
+            Log.e("FilterUtils", "Error processing bitmap", e);
+            return originalBitmap.copy(Bitmap.Config.ARGB_8888, true);
+        }
+    }}

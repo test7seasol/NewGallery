@@ -1,7 +1,12 @@
 package com.gallery.photos.editpic.Activity
 
+import android.app.ProgressDialog
+import android.content.ContentValues
+import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
+import android.webkit.MimeTypeMap
 import androidx.viewpager2.widget.ViewPager2
 import com.gallery.photos.editpic.Adapter.DeleteViewPagerAdapter
 import com.gallery.photos.editpic.Dialogs.AllFilesAccessDialog
@@ -23,7 +28,10 @@ import com.gallery.photos.editpic.myadsworld.MyAddPrefs
 import com.gallery.photos.editpic.myadsworld.MyAllAdCommonClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -48,7 +56,6 @@ class DeleteViewPagerActivity : BaseActivity() {
         viewpagerselectedPosition = DeleteMediaStoreSingleton.deleteselectedPosition
 
 //        ("Delete onPageSelected: $viewpagerselectedPosition").log()
-
 
         if (imageListDelete.isEmpty()) {
             Log.e("DeleteViewPagerActivity", "No images available for deletion.")
@@ -103,64 +110,163 @@ class DeleteViewPagerActivity : BaseActivity() {
                     AllFilesAccessDialog(this@DeleteViewPagerActivity){
 
                     }
-//                    startActivityWithBundle<AllFilePermissionActivity>(Bundle().apply {
-//                        putString("isFrom", "Activitys")
-//                    })
                     return@onClick
                 }
-                restoreSingleFileFromRecycleBin(deleteMediaModel!!)
+                val deletedlist: ArrayList<DeleteMediaModel> = arrayListOf()
+                deletedlist.clear()
+                deletedlist.add(deleteMediaModel!!)
+                restoreSelectedFilesFromRecycleBin(deletedlist)
             }
         }
     }
 
-    fun restoreSingleFileFromRecycleBin(mediaItem: DeleteMediaModel) {
-        val originalDate = mediaItem.mediaDateAdded// Fallback to current time if null
-        val formattedDate = formatDate(originalDate) // Format the date for logging
-        Log.d("RestoreFile", "Bin Path: ${mediaItem.binPath} | Date: $formattedDate")
+    fun restoreSelectedFilesFromRecycleBin(selectedList: List<DeleteMediaModel>) {
+        if (selectedList.isEmpty()) {
+            Log.e("RestoreSelectedFiles", "No files selected for restoration.")
+            return
+        }
 
-        CoroutineScope(Dispatchers.IO).launch {
-            val binFile = File(mediaItem.binPath)
-            val originalFile = File(mediaItem.mediaPath)
+        CoroutineScope(Dispatchers.Main).launch {
+            val progressDialog = ProgressDialog(this@DeleteViewPagerActivity).apply {
+                setMessage("Restoring files...")
+                setCancelable(false)
+                show()
+            }
 
-            if (binFile.exists()) {
-                try {
-                    originalFile.parentFile?.mkdirs()
+            try {
+                // Restore files in background
+                val restoreResults = withContext(Dispatchers.IO) {
+                    selectedList.map { item ->
+                        async {
+                            restoreSelectFileFromRecycleBin(item)
+                        }
+                    }.awaitAll()
+                }
 
-                    if (binFile.renameTo(originalFile)) {
-                        originalFile.setLastModified(originalDate) // Set the modification date
+                // Remove restored items from our current list
+                val restoredIds = selectedList.map { it.mediaId }
+                imageListDelete.removeAll { it.mediaId in restoredIds }
 
-                        Log.d(
-                            "RestoreFile",
-                            "File restored to: ${originalFile.absolutePath} with date: $formattedDate"
-                        )
-                        deleteMediaDao?.deleteMedia(mediaItem)
+                withContext(Dispatchers.Main) {
+                    progressDialog.dismiss()
 
-                        runOnUiThread {
-                            ("File restored successfully").tos(this@DeleteViewPagerActivity)
-                            imageListDelete.removeAt(viewpagerselectedPosition)
-
-                            if (imageListDelete.isEmpty()) {
-                                finish()
-                            } else {
-                                setupViewPager(
-                                    imageListDelete,
-                                    viewpagerselectedPosition.coerceAtMost(imageListDelete.size - 1)
-                                )
-                            }
+                    if (imageListDelete.isEmpty()) {
+                        // No items left - finish activity
+                        finish()
+                    } else {
+                        // Update ViewPager position
+                        val newPosition = if (viewpagerselectedPosition >= imageListDelete.size) {
+                            // If current position is now out of bounds, go to last item
+                            imageListDelete.size - 1
+                        } else {
+                            // Otherwise keep current position
+                            viewpagerselectedPosition
                         }
 
-                    } else {
-                        Log.e(
-                            "RestoreFile", "Failed to restore file to: ${originalFile.absolutePath}"
-                        )
+                        setupViewPager(imageListDelete, newPosition)
+                        viewpagerselectedPosition = newPosition
+
+                        // Show success message
+                        ("1 files restored").tos(this@DeleteViewPagerActivity)
                     }
-                } catch (e: Exception) {
-                    Log.e("RestoreFile", "Error restoring file: ${e.message}")
                 }
-            } else {
-                Log.e("RestoreFile", "File not found: ${binFile.absolutePath}")
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    progressDialog.dismiss()
+                    Log.e("RestoreSelectedFiles", "Error restoring files: ${e.message}")
+                    getString(R.string.failed_to_restore_selected_files).tos(this@DeleteViewPagerActivity)
+                }
             }
         }
+    }
+
+    private fun restoreSelectFileFromRecycleBin(item: DeleteMediaModel) {
+        val sourceFile = File(item.binPath)
+        val destinationFile = File(item.mediaPath)
+
+        if (!sourceFile.exists()) {
+            Log.e("RestoreFile", "Source file not found: ${item.binPath}")
+            return
+        }
+
+        destinationFile.absolutePath.log()
+
+        try {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                // ✅ Android 9 and below: Move file normally
+                val parentDir = destinationFile.parentFile
+                if (parentDir != null && !parentDir.exists()) {
+                    parentDir.mkdirs() // Create parent directories if they don’t exist
+                }
+                sourceFile.copyTo(destinationFile, overwrite = true)
+                sourceFile.delete() // Remove from recycle bin
+            } else {
+                // ✅ Android 10+ (Scoped Storage): Use MediaStore API
+                val contentResolver = applicationContext.contentResolver
+                val mimeType = getMimeType(sourceFile) ?: "image/jpeg" // Default to image/jpeg
+
+                val collectionUri = when {
+                    mimeType.startsWith("image/") -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                    mimeType.startsWith("video/") -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                    mimeType.startsWith("audio/") -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                    else -> MediaStore.Downloads.EXTERNAL_CONTENT_URI // Fallback for non-media files
+                }
+
+                // Extract the relative path from the original mediaPath
+                val originalPath = item.mediaPath
+                val relativePath =
+                    getRelativePath(originalPath) // Custom function to compute relative path
+
+                val values = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, destinationFile.name)
+                    put(
+                        MediaStore.MediaColumns.RELATIVE_PATH,
+                        relativePath
+                    ) // Use original directory
+                    put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+                    put(MediaStore.MediaColumns.IS_PENDING, 1) // Mark as pending
+                }
+
+                val uri = contentResolver.insert(collectionUri, values)
+                uri?.let {
+                    contentResolver.openOutputStream(it)?.use { outputStream ->
+                        sourceFile.inputStream()
+                            .use { inputStream -> inputStream.copyTo(outputStream) }
+                    }
+                    values.clear()
+                    values.put(MediaStore.MediaColumns.IS_PENDING, 0) // Mark as complete
+                    contentResolver.update(it, values, null, null)
+                } ?: run {
+                    Log.e("RestoreFile", "Failed to insert into MediaStore")
+                    return
+                }
+                sourceFile.delete() // Remove from recycle bin
+            }
+
+            // ✅ Remove from Room database
+            CoroutineScope(Dispatchers.IO).launch {
+                deleteMediaDao?.deleteMedia(item)
+            }
+
+            Log.d("RestoreFile", "File restored successfully: ${destinationFile.absolutePath}")
+        } catch (e: Exception) {
+            Log.e("RestoreFile", "Failed to restore file: ${e.message}")
+        }
+    }
+
+    private fun getRelativePath(fullPath: String): String {
+        val storageRoot = "/storage/emulated/0/"
+        return if (fullPath.startsWith(storageRoot)) {
+            val relative = fullPath.substringAfter(storageRoot)
+            val directory = relative.substringBeforeLast("/")
+            directory.ifEmpty { "DCIM" } // Fallback to DCIM if no directory
+        } else {
+            "DCIM" // Fallback if path doesn’t match expected structure
+        }
+    }
+
+    private fun getMimeType(file: File): String? {
+        return MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension.lowercase())
     }
 
     private fun applyStatusBarColor() {
@@ -222,10 +328,16 @@ class DeleteViewPagerActivity : BaseActivity() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
                 ("Delete onPageSelected: $position").log()
-                viewpagerselectedPosition = position
-                deleteselectedPosition = position
-                deleteMediaModel = imageList[position]
-                updateImageTitle(position)
+                try {
+                    if (imageList.isNotEmpty()) {
+                        viewpagerselectedPosition = position
+                        deleteselectedPosition = position
+                        deleteMediaModel = imageList[position]
+                        updateImageTitle(position)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         })
     }

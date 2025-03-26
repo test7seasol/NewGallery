@@ -1,6 +1,5 @@
 package com.gallery.photos.editpic.Fragment
 
-import com.gallery.photos.editpic.Dialogs.CreateNewFolderDialog
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK
@@ -25,6 +24,7 @@ import com.gallery.photos.editpic.Activity.AllPhotosActivity
 import com.gallery.photos.editpic.Activity.VideoViewPagerActivity
 import com.gallery.photos.editpic.Adapter.VideoAdapter
 import com.gallery.photos.editpic.Dialogs.AllFilesAccessDialog
+import com.gallery.photos.editpic.Dialogs.CreateNewFolderDialog
 import com.gallery.photos.editpic.Dialogs.DeleteWithRememberDialog
 import com.gallery.photos.editpic.Extensions.formatDate
 import com.gallery.photos.editpic.Extensions.gone
@@ -88,27 +88,34 @@ class AllVideosFragment : Fragment() {
                 Log.d("ActivityResult", "Result received successfully")
                 val selectedFiles = selectionArrayList
 
-//                selectedFiles.forEach {
-//                    it.log()
-//                }
+                if (selectedFiles.isEmpty()) {
+                    Log.e("CreateNewFolder", "No files selected for moving")
+                    return@registerForActivityResult
+                }
 
-                CreateNewFolderDialog(
-                    requireActivity(),
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).path,
-                    selectedFiles,
-                    isFromWhere = (data.extras?.getString("where")!!)
-                ) { newAlbumPath ->
+                try {
 
-                    Log.d("NewAlbum", "Created new album at $newAlbumPath")
-                    notifyGalleryRoot(
+                    CreateNewFolderDialog(
                         requireActivity(),
-                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).path
-                    )
-                    val fragmentB =
-                        parentFragmentManager.findFragmentByTag("FragmentBTag") as? AlbumFragment
-                    fragmentB?.refreshFolder()
+                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).path,
+                        selectedFiles,
+                        isFromWhere = (data.extras?.getString("where")!!)
+                    ) { newAlbumPath ->
 
-                    ("Album created successfully").tos(requireActivity())
+                        Log.d("NewAlbum", "Created new album at $newAlbumPath")
+                        notifyGalleryRoot(
+                            requireActivity(),
+                            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).path
+                        )
+                        val fragmentB =
+                            parentFragmentManager.findFragmentByTag("FragmentBTag") as? AlbumFragment
+                        fragmentB?.refreshFolder()
+
+                        ("Album created successfully").tos(requireActivity())
+                    }
+                } catch (e: Exception) {
+                    Log.e("CreateNewFolder", "Error creating folder dialog", e)
+                    "Failed to create folder".tos(requireActivity())
                 }
             } else {
                 Log.d("ActivityResult", "Result canceled or failed")
@@ -294,6 +301,7 @@ class AllVideosFragment : Fragment() {
                 val pictureBottom = PicturesBottomPopup(requireActivity(), true) {
                     when (it) {
                         "deselectall" -> {
+                            try {
                             videoAdapter.unselectAllItems()
                             binding.selectedcontainerVideo.gone()
                             requireActivity().findViewById<RelativeLayout>(R.id.mainTopTabsContainer)
@@ -301,6 +309,9 @@ class AllVideosFragment : Fragment() {
 //                            binding.ivSearch.visible()
                             binding.menuDot.visible()
                             binding.tvTitalVideo.text = getString(R.string.videos)
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
                         }
 
                         "selectallid" -> {

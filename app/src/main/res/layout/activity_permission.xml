@@ -89,7 +89,7 @@
             android:layout_marginHorizontal="@dimen/_5sdp"
             android:layout_marginVertical="@dimen/_15sdp">
 
-            <com.google.android.material.card.MaterialCardView
+            <androidx.cardview.widget.CardView
                 android:id="@+id/btnGrant"
                 style="@style/Widget.Material3.CardView.Filled"
                 android:layout_width="match_parent"
@@ -108,7 +108,7 @@
                     android:textColor="@color/white"
                     android:textSize="@dimen/_16sdp" />
 
-            </com.google.android.material.card.MaterialCardView>
+            </androidx.cardview.widget.CardView>
 
             <View
                 android:id="@+id/shine"

@@ -73,11 +73,11 @@ public class CGEImageHandler {
     }
 
     public void setFilterWithConfig(String str) {
-        nativeSetFilterWithConfig(this.mNativeAddress, str, true, true);
-    }
-
-    public void setFilterWithConfig(String str, boolean z, boolean z2) {
-        nativeSetFilterWithConfig(this.mNativeAddress, str, z, z2);
+        try {
+            nativeSetFilterWithConfig(this.mNativeAddress, str, true, true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void setFilterIntensity(float f) {
