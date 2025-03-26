@@ -308,6 +308,11 @@ public class SplashActivity extends BaseActivity implements SeekBar.OnSeekBarCha
     }
 
     public Bitmap grayScaleBitmap(Bitmap bitmap) {
+        if (bitmap == null) {
+            // Handle the null case gracefully, e.g., return null or a default bitmap
+            return null; // Or throw an exception if that's preferred
+        }
+
         Bitmap createBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_4444);
         Canvas canvas = new Canvas(createBitmap);
         Paint paint = new Paint();
@@ -317,6 +322,7 @@ public class SplashActivity extends BaseActivity implements SeekBar.OnSeekBarCha
         canvas.drawBitmap(bitmap, 0.0f, 0.0f, paint);
         return createBitmap;
     }
+
 
     @Override // android.widget.SeekBar.OnSeekBarChangeListener
     public void onProgressChanged(SeekBar seekBar, int i, boolean z) {

@@ -28,6 +28,7 @@ import com.gallery.photos.editpic.Extensions.PREF_LANGUAGE_CODE
 import com.gallery.photos.editpic.Extensions.gone
 import com.gallery.photos.editpic.Extensions.handleBackPress
 import com.gallery.photos.editpic.Extensions.hasAllFilesAccessAs
+import com.gallery.photos.editpic.Extensions.invisible
 import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.name.getMediaDatabase
 import com.gallery.photos.editpic.Extensions.notifyGalleryRoot
@@ -72,8 +73,10 @@ class PictureActivity : AppCompatActivity() {
         ("is Visisble: $isVisible").log()
         if (isVisible) {
             binding.picturesselectedcontainerid.visible()
+            binding.moreMenu.gone()
         } else {
             binding.picturesselectedcontainerid.gone()
+            binding.moreMenu.visible()
         }
     }
 
@@ -128,13 +131,17 @@ class PictureActivity : AppCompatActivity() {
                 pictureAdapter!!.disableSelectionMode()
             }
         }
+
         pictureAdapter = PictureAdapter(this) {
+            ("Picture Adapter: $it").log()
             if (it) {
                 binding.picturesselectedcontainerid.visible()
+                binding.moreMenu.gone()
             } else {
                 binding.tvAlbumName.text =
                     intent.getStringExtra("folderName") ?: getString(R.string.photos)
                 binding.picturesselectedcontainerid.gone()
+                binding.moreMenu.visible()
             }
         }
 
@@ -167,17 +174,21 @@ class PictureActivity : AppCompatActivity() {
             }
 
             llMore.onClick {
-                val pictureBottom = PicturesBottomPopup(this@PictureActivity, true) {
+                val isSelectAll = (pictureAdapter!!.selectedItems.size != mediaListCheck.size)
+
+                val pictureBottom = PicturesBottomPopup(this@PictureActivity, isSelectAll) {
                     when (it) {
                         "deselectall" -> {
                             pictureAdapter!!.unselectAllItems()
                             binding.picturesselectedcontainerid.gone()
+                            binding.moreMenu.visible()
                             binding.tvAlbumName.text =
                                 intent.getStringExtra("folderName") ?: getString(R.string.photos)
                         }
 
                         "selectallid" -> {
                             binding.picturesselectedcontainerid.visible()
+                            binding.moreMenu.gone()
                             pictureAdapter!!.selectAllItems()
                         }
 
@@ -206,6 +217,7 @@ class PictureActivity : AppCompatActivity() {
                             binding.tvAlbumName.text =
                                 intent.getStringExtra("folderName") ?: getString(R.string.photos)
                             binding.picturesselectedcontainerid.gone()
+                            binding.moreMenu.visible()
                         }
 
                         "copytoid" -> {
@@ -233,6 +245,7 @@ class PictureActivity : AppCompatActivity() {
                             binding.tvAlbumName.text =
                                 intent.getStringExtra("folderName") ?: getString(R.string.photos)
                             binding.picturesselectedcontainerid.gone()
+                            binding.moreMenu.visible()
 
                         }
                     }
@@ -327,6 +340,7 @@ class PictureActivity : AppCompatActivity() {
                         }
 
                         "llSelectAll" -> {
+                            moreMenu.invisible()
                             pictureAdapter!!.selectAllItems()
                         }
                     }
@@ -558,6 +572,7 @@ class PictureActivity : AppCompatActivity() {
         }
 
         mediaViewModel.mediaLiveData.observe(this) { mediaList ->
+            mediaListCheck.clear()
             ("Picture Act Observer: ${mediaList.size}").log()
 
             if (mediaList.isEmpty()) finish()
@@ -565,9 +580,14 @@ class PictureActivity : AppCompatActivity() {
             mediaList.forEach { media ->
                 media.isFav = favouriteList.find { it.mediaId == media.mediaId }?.isFav == true
             }
+
+            mediaListCheck.addAll(mediaList)
+
             pictureAdapter!!.submitList(mediaList)
         }
     }
+
+    var mediaListCheck: ArrayList<MediaModel> = arrayListOf()
 
     private fun openViewPagerActivity(selectedMedia: MediaModel) {
         MediaStoreSingleton.imageList = ArrayList(pictureAdapter!!.currentList)

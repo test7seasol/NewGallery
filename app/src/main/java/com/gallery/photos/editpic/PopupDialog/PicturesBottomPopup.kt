@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import com.gallery.photos.editpic.Activity.AllFilePermissionActivity
 import com.gallery.photos.editpic.Dialogs.AllFilesAccessDialog
 import com.gallery.photos.editpic.Extensions.hasAllFilesAccessAs
+import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.onClick
 import com.gallery.photos.editpic.Extensions.startActivityWithBundle
 import com.gallery.photos.editpic.Extensions.tos
@@ -60,6 +61,7 @@ class PicturesBottomPopup(
 
         binding.apply {
 
+            ("Select Size: " + selectedSize).log()
             if (selectedSize) {
                 tvSelect.text = activity.getString(R.string.select_all)
             } else {

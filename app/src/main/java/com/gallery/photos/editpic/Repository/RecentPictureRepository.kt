@@ -253,7 +253,6 @@ class RecentPictureRepository(private val context: Context) {
             return@withContext mediaList
         }
 
-
     private suspend fun fetchMediaFromStoragecall(): List<MediaModel> = withContext(Dispatchers.IO) {
         val mediaList = mutableListOf<MediaModel>()
 

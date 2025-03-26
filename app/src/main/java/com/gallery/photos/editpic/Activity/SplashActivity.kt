@@ -8,6 +8,9 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
+import android.provider.Settings
 import android.provider.Settings.canDrawOverlays
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
@@ -28,144 +31,137 @@ import com.google.android.gms.ads.MobileAds
 class SplashActivity : AppCompatActivity() {
 
     private val binding by viewBinding(ActivitySplashBinding::inflate)
+    private val handler = Handler(Looper.getMainLooper())
+    private val splashDelay = 2000L // 2 seconds
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setLanguageCode(this, MyApplicationClass.getString(PREF_LANGUAGE_CODE)!!)
+        try {
+            // Set content view before super.onCreate to prevent window leaks
+            setContentView(binding.root)
+            super.onCreate(savedInstanceState)
 
-        setContentView(binding.root)
+            // Initialize language settings
+            setLanguageCode(this, MyApplicationClass.getString(PREF_LANGUAGE_CODE) ?: "en")
 
-        initializeMobileAdsSdk()
+            // Initialize default language if not set
+            if (MyApplicationClass.getString(PREF_LANGUAGE_CODE).isNullOrEmpty()) {
+                MyApplicationClass.putString(PREF_LANGUAGE_CODE, "en")
+            }
 
-        if (MyApplicationClass.getString(PREF_LANGUAGE_CODE)!!.isEmpty()) {
-            MyApplicationClass.putString(PREF_LANGUAGE_CODE, "en")
-        }
+            // Initialize ads
+            initializeMobileAdsSdk()
 
-        if (MyApplicationClass.getBoolean("ISAPPOPENONE") == false) {
-//        launchActivity()
-                onNextActivity()
-        } else {
-            onNextActivity()
+            // Start next activity with delay
+            handler.postDelayed({
+                if (!isFinishing && !isDestroyed) {
+                    launchAppropriateActivity()
+                }
+            }, splashDelay)
+
+        } catch (e: Exception) {
+            Log.e("SplashActivity", "Error in onCreate", e)
+            // Attempt to recover by immediately starting next activity
+            launchAppropriateActivity()
         }
     }
 
     private fun initializeMobileAdsSdk() {
-//        if (isMobileAdsInitializeCalled.getAndSet(true)) {
-//            return
-//        }
-        // Initialize the Mobile Ads SDK.
         try {
-            ctx.getData(
-                this@SplashActivity
-            )
-
+            ctx.getData(this)
             MobileAds.initialize(this) { initializationStatus ->
                 Log.d("SplashActivity", "Mobile Ads SDK initialized: $initializationStatus")
             }
         } catch (e: Exception) {
             Log.e("SplashActivity", "Failed to initialize Mobile Ads SDK", e)
-            // Optionally, track this failure or notify the user
-            // e.g., Toast.makeText(this, "Ad features unavailable", Toast.LENGTH_SHORT).show()
         }
-
     }
 
+    private fun launchAppropriateActivity() {
+        try {
+            MyApplicationClass.putBoolean("ISAPPOPENONE", true)
+            binding.progressid.beVisible()
 
-    private fun launchActivity() {
-        binding.progressid.beVisible()
-        if (MyApplicationClass.getBoolean("ISAPPOPENONE") == false) {
-            MyAppOpenManager.Strcheckad = "StrClosed"
-            MySplashAppOpenAds.SplashAppOpenShow(
-                this@SplashActivity
-            ) {
-                onNextActivity()
+            if (MyApplicationClass.getBoolean("ISAPPOPENONE") == false) {
+                MyAppOpenManager.Strcheckad = "StrClosed"
+                MySplashAppOpenAds.SplashAppOpenShow(this) {
+                    proceedToNextActivity()
+                }
+            } else {
+                proceedToNextActivity()
             }
-        } else {
-            binding.progressid.beGone()
-                onNextActivity()
+        } catch (e: Exception) {
+            Log.e("SplashActivity", "Error launching activity", e)
+            proceedToNextActivity() // Fallback
         }
+    }
+
+    private fun proceedToNextActivity() {
+        try {
+            if (!Settings.canDrawOverlays(this)) {
+                startActivitySafely(PermissionActivity::class.java)
+            } else {
+                when {
+                    !MyApplicationClass.getBoolean(ISONETIME)!! -> {
+                        startActivitySafely(LanguageAct::class.java)
+                    }
+                    hasAllRequiredPermissions() -> {
+                        startActivitySafely(MainActivity::class.java)
+                    }
+                    else -> {
+                        startActivitySafely(PermissionActivity::class.java)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("SplashActivity", "Error in proceedToNextActivity", e)
+            // Last resort recovery
+            restartApplication()
+        }
+    }
+
+    private fun startActivitySafely(activityClass: Class<*>) {
+        try {
+            val intent = Intent(this, activityClass)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            startActivity(intent)
+            finish()
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+        } catch (e: Exception) {
+            Log.e("SplashActivity", "Failed to start activity", e)
+            restartApplication()
+        }
+    }
+
+    private fun restartApplication() {
+        try {
+            val pm = packageManager
+            val intent = pm.getLaunchIntentForPackage(packageName)
+            intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            startActivity(intent)
+            finishAffinity()
+        } catch (e: Exception) {
+            Log.e("SplashActivity", "Failed to restart application", e)
+        }
+    }
+
+    private fun hasAllRequiredPermissions(): Boolean {
+        return canDrawOverlays(this) && hasMediaPermissions()
     }
 
     private fun hasAllFilesAccess(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             Environment.isExternalStorageManager()
         } else {
-            ContextCompat.checkSelfPermission(
-                this, READ_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(this, READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
         }
     }
-
-    /* private fun onNextActivity() {
-         MyApplicationClass.putBoolean("ISAPPOPENONE", true)
-         if (MyApplicationClass.getBoolean(ISONETIME) == false) {
-             startActivity(Intent(this, LanguageAct::class.java))
-             finish()
-         } else {
-             if (!Settings.canDrawOverlays(this)) {
-                 val intent = Intent(this, PermissionActivity::class.java)
-                 startActivity(intent)
-                 finish()
-             } else {
-                 if (hasAllFilesAccess()) {
-                     val intent = Intent(this, MainActivity::class.java)
-                     startActivity(intent)
-                     finish()
-                 } else {
-                    *//* val intent = Intent(this, MainActivity::class.java)
-                    startActivity(intent)
-                    finish()*//*
-                    val intent = Intent(this, AllFilePermissionActivity::class.java)
-                    startActivity(intent)
-                    finish()
-                }
-            }
-        }
-    }*/
-
-    private fun onNextActivity() {
-        MyApplicationClass.putBoolean("ISAPPOPENONE", true)
-
-        if (!canDrawOverlays(this)) {
-            startActivity(Intent(this, PermissionActivity::class.java))
-            finish()
-        } else {
-            if (canDrawOverlays(this) && MyApplicationClass.getBoolean(ISONETIME) == true) {
-                startActivity(Intent(this, MainActivity::class.java))
-                finish()
-            } else if (MyApplicationClass.getBoolean(ISONETIME) == false) {
-                startActivity(Intent(this, LanguageAct::class.java))
-                finish()
-            } else {
-                startActivity(Intent(this, PermissionActivity::class.java))
-                finish()
-            }
-        }
-    }
-
-    private fun requestMediaPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13+
-            requestPermissions(
-                arrayOf(
-                    Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO
-                ), 101
-            )
-        } else {
-            requestPermissions(
-                arrayOf(
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-                ), 101
-            )
-        }
-    }
-
 
     private fun hasMediaPermissions(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // Android 14+
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             ContextCompat.checkSelfPermission(
                 this, Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
             ) == PackageManager.PERMISSION_GRANTED
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13+
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             ContextCompat.checkSelfPermission(
                 this, Manifest.permission.READ_MEDIA_IMAGES
             ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
@@ -176,5 +172,11 @@ class SplashActivity : AppCompatActivity() {
                 this, Manifest.permission.READ_EXTERNAL_STORAGE
             ) == PackageManager.PERMISSION_GRANTED
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Clean up handlers to prevent memory leaks
+        handler.removeCallbacksAndMessages(null)
     }
 }

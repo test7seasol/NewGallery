@@ -117,6 +117,9 @@ class FavoriteAct : AppCompatActivity() {
             }
         }
 
+    var mediaListCheck: ArrayList<FavouriteMediaModel> = arrayListOf()
+
+
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -143,6 +146,7 @@ class FavoriteAct : AppCompatActivity() {
             // Update your RecyclerView adapter or UI
 
             favouriteList.clear()
+            mediaListCheck.clear()
 
             mediaList.forEach {
                 it.isSelect = false
@@ -153,6 +157,9 @@ class FavoriteAct : AppCompatActivity() {
                     mediaList
                 )
             )
+
+            mediaListCheck.addAll(mediaList)
+
 
             runOnUiThread {
                 if (favouriteList.isNotEmpty()) {
@@ -208,17 +215,19 @@ class FavoriteAct : AppCompatActivity() {
         bind.rvFavourite.scheduleLayoutAnimation()
 
         bind.apply {
+
             llMore.onClick {
-                val pictureBottom = FavouriteBottomPopup(this@FavoriteAct, true) {
+                val isSelectAll = (favadapter?.selectedItems?.size != favouriteList.size)
+
+                val pictureBottom = FavouriteBottomPopup(this@FavoriteAct, isSelectAll) {
                     when (it) {
 
-                        /*    "deselectall" -> {
+                        "deselectall" -> {
                                 favadapter!!.unselectAllItems()
                                 selectedcontainerFavouriteid.gone()
-                                searchiconid.visible()
                                 menuFav.visible()
                                 tvTitleFavourite.text = "Favourite"
-                            }*/
+                        }
 
                         "llUnFav" -> {
                             unFavSelectedList()
@@ -227,7 +236,6 @@ class FavoriteAct : AppCompatActivity() {
                         "selectallid" -> {
                             selectedcontainerFavouriteid.visible()
                             favadapter!!.selectAllItems()
-                            searchiconid.gone()
                             menuFav.gone()
                         }
 
@@ -255,7 +263,6 @@ class FavoriteAct : AppCompatActivity() {
 
                             favadapter!!.unselectAllItems()
                             selectedcontainerFavouriteid.gone()
-                            searchiconid.visible()
                             menuFav.visible()
                             tvTitleFavourite.text = getString(R.string.favorites)
                         }
@@ -284,7 +291,6 @@ class FavoriteAct : AppCompatActivity() {
 
                             favadapter!!.unselectAllItems()
                             selectedcontainerFavouriteid.gone()
-                            searchiconid.visible()
                             menuFav.visible()
                             tvTitleFavourite.text = getString(R.string.favorites)
                         }

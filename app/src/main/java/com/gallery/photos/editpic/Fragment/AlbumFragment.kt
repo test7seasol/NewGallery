@@ -5,6 +5,7 @@ import android.app.Activity.RESULT_OK
 import android.app.ProgressDialog
 import android.content.BroadcastReceiver
 import android.content.ContentUris
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -20,7 +21,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.RelativeLayout
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -43,6 +46,7 @@ import com.gallery.photos.editpic.Extensions.onClick
 import com.gallery.photos.editpic.Extensions.tos
 import com.gallery.photos.editpic.Extensions.visible
 import com.gallery.photos.editpic.Model.DeleteMediaModel
+import com.gallery.photos.editpic.Model.FolderModel
 import com.gallery.photos.editpic.Model.MediaModelItem
 import com.gallery.photos.editpic.PopupDialog.AlbumsBottomPopup
 import com.gallery.photos.editpic.PopupDialog.TopMenuAlbumsCustomPopup
@@ -56,6 +60,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
+import java.net.URLConnection
 
 class AlbumFragment : Fragment() {
 
@@ -81,24 +86,34 @@ class AlbumFragment : Fragment() {
     var activityResultLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
-
                 val data = result.data
                 val selectedlist = data?.extras?.getString("selectedlist")
-
                 val selectList = selectedlist!!.fromJSON<ArrayList<MediaModelItem>>()
 
+                // Check if folder already exists
+                val folderExists = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    // For Android 10+, check using MediaStore
+                    checkFolderExistsMediaStore(folderName)
+                } else {
+                    // For older versions, check using File API
+                    checkFolderExistsLegacy(folderName)
+                }
+
+                if (folderExists) {
+                    Toast.makeText(
+                        requireContext(),
+                        "Folder '$folderName' already exists",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@registerForActivityResult
+                }
 
                 movedialog = SMCopyMoveBottomSheetDialog(
                     requireActivity(), selectList.size.toString(), folderName
                 ) {
                     if (!hasAllFilesAccessAs(requireActivity())) {
                         (getString(R.string.all_files_access_required)).tos(requireActivity())
-                        AllFilesAccessDialog(requireActivity()) {
-
-                        }
-//                    startActivityWithBundle<AllFilePermissionActivity>(Bundle().apply {
-//                        putString("isFrom", "Activitys")
-//                    })
+                        AllFilesAccessDialog(requireActivity()) {}
                         return@SMCopyMoveBottomSheetDialog
                     }
 
@@ -107,20 +122,42 @@ class AlbumFragment : Fragment() {
                             copyFiles(selectList, "Copy", folderName)
                             movedialog.onDismissDialog()
                         }
-
                         "tvMove" -> {
                             copyFiles(selectList, "Move", folderName)
                             movedialog.onDismissDialog()
                         }
                     }
                 }
-                // Handle the result here
                 Log.d("ActivityResult", "Result received successfully: " + selectList.size)
-
             } else {
                 Log.d("ActivityResult", "Result canceled or failed")
             }
         }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun checkFolderExistsMediaStore(folderName: String): Boolean {
+        val collection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+        val projection = arrayOf(MediaStore.Images.Media.RELATIVE_PATH)
+        val selection = "${MediaStore.Images.Media.RELATIVE_PATH} = ?"
+        val selectionArgs = arrayOf("Pictures/$folderName/")
+
+        return requireActivity().contentResolver.query(
+            collection,
+            projection,
+            selection,
+            selectionArgs,
+            null
+        )?.use { cursor ->
+            cursor.count > 0
+        } ?: false
+    }
+
+    private fun checkFolderExistsLegacy(folderName: String): Boolean {
+        val picturesDir =
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+        val folder = File(picturesDir, folderName)
+        return folder.exists() && folder.isDirectory
+    }
 
 
     fun copyFiles(list: ArrayList<MediaModelItem>, fromWhere: String, folderName: String) {
@@ -128,40 +165,220 @@ class AlbumFragment : Fragment() {
 
         CoroutineScope(Dispatchers.IO).launch {
             var successCount = 0
+            val totalFiles = list.size
 
-            list.forEach { mediaItem ->
+            list.forEachIndexed { index, mediaItem ->
                 try {
-                    val sourceFile = File(mediaItem.path).takeIf { it.exists() } ?: run {
-                        Log.e("FileOperation", "Source file not found: ${mediaItem.path}")
-                        return@forEach
-                    }
-
-                    // Version-specific path handling
-                    val basePath = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        getFolderPathByBucketId(mediaItem.bucketId.toString())
+                    val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        copyFileAndroid10Plus(requireContext(), mediaItem, folderName, fromWhere)
                     } else {
-                        // Android 7-9 fallback - use more reliable method
-                        getLegacyFolderPath(mediaItem.bucketId.toString())
-                    } ?: (Environment.getExternalStorageDirectory().path + "/MyGalleryApp")
-
-                    val destinationFolder = File(basePath, folderName).apply {
-                        if (!exists() && !mkdirs()) {
-                            Log.e("FileOperation", "Failed to create folder: $absolutePath")
-                            return@forEach
-                        }
+                        copyFileLegacy(requireContext(), mediaItem, folderName, fromWhere)
                     }
 
-                    // Rest of your copy/move logic...
+                    if (result) successCount++
 
+                    withContext(Dispatchers.Main) {
+                        progressDialog?.setMessage("Processing ${index + 1}/$totalFiles")
+                    }
                 } catch (e: Exception) {
-                    Log.e("FileOperation", "Error processing ${mediaItem.path}", e)
+                    Log.e("FileCopy", "Error copying ${mediaItem.path}", e)
                 }
             }
 
             withContext(Dispatchers.Main) {
                 progressDialog?.dismiss()
-                // Update UI...
+                val message = when (fromWhere) {
+                    "Copy" -> "Copied $successCount/$totalFiles files to $folderName"
+                    "Move" -> "Moved $successCount/$totalFiles files to $folderName"
+                    else -> "Processed $successCount/$totalFiles files"
+                }
+                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+                mediaViewModel.refreshFolders()
             }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private suspend fun copyFileAndroid10Plus(
+        context: Context,
+        mediaItem: MediaModelItem,
+        folderName: String,
+        operation: String
+    ): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                val sourceFile =
+                    File(mediaItem.path).takeIf { it.exists() } ?: return@withContext false
+                val mimeType = getMimeType(sourceFile.path)
+
+                val collection = when {
+                    mimeType?.startsWith("video/") == true -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                    else -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                }
+
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, sourceFile.name)
+                    put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+                    put(
+                        MediaStore.MediaColumns.RELATIVE_PATH,
+                        "${Environment.DIRECTORY_PICTURES}/$folderName"
+                    )
+                    put(MediaStore.MediaColumns.IS_PENDING, 1)
+                }
+
+                val uri = context.contentResolver.insert(collection, contentValues)
+                    ?: return@withContext false
+
+                context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+                    sourceFile.inputStream().use { inputStream ->
+                        inputStream.copyTo(outputStream)
+                    }
+                }
+
+                contentValues.clear()
+                contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                context.contentResolver.update(uri, contentValues, null, null)
+
+                if (operation == "Move") {
+                    // For move operation, we need to delete the original file
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        // Android 11+ needs special handling
+                        try {
+                            // First try direct deletion (might work with MANAGE_EXTERNAL_STORAGE)
+                            val deleted = context.contentResolver.delete(
+                                ContentUris.withAppendedId(collection, mediaItem.bucketId),
+                                null,
+                                null
+                            ) > 0
+
+                            if (!deleted) {
+                                // Fallback to MediaStore delete request
+                                val pendingIntent = MediaStore.createDeleteRequest(
+                                    context.contentResolver,
+                                    listOf(
+                                        ContentUris.withAppendedId(
+                                            collection,
+                                            mediaItem.bucketId
+                                        )
+                                    )
+                                )
+                                requireActivity().startIntentSenderForResult(
+                                    pendingIntent.intentSender,
+                                    REQUEST_CODE_DELETE,
+                                    null,
+                                    0,
+                                    0,
+                                    0,
+                                    null
+                                )
+                                // Note: Actual deletion happens after user confirms
+                                return@withContext true
+                            }
+                        } catch (e: SecurityException) {
+                            Log.e("FileMove", "Permission denied, trying alternative approach", e)
+                            // Fallback to legacy method if permission denied
+                            if (sourceFile.delete()) {
+                                MediaScannerConnection.scanFile(
+                                    context,
+                                    arrayOf(sourceFile.path),
+                                    null,
+                                    null
+                                )
+                                return@withContext true
+                            }
+                            return@withContext false
+                        }
+                    } else {
+                        // Android 10 (Q)
+                        if (sourceFile.delete()) {
+                            MediaScannerConnection.scanFile(
+                                context,
+                                arrayOf(sourceFile.path),
+                                null,
+                                null
+                            )
+                            return@withContext true
+                        }
+                        return@withContext false
+                    }
+                }
+
+                return@withContext true
+            } catch (e: Exception) {
+                Log.e("FileCopy", "Android 10+ $operation failed", e)
+                false
+            }
+        }
+    }
+
+    private fun copyFileLegacy(
+        context: Context,
+        mediaItem: MediaModelItem,
+        folderName: String,
+        operation: String
+    ): Boolean {
+        return try {
+            val sourceFile = File(mediaItem.path).takeIf { it.exists() } ?: return false
+            val picturesDir =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+            val destFolder = File(picturesDir, folderName).apply { mkdirs() }
+
+            if (!destFolder.exists()) return false
+
+            val destFile = File(destFolder, sourceFile.name)
+
+            if (operation == "Copy") {
+                sourceFile.copyTo(destFile, overwrite = true)
+            } else { // Move
+                if (!sourceFile.renameTo(destFile)) {
+                    // If rename fails, try copy + delete
+                    sourceFile.copyTo(destFile, overwrite = true)
+                    if (!sourceFile.delete()) {
+                        Log.e("FileMove", "Failed to delete source file after copy")
+                        return false
+                    }
+                }
+            }
+
+            // Notify media scanner for both copy and move operations
+            MediaScannerConnection.scanFile(
+                context,
+                arrayOf(destFile.absolutePath),
+                arrayOf(getMimeType(sourceFile.path)),
+                null
+            )
+
+            // For move operation, also notify about source file deletion
+            if (operation == "Move") {
+                MediaScannerConnection.scanFile(
+                    context,
+                    arrayOf(sourceFile.absolutePath),
+                    null,
+                    null
+                )
+            }
+
+            true
+        } catch (e: Exception) {
+            Log.e("FileCopy", "Legacy $operation failed", e)
+            false
+        }
+    }
+
+    companion object {
+        private const val REQUEST_CODE_DELETE = 1001  // For handling delete request result
+    }
+
+    private fun getMimeType(path: String): String? {
+        return when {
+            path.endsWith(".jpg", ignoreCase = true) -> "image/jpeg"
+            path.endsWith(".jpeg", ignoreCase = true) -> "image/jpeg"
+            path.endsWith(".png", ignoreCase = true) -> "image/png"
+            path.endsWith(".gif", ignoreCase = true) -> "image/gif"
+            path.endsWith(".mp4", ignoreCase = true) -> "video/mp4"
+            path.endsWith(".mkv", ignoreCase = true) -> "video/x-matroska"
+            path.endsWith(".webp", ignoreCase = true) -> "image/webp"
+            else -> URLConnection.guessContentTypeFromName(path) ?: "*/*"
         }
     }
 
@@ -387,8 +604,23 @@ class AlbumFragment : Fragment() {
 
         binding.apply {
             llMore.onClick {
-                val selectBottomview = AlbumsBottomPopup(requireActivity()) {
+                val isSelectAll = (folderAdapter?.selectedItems?.size != albumelist.size)
+
+                val selectBottomview = AlbumsBottomPopup(requireActivity(), isSelectAll) {
                     when (it) {
+                        "deselectall" -> {
+                            folderAdapter!!.unselectAllItems()
+                            binding.selectedcontaineralbumsid.gone()
+                            binding.createFolder.visible()
+                            binding.searchiconid.invisible()
+                            binding.menuthreeid.visible()
+
+                            if (folderAdapter!!.selectedItems.isEmpty()) {
+                                binding.createFolder.gone()
+                                binding.menuthreeid.gone()
+                                binding.selectedcontaineralbumsid.visible()
+                            }
+                        }
                         "selectallid" -> {
                             folderAdapter!!.selectAllItems()
                             binding.selectedcontaineralbumsid.visible()
@@ -407,6 +639,7 @@ class AlbumFragment : Fragment() {
                 selectBottomview.show(llMore, 0, 0)
             }
             menuthreeid.onClick {
+
                 val topAlbumDialog = TopMenuAlbumsCustomPopup(requireActivity()) {
                     folderAdapter!!.selectAllItems()
                     binding.selectedcontaineralbumsid.visible()
@@ -681,10 +914,14 @@ class AlbumFragment : Fragment() {
 
     fun observeFolders() {
         mediaViewModel.folderLiveData.observe(viewLifecycleOwner) { folders ->
+            albumelist.clear()
+            albumelist.addAll(folders)
             binding.recyclerViewAlbums.scrollToPosition(0)
             folderAdapter!!.submitList(folders)
         }
     }
+
+    var albumelist: ArrayList<FolderModel> = arrayListOf()
 
     override fun onDestroyView() {
         super.onDestroyView()

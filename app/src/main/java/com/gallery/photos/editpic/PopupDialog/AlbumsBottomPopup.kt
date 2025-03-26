@@ -9,11 +9,10 @@ import android.view.ViewGroup
 import com.gallery.photos.editpic.Extensions.onClick
 import com.gallery.photos.editpic.R
 import com.gallery.photos.editpic.databinding.AlbumsBottomPopupBinding
-import com.gallery.photos.editpic.databinding.PictureRecentBottomPopupBinding
 import com.labo.kaji.relativepopupwindow.RelativePopupWindow
 
 class AlbumsBottomPopup(
-    private val activity: Activity, var onClick: (String) -> Unit
+    private val activity: Activity, var isSelectAll: Boolean = false, var onClick: (String) -> Unit
 ) {
     private var popupWindow: RelativePopupWindow? = null
     var binding: AlbumsBottomPopupBinding =
@@ -55,7 +54,7 @@ class AlbumsBottomPopup(
 
         binding.apply {
 
-            if (true) {
+            if (isSelectAll) {
                 tvSelect.text = activity.getString(R.string.select_all)
             } else {
                 tvSelect.text = activity.getString(R.string.deselect_all)

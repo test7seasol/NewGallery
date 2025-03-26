@@ -464,27 +464,64 @@ public class SplashSquareView extends AppCompatImageView {
         return this.sticker;
     }
 
-    public Bitmap getBitmap(Bitmap bitmap) {
+    public Bitmap getBitmap(Bitmap originalBitmap) {
+        // Validate input bitmap
+        if (originalBitmap == null || originalBitmap.isRecycled()) {
+            return null;
+        }
+
         int width = getWidth();
         int height = getHeight();
-        Bitmap createBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(createBitmap);
-        Bitmap bitmap2 = this.bitmap;
-        RectF rectF = new RectF(0.0f, 0.0f, width, height);
-        canvas.drawBitmap(bitmap2, (Rect) null, rectF, (Paint) null);
-        if (this.cSplashMode == 0) {
-            drawStickers(canvas);
-        } else {
-            Iterator<BrushDrawingView.LinePath> it = this.linePathStack1.iterator();
-            while (it.hasNext()) {
-                BrushDrawingView.LinePath next = it.next();
-                canvas.drawPath(next.getDrawPath(), next.getDrawPaint());
+
+        // Create first bitmap and canvas
+        Bitmap resultBitmap = null;
+        Bitmap workingBitmap = null;
+        Bitmap overlayBitmap = null;
+        Canvas canvas = null;
+
+        try {
+            workingBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            canvas = new Canvas(workingBitmap);
+
+            // Draw the base bitmap if it exists and isn't recycled
+            if (this.bitmap != null && !this.bitmap.isRecycled()) {
+                RectF rectF = new RectF(0.0f, 0.0f, width, height);
+                canvas.drawBitmap(this.bitmap, null, rectF, null);
             }
+
+            // Draw additional elements based on mode
+            if (this.cSplashMode == 0) {
+                drawStickers(canvas);
+            } else {
+                for (BrushDrawingView.LinePath path : this.linePathStack1) {
+                    canvas.drawPath(path.getDrawPath(), path.getDrawPaint());
+                }
+            }
+
+            // Create final composite bitmap
+            overlayBitmap = Bitmap.createBitmap(originalBitmap.getWidth(), originalBitmap.getHeight(), Bitmap.Config.ARGB_8888);
+            Canvas finalCanvas = new Canvas(overlayBitmap);
+
+            // Draw original bitmap
+            finalCanvas.drawBitmap(originalBitmap, null,
+                    new RectF(0.0f, 0.0f, originalBitmap.getWidth(), originalBitmap.getHeight()), null);
+
+            // Draw working bitmap over it
+            finalCanvas.drawBitmap(workingBitmap, null,
+                    new RectF(0.0f, 0.0f, originalBitmap.getWidth(), originalBitmap.getHeight()), null);
+
+            resultBitmap = overlayBitmap;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            // Clean up temporary bitmaps
+            if (workingBitmap != null && workingBitmap != resultBitmap) {
+                workingBitmap.recycle();
+            }
+            // Don't recycle overlayBitmap as it's being returned
         }
-        Bitmap createBitmap2 = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
-        Canvas canvas2 = new Canvas(createBitmap2);
-        canvas2.drawBitmap(bitmap, (Rect) null, new RectF(0.0f, 0.0f, bitmap.getWidth(), bitmap.getHeight()), (Paint) null);
-        canvas2.drawBitmap(createBitmap, (Rect) null, new RectF(0.0f, 0.0f, bitmap.getWidth(), bitmap.getHeight()), (Paint) null);
-        return createBitmap2;
+
+        return resultBitmap;
     }
 }

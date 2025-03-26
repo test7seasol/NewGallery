@@ -93,7 +93,7 @@
             android:exported="false"
             android:resizeableActivity="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+            android:theme="@style/AppTheme.TransparentWindow" />
         <activity
             android:name=".Activity.AllPhotosActivity"
             android:configChanges="uiMode"
@@ -167,6 +167,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".Activity.PictureActivity"
             android:configChanges="uiMode"
@@ -265,7 +266,6 @@
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
 
-
         <activity
             android:name="com.karumi.dexter.DexterActivity"
             android:theme="@style/Dexter.Internal.Theme.Transparent" />
@@ -282,11 +282,9 @@
 
         <!--        Edit Modul All ACtivitys-->
 
-
         <uses-library
             android:name="org.apache.http.legacy"
             android:required="false" />
-
 
         <activity
             android:name=".ImageEDITModule.edit.activities.PortraitActivity"

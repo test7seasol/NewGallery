@@ -310,6 +310,8 @@ class DeleteViewPagerActivity : BaseActivity() {
     }
 
     private fun setupViewPager(imageList: ArrayList<DeleteMediaModel>, currentPosition: Int) {
+        try {
+
         if (imageList.isEmpty()) {
             finish() // Exit activity if no images left
             return
@@ -340,6 +342,10 @@ class DeleteViewPagerActivity : BaseActivity() {
                 }
             }
         })
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private fun updateImageTitle(position: Int) {

@@ -4,8 +4,10 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaScannerConnection;
 import android.os.Build;
 import android.os.Environment;
+import android.util.Log;
 
 import com.gallery.photos.editpic.R;
 
@@ -55,22 +57,49 @@ public class StoreManager {
     }
 
     public static void saveFile(Context context, Bitmap bitmap, String fileName) {
-        if (bitmap == null) return;
+        // Check if bitmap is null or already recycled
+        if (bitmap == null || bitmap.isRecycled()) {
+            Log.e("StoreManager", "Cannot save file - bitmap is null or recycled");
+            return;
+        }
 
         File directory = new File(getWorkspaceDirPath(context));
-        if (!directory.exists()) {
-            directory.mkdirs();
+        if (!directory.exists() && !directory.mkdirs()) {
+            Log.e("StoreManager", "Failed to create directory");
+            return;
         }
 
         File file = new File(directory, fileName);
-        try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
+        FileOutputStream fileOutputStream = null;
+
+        try {
+            fileOutputStream = new FileOutputStream(file);
+            if (!bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)) {
+                Log.e("StoreManager", "Bitmap compression failed");
+            }
             fileOutputStream.flush();
+
+            // Notify media scanner about the new file
+            MediaScannerConnection.scanFile(context,
+                    new String[]{file.getAbsolutePath()},
+                    null,
+                    null);
+
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e("StoreManager", "Error saving file: " + e.getMessage());
+            if (file.exists()) {
+                file.delete(); // Clean up partially written file
+            }
+        } finally {
+            try {
+                if (fileOutputStream != null) {
+                    fileOutputStream.close();
+                }
+            } catch (IOException e) {
+                Log.e("StoreManager", "Error closing stream: " + e.getMessage());
+            }
         }
     }
-
     public static void deleteFile(Context context, String fileName) {
         File file = new File(getWorkspaceDirPath(context) + File.separator + fileName);
         if (file.exists()) {

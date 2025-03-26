@@ -57,6 +57,7 @@ import java.util.Timer
 import java.util.TimerTask
 
 class ViewPagerActivity : BaseActivity() {
+    private var filePath: String? = ""
     private var timer: Timer? = null
     private val handler = Handler(Looper.getMainLooper())
     private var isRunning = false
@@ -280,30 +281,26 @@ class ViewPagerActivity : BaseActivity() {
                 }
             }
 
-            bottomActions.bottomEdit.onClick {
+            bottomActions.bottomEdit.setOnClickListener {
                 val mediaUriString = imageList[viewpagerselectedPosition].mediaPath
                 val mediaUri = fixMalformedUri(mediaUriString)
-                val filePath = getFilePathFromUri(this@ViewPagerActivity, mediaUri)
 
-                    if (filePath == null) {
-                        Log.e("FilePath", "Could not resolve file path from Uri: $mediaUri")
-                        Toast.makeText(
-                            this@ViewPagerActivity, "Unable to load image", Toast.LENGTH_SHORT
-                        ).show()
-                        return@onClick
-                    }
+                val filePath = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S) {
+                    resolveFilePath(this@ViewPagerActivity, mediaUri)
+                } else {
+                    mediaUriString
+                }
 
-                Log.d("FATZ", "Loading image from $mediaUri || $mediaUriString")
+                Log.d("FATZ", "Loading image from mediaUri: $mediaUri || filePath: $filePath")
 
-                val intent = Intent(this@ViewPagerActivity, PhotoEditorActivity::class.java)
-                intent.putExtra(
-                    PhotoPicker.KEY_SELECTED_PHOTOS,
-                     filePath
-                ) // Pass the file path
+
+
+                val intent = Intent(this@ViewPagerActivity, PhotoEditorActivity::class.java).apply {
+                    putExtra(PhotoPicker.KEY_SELECTED_PHOTOS, filePath)
+                }
                 startActivity(intent)
             }
         }
-
 
         //todo: onBackPress
         handleBackPress {
@@ -325,6 +322,53 @@ class ViewPagerActivity : BaseActivity() {
         }
 
     }
+
+    fun copyUriToCache(context: Context, uri: Uri): String? {
+        try {
+            val inputStream = context.contentResolver.openInputStream(uri) ?: return null
+            val file = File(context.cacheDir, "temp_image.jpg")
+            FileOutputStream(file).use { outputStream ->
+                inputStream.copyTo(outputStream)
+            }
+            return file.absolutePath
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return null
+    }
+
+
+    fun resolveFilePath(context: Context, uri: Uri): String? {
+        return when {
+            "file".equals(uri.scheme, ignoreCase = true) -> {
+                // Direct file path
+                uri.path
+            }
+
+            "content".equals(uri.scheme, ignoreCase = true) -> {
+                // Try resolving content URI to file path
+                getFilePathFromUri(context, uri) ?: copyFileToCache(context, uri)?.absolutePath
+            }
+
+            else -> null
+        }
+    }
+
+    fun copyFileToCache(context: Context, uri: Uri): File? {
+        val file = File(context.cacheDir, "temp_${System.currentTimeMillis()}.jpg")
+        return try {
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                FileOutputStream(file).use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            }
+            file
+        } catch (e: Exception) {
+            Log.e("FileCopy", "Error copying file to cache", e)
+            null
+        }
+    }
+
 
     fun renameFileToHide(context: Context, originalFilePath: String): Boolean {
         val originalFile = File(originalFilePath)
@@ -442,37 +486,33 @@ class ViewPagerActivity : BaseActivity() {
     }
 
     fun getFilePathFromUri(context: Context, uri: Uri): String? {
-        when (uri.scheme) {
-            "content" -> {
-                // Query MediaStore for the file path
-                val projection = arrayOf(MediaStore.Images.Media.DATA)
-                context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
-                    if (cursor.moveToFirst()) {
-                        val columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
-                        return cursor.getString(columnIndex)
+        Log.d("FATZ", "Resolving file path for URI: $uri")
+
+        return when {
+            uri.scheme.equals("content", ignoreCase = true) -> {
+                val cursor = context.contentResolver.query(
+                    uri,
+                    arrayOf(MediaStore.Images.Media.DATA),
+                    null,
+                    null,
+                    null
+                )
+                cursor?.use {
+                    if (it.moveToFirst()) {
+                        val columnIndex = it.getColumnIndex(MediaStore.Images.Media.DATA)
+                        if (columnIndex != -1) {
+                            return it.getString(columnIndex)
+                        }
                     }
                 }
+                null
             }
 
-            "file" -> {
-                // Directly use the file path from the Uri
-                return uri.path
+            uri.scheme.equals("file", ignoreCase = true) -> {
+                uri.path
             }
-        }
 
-        // Fallback: Copy to a temp file if direct path isn’t available
-        return try {
-            val inputStream = context.contentResolver.openInputStream(uri)
-            val tempFile = File.createTempFile("temp_image", ".jpg", context.cacheDir)
-            inputStream?.use { input ->
-                tempFile.outputStream().use { output ->
-                    input.copyTo(output)
-                }
-            }
-            tempFile.absolutePath
-        } catch (e: Exception) {
-            Log.e("FilePath", "Failed to get path from Uri: $uri", e)
-            null
+            else -> null
         }
     }
 
@@ -909,6 +949,7 @@ class ViewPagerActivity : BaseActivity() {
         binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
+                try {
                 if (imageList.isNotEmpty()) {
                     viewpagerselectedPosition = position
                     imageList[position].apply {
@@ -932,6 +973,9 @@ class ViewPagerActivity : BaseActivity() {
                         favouriteMediaModel!!.isFav = isFav
                     }
                     updateImageTitle(position)
+                }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             }
         })

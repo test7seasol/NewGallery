@@ -31,7 +31,7 @@ import java.util.Date
 import java.util.Locale
 
 
-val DATE_LIMIT = 1000
+val DATE_LIMIT = 10000000
 var FOLDER_MAKER_NAME = ""
 
 var PIN_LOCK = "PIN_LOCK"

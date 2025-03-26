@@ -39,6 +39,8 @@ import com.gallery.photos.editpic.Extensions.tos
 import com.gallery.photos.editpic.Extensions.visible
 import com.gallery.photos.editpic.Model.DeleteMediaModel
 import com.gallery.photos.editpic.Model.FavouriteMediaModel
+import com.gallery.photos.editpic.Model.MediaModel
+import com.gallery.photos.editpic.Model.VideoModel
 import com.gallery.photos.editpic.PopupDialog.PicturesBottomPopup
 import com.gallery.photos.editpic.PopupDialog.TopMenuVideosCustomPopup
 import com.gallery.photos.editpic.R
@@ -298,7 +300,9 @@ class AllVideosFragment : Fragment() {
             }
 
             llMore.onClick {
-                val pictureBottom = PicturesBottomPopup(requireActivity(), true) {
+                val isSelectAll = (videoAdapter?.selectedItems?.size != mediaListCheck.size)
+
+                val pictureBottom = PicturesBottomPopup(requireActivity(), isSelectAll) {
                     when (it) {
                         "deselectall" -> {
                             try {
@@ -462,6 +466,7 @@ class AllVideosFragment : Fragment() {
         }
 
         viewModel.videosLiveData.observe(viewLifecycleOwner) { videos ->
+            mediaListCheck.clear()
             if (videos.isEmpty()) {
                 binding.tvDataNotFound.visible()
                 binding.recyclerViewVideos.gone()
@@ -475,8 +480,11 @@ class AllVideosFragment : Fragment() {
             videos.forEach { media ->
                 media.isFav = favouriteList.find { it.mediaId == media.videoId }?.isFav == true
             }
+            mediaListCheck.addAll(videos)
 
             videoAdapter.submitList(videos)
         }
     }
+    var mediaListCheck: ArrayList<VideoModel> = arrayListOf()
+
 }

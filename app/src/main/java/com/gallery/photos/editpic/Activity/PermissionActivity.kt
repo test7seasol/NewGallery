@@ -9,6 +9,8 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.view.animation.Animation
@@ -27,12 +29,12 @@ import com.gallery.photos.editpic.callendservice.overlayscreen.XiomiGuideActivit
 import com.gallery.photos.editpic.databinding.ActivityPermissionBinding
 import com.gallery.photos.editpic.myadsworld.MyAllAdCommonClass
 import com.gallery.photos.editpic.myadsworld.MyAppOpenManager
-import java.util.Timer
-import java.util.TimerTask
 
 class PermissionActivity : AppCompatActivity() {
 
     lateinit var binding: ActivityPermissionBinding
+    private val handler = Handler(Looper.getMainLooper())
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityPermissionBinding.inflate(layoutInflater)
@@ -52,10 +54,8 @@ class PermissionActivity : AppCompatActivity() {
                     askOverlayPermission()
                 } else {
                     if (shouldShowRequestPermissionRationale(Manifest.permission.READ_PHONE_STATE)) {
-                        // Show rationale and ask again
                         showPermissionRationaleDialog()
                     } else {
-                        // Permission denied twice, open settings
                         openAppSettings()
                     }
                 }
@@ -64,7 +64,6 @@ class PermissionActivity : AppCompatActivity() {
         binding.btnGrant.setOnClickListener {
             readPhoneStatePermissionLauncher?.launch(Manifest.permission.READ_PHONE_STATE)
         }
-
     }
 
     private var readPhoneStatePermissionLauncher: ActivityResultLauncher<String>? = null
@@ -73,19 +72,17 @@ class PermissionActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             when {
                 ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED -> {
-                    askOverlayPermission()  // If permission is granted, proceed
+                    askOverlayPermission()
                 }
                 shouldShowRequestPermissionRationale(Manifest.permission.READ_PHONE_STATE) -> {
-                    // Show rationale dialog before requesting again
                     showPermissionRationaleDialog()
                 }
                 else -> {
-                    // If permission is permanently denied (denied twice), open App Settings
                     openAppSettings()
                 }
             }
         } else {
-            askOverlayPermission()  // No need to ask on lower Android versions
+            askOverlayPermission()
         }
     }
 
@@ -98,7 +95,6 @@ class PermissionActivity : AppCompatActivity() {
         startActivity(intent)
         Toast.makeText(this, "Enable permission from Settings", Toast.LENGTH_LONG).show()
     }
-
 
     private fun showPermissionRationaleDialog() {
         AlertDialog.Builder(this)
@@ -113,124 +109,92 @@ class PermissionActivity : AppCompatActivity() {
             .show()
     }
 
-
     private fun shineAnimation() {
-        // attach the animation layout Using AnimationUtils.loadAnimation
         val anim = AnimationUtils.loadAnimation(this, R.anim.left_right)
         binding.shine.startAnimation(anim)
-        // override three function There will error
-        // line below the object
-        // click on it and override three functions
         anim.setAnimationListener(object : Animation.AnimationListener {
-            // This function starts the
-            // animation again after it ends
             override fun onAnimationEnd(p0: Animation?) {
                 binding.shine.startAnimation(anim)
             }
 
             override fun onAnimationStart(p0: Animation?) {}
-
             override fun onAnimationRepeat(p0: Animation?) {}
-
         })
     }
 
     private var mPermissionForResult: ActivityResultLauncher<Intent>? = null
 
-    private var overlayPermissionTimer: Timer? = null
-
-    override fun onPause() {
-        super.onPause()
+    private val overlayPermissionRunnable = object : Runnable {
+        override fun run() {
+            ("Run Run ").log()
+            if (Settings.canDrawOverlays(this@PermissionActivity)) {
+                gonext()
+                handler.removeCallbacks(this) // Stop the check
+            } else {
+                handler.postDelayed(this, 1000) // Check again after 1 second
+            }
+        }
     }
-
 
     private fun askOverlayPermission() {
         MyAllAdCommonClass.isInterOpen = true
 
-        // Check if the app already has the overlay permission
         if (Settings.canDrawOverlays(this)) {
             gonext()
             return
         }
 
-        // Handle overlay permission based on Android version
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                // Android 10 (API 29) and above
-                try {
-                    val intent = Intent(
-                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                        Uri.parse("package:$packageName")
-                    )
-                    mPermissionForResult?.launch(intent)
-                } catch (e: Exception) {
-                    Log.e("TAG", "askOverlayPermission: ${e.message}")
-                    e.printStackTrace()
-                }
-            } else {
-                // Android 6.0 (API 23) to Android 9 (API 28)
-                try {
-                    val intent = Intent(
-                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                        Uri.parse("package:$packageName")
-                    )
-                    mPermissionForResult?.launch(intent)
-                } catch (e: Exception) {
-                    Log.e("TAG", "askOverlayPermission: ${e.message}")
-                    e.printStackTrace()
+            try {
+                val intent = Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:$packageName")
+                )
+                mPermissionForResult?.launch(intent)
+                startActivityWithBundle<MyTranslucentActivity>()
+            } catch (e: Exception) {
+                Log.e("TAG", "askOverlayPermission: ${e.message}")
+                e.printStackTrace()
+                runOnUiThread {
+                    Toast.makeText(this, "Failed to request overlay permission", Toast.LENGTH_SHORT).show()
                 }
             }
-            startActivityWithBundle<MyTranslucentActivity>()
         } else {
-            // Android 5.1 (API 22) and below - No need to request overlay permission
             gonext()
         }
 
-        // Start a TimerTask to periodically check if the permission is granted
-        overlayPermissionTimer = Timer()
-        overlayPermissionTimer?.schedule(object : TimerTask() {
-            override fun run() {
-                ("Run Run ").log()
-                if (Settings.canDrawOverlays(this@PermissionActivity)) {
-                    // Permission granted, navigate to the next screen
-                    runOnUiThread {
-                        gonext()
-                    }
-                    overlayPermissionTimer?.cancel() // Stop the timer
-                }
-            }
-        }, 0, 1000) // Check every 1 second
+        // Start periodic check on the main thread
+        handler.post(overlayPermissionRunnable)
     }
 
     private val launcherOpenSettingPopUP =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (!Autostart.isAutoStartEnabled(this, true)) {
-                openMiAutoStartSettings(context = this)
+                openMiAutoStartSettings(this)
             }
         }
-
 
     private val launcher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (!Autostart.isAutoStartEnabled(this, true)) {
-                openMiAutoStartSettings(context = this)
+                openMiAutoStartSettings(this)
             }
-
         }
 
     fun openMiAutoStartSettings(context: Context) {
         try {
-            val intent = Intent()
-            intent.component = ComponentName(
-                "com.miui.securitycenter",
-                "com.miui.permcenter.autostart.AutoStartManagementActivity"
-            )
+            val intent = Intent().apply {
+                component = ComponentName(
+                    "com.miui.securitycenter",
+                    "com.miui.permcenter.autostart.AutoStartManagementActivity"
+                )
+            }
             launcher.launch(intent)
         } catch (e: Exception) {
             e.printStackTrace()
-            Toast.makeText(
-                context, "Auto Start settings not found on this device", Toast.LENGTH_SHORT
-            ).show()
+            runOnUiThread {
+                Toast.makeText(context, "Auto Start settings not found on this device", Toast.LENGTH_SHORT).show()
+            }
             gonext()
         }
     }
@@ -238,85 +202,69 @@ class PermissionActivity : AppCompatActivity() {
     private fun openXiaomiSettings() {
         MyAllAdCommonClass.isInterOpen = true
 
-//        MyAllAdCommonClass.isAppOpenshowornot = true
         try {
-            val intent = Intent("miui.intent.action.APP_PERM_EDITOR")
-            intent.setClassName(
-                "com.miui.securitycenter",
-                "com.miui.permcenter.permissions.PermissionsEditorActivity"
-            )
-            intent.putExtra("extra_pkgname", packageName)
-            launcherOpenSettingPopUP.launch(intent)
-        } catch (e: java.lang.Exception) {
-            val tagName: String = OverlayUtil.getTagName(this)
-            val sb =
-                StringBuilder("Error XIAOMI permissions com.miui.security center PermissionsEditorActivity: ")
-            e.printStackTrace()
-            Log.w(tagName, sb.append(Unit).toString())
-            try {
-                val intent2 = Intent("miui.intent.action.APP_PERM_EDITOR")
-                intent2.setClassName(
+            val intent = Intent("miui.intent.action.APP_PERM_EDITOR").apply {
+                setClassName(
                     "com.miui.securitycenter",
-                    "com.miui.permcenter.permissions.AppPermissionsEditorActivity"
+                    "com.miui.permcenter.permissions.PermissionsEditorActivity"
                 )
-                intent2.putExtra("extra_pkgname", packageName)
-                launcherOpenSettingPopUP.launch(intent2)
-            } catch (e2: java.lang.Exception) {
-                val tagName2: String = OverlayUtil.getTagName(this)
-                val sb2 =
-                    StringBuilder("Error XIAOMI permissions com.miui.security center AppPermissionsEditorActivity: ")
-                e2.printStackTrace()
-                Log.w(tagName2, sb2.append(Unit).toString())
-                try {
-                    val intent3 = Intent("miui.intent.action.APP_PERM_EDITOR")
-                    intent3.setClassName(
+                putExtra("extra_pkgname", packageName)
+            }
+            launcherOpenSettingPopUP.launch(intent)
+        } catch (e: Exception) {
+            val tagName = OverlayUtil.getTagName(this)
+            Log.w(tagName, "Error XIAOMI permissions PermissionsEditorActivity: ${e.message}")
+            e.printStackTrace()
+            try {
+                val intent2 = Intent("miui.intent.action.APP_PERM_EDITOR").apply {
+                    setClassName(
                         "com.miui.securitycenter",
-                        "com.miui.permcenter.permissions.PermissionAdditionalActivity"
+                        "com.miui.permcenter.permissions.AppPermissionsEditorActivity"
                     )
-                    intent3.putExtra("extra_pkgname", packageName)
+                    putExtra("extra_pkgname", packageName)
+                }
+                launcherOpenSettingPopUP.launch(intent2)
+            } catch (e2: Exception) {
+                Log.w(tagName, "Error XIAOMI permissions AppPermissionsEditorActivity: ${e2.message}")
+                e2.printStackTrace()
+                try {
+                    val intent3 = Intent("miui.intent.action.APP_PERM_EDITOR").apply {
+                        setClassName(
+                            "com.miui.securitycenter",
+                            "com.miui.permcenter.permissions.PermissionAdditionalActivity"
+                        )
+                        putExtra("extra_pkgname", packageName)
+                    }
                     launcherOpenSettingPopUP.launch(intent3)
-                } catch (e3: java.lang.Exception) {
-                    val tagName3: String = OverlayUtil.getTagName(this)
-                    val sb3 =
-                        StringBuilder("Error XIAOMI permissions com.miui.security center PermissionAdditionalActivity: ")
+                } catch (e3: Exception) {
+                    Log.w(tagName, "Error XIAOMI permissions PermissionAdditionalActivity: ${e3.message}")
                     e3.printStackTrace()
-                    Log.w(tagName3, sb3.append(Unit).toString())
                     try {
-                        val intent4 = Intent("android.settings.APPLICATION_DETAILS_SETTINGS")
-                        intent4.setData(Uri.parse("package:" + packageName))
+                        val intent4 = Intent("android.settings.APPLICATION_DETAILS_SETTINGS").apply {
+                            data = Uri.parse("package:$packageName")
+                        }
                         launcherOpenSettingPopUP.launch(intent4)
-                    } catch (e4: java.lang.Exception) {
-                        val tagName4: String = OverlayUtil.getTagName(this)
-                        val sb4 =
-                            StringBuilder("Error XIAOMI permissions ACTION_APPLICATION_DETAILS_SETTINGS: ")
+                    } catch (e4: Exception) {
+                        Log.w(tagName, "Error XIAOMI permissions ACTION_APPLICATION_DETAILS_SETTINGS: ${e4.message}")
                         e4.printStackTrace()
-                        Integer.valueOf(Log.w(tagName4, sb4.append(Unit).toString()))
                     }
                 }
             }
         }
 
-        Timer().schedule(object : TimerTask() {
-            override fun run() {
-                startActivity(
-                    Intent(
-                        this@PermissionActivity,
-                        XiomiGuideActivity::class.java
-                    ).setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                        .putExtra("autostart", getString(R.string.allow_overlay_access))
-                )
-            }
+        handler.postDelayed({
+            startActivity(
+                Intent(this@PermissionActivity, XiomiGuideActivity::class.java)
+                    .setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                    .putExtra("autostart", getString(R.string.allow_overlay_access))
+            )
         }, 100L)
     }
 
     override fun onResume() {
         super.onResume()
-
         if (OverlayUtil.isManufacturerXiaomi()) {
-            if (OverlayUtil.isBackgroundStartActivityPermissionGranted(this) && Autostart.isAutoStartEnabled(
-                    this, true
-                )
-            ) {
+            if (OverlayUtil.isBackgroundStartActivityPermissionGranted(this) && Autostart.isAutoStartEnabled(this, true)) {
                 gonext()
             }
         }
@@ -327,13 +275,16 @@ class PermissionActivity : AppCompatActivity() {
         MyAppOpenManager.appOpenAd = null
 
         startActivity(
-            Intent(
-                this@PermissionActivity, LanguageAct::class.java
-            ).apply {
+            Intent(this@PermissionActivity, LanguageAct::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            })
+            }
+        )
+    }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        handler.removeCallbacks(overlayPermissionRunnable) // Clean up to prevent leaks
     }
 }

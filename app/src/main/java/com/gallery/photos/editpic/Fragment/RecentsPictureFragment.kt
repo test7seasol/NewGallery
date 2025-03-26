@@ -313,7 +313,14 @@ class RecentsPictureFragment : Fragment() {
             }
 
             llMore.onClick {
-                val pictureBottom = PicturesBottomPopup(requireActivity(), true) {
+                val isSelectAll = (mediaAdapter.selectedItems.size != mediaList.size)
+
+                ("Clikc LL Motre: " + mediaAdapter.selectedItems.size + " | " + mediaList.size + " | " + (isSelectAll)).log()
+
+                val pictureBottom = PicturesBottomPopup(
+                    requireActivity(),
+                    isSelectAll
+                ) {
                     when (it) {
                         "llAddTohide" -> {
                             val progressDialog = ProgressDialog(requireActivity()).apply {

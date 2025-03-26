@@ -39,14 +39,15 @@ class RecentPictureViewModel(private val repository: RecentPictureRepository) : 
     val mediaLiveData: LiveData<List<MediaListItem>> = _mediaLiveData
 
     fun loadRecentMedia() {
-
         viewModelScope.launch(Dispatchers.IO) {
-            val mediaList =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) repository.getAllMediaBelo12(
-                    limit = DATE_LIMIT
-                ) else repository.getAllMediaAbove12(limit = DATE_LIMIT)
+            val initialMediaList =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    repository.getAllMediaAbove12(limit = DATE_LIMIT)
+                } else {
+                    repository.getAllMediaBelo12(limit = DATE_LIMIT)
+                }
 
-            val groupedMedia = mediaList.groupBy { it.displayDate }
+            val groupedMedia = initialMediaList.groupBy { it.displayDate }
             val finalList = mutableListOf<MediaListItem>()
 
             for ((date, mediaItems) in groupedMedia) {
@@ -56,12 +57,16 @@ class RecentPictureViewModel(private val repository: RecentPictureRepository) : 
 
             _mediaLiveData.postValue(finalList)
 
-           /* // Load remaining media in background (if more than 1000)
+            // ✅ Correct the function calls for remaining media
             val remainingMedia =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) repository.getAllMediaBelo12(
-                    limit = DATE_LIMIT
-                ) else repository.getAllMediaAbove12(limit = DATE_LIMIT)
-            val allMedia = mediaList + remainingMedia
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    repository.getAllMediaAbove12(limit = DATE_LIMIT, offset = DATE_LIMIT)
+                } else {
+                    repository.getAllMediaBelo12(limit = DATE_LIMIT, offset = DATE_LIMIT)
+                }
+
+            // Combine both lists without duplicates
+            val allMedia = (initialMediaList + remainingMedia).distinctBy { it.mediaId }
 
             val groupedAllMedia = allMedia.groupBy { it.displayDate }
             val finalAllList = mutableListOf<MediaListItem>()
@@ -70,7 +75,8 @@ class RecentPictureViewModel(private val repository: RecentPictureRepository) : 
                 finalAllList.add(MediaListItem.Header(date))
                 finalAllList.addAll(mediaItems.map { MediaListItem.Media(it) })
             }
-            _mediaLiveData.postValue(finalAllList)*/
+
+            _mediaLiveData.postValue(finalAllList)
         }
     }
 

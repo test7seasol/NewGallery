@@ -114,26 +114,20 @@ class FavouriteViewPagerActivity : BaseActivity() {
         binding.bottomActions.bottomEdit.onClick {
             val mediaUriString = imageListFavourite[viewpagerselectedPosition].mediaPath
             val mediaUri = fixMalformedUri(mediaUriString)
-            val filePath = getFilePathFromUri(this@FavouriteViewPagerActivity, mediaUri)
 
-            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
-                if (filePath == null) {
-                    Log.e("FilePath", "Could not resolve file path from Uri: $mediaUri")
-                    Toast.makeText(
-                        this@FavouriteViewPagerActivity, "Unable to load image", Toast.LENGTH_SHORT
-                    ).show()
-                    return@onClick
-                }
+            val filePath = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S) {
+                resolveFilePath(this@FavouriteViewPagerActivity, mediaUri)
+            } else {
+                mediaUriString
             }
 
-            Timber.tag("FilePath")
-                .d(filePath) // Should log something like /storage/emulated/0/DCIM/GPS Camera/4156165.jpg
+            Log.d("FATZ", "Loading image from mediaUri: $mediaUri || filePath: $filePath")
 
-            val intent = Intent(this@FavouriteViewPagerActivity, PhotoEditorActivity::class.java)
-            intent.putExtra(
-                PhotoPicker.KEY_SELECTED_PHOTOS,
-                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) filePath else mediaUriString
-            ) // Pass the file path
+
+
+            val intent = Intent(this@FavouriteViewPagerActivity, PhotoEditorActivity::class.java).apply {
+                putExtra(PhotoPicker.KEY_SELECTED_PHOTOS, filePath)
+            }
             startActivity(intent)
         }
 
@@ -292,6 +286,37 @@ class FavouriteViewPagerActivity : BaseActivity() {
             window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN // Hide status bar
             ("Slide start $secoundSlideShow sec").log()
             startTimerTask()
+        }
+    }
+
+    fun resolveFilePath(context: Context, uri: Uri): String? {
+        return when {
+            "file".equals(uri.scheme, ignoreCase = true) -> {
+                // Direct file path
+                uri.path
+            }
+
+            "content".equals(uri.scheme, ignoreCase = true) -> {
+                // Try resolving content URI to file path
+                getFilePathFromUri(context, uri) ?: copyFileToCache(context, uri)?.absolutePath
+            }
+
+            else -> null
+        }
+    }
+
+    fun copyFileToCache(context: Context, uri: Uri): File? {
+        val file = File(context.cacheDir, "temp_${System.currentTimeMillis()}.jpg")
+        return try {
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                FileOutputStream(file).use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            }
+            file
+        } catch (e: Exception) {
+            Log.e("FileCopy", "Error copying file to cache", e)
+            null
         }
     }
 

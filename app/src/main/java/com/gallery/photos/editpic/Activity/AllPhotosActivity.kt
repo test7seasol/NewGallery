@@ -2,13 +2,17 @@ package com.gallery.photos.editpic.Activity
 
 import android.annotation.SuppressLint
 import android.app.ProgressDialog
+import android.content.ContentUris
+import android.content.ContentValues
 import android.content.Intent
+import android.media.MediaScannerConnection
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.gallery.photos.editpic.Adapter.RvFolderAdapter
@@ -41,6 +45,7 @@ import java.util.Locale
 class AllPhotosActivity : AppCompatActivity() {
     lateinit var bind: ActivityAllimagesmediaBinding
     private var fromWhere = ""
+    private var selectedFolder: FolderModelItem? = null // Track selected folder
 
     private var mediaList: ArrayList<MediaModelItem> = arrayListOf()
     private var list: ArrayList<FolderModelItem> = arrayListOf()
@@ -73,7 +78,6 @@ class AllPhotosActivity : AppCompatActivity() {
             bind.rvItems.adapter?.notifyDataSetChanged()
         }
 
-
         handleBackPress {
             if (bind.rvItems.isVisible) {
                 bind.rvItems.gone()
@@ -83,28 +87,27 @@ class AllPhotosActivity : AppCompatActivity() {
             }
         }
 
-        val folderList = MediaServices.getAllMediaFolders(this)
+        val progressDialog = ProgressDialog(this).apply {
+            setMessage(getString(R.string.processing_files))
+            setCancelable(false)
+        }
 
+        val folderList = MediaServices.getAllMediaFolders(this)
         list.addAll(folderList)
 
         bind.apply {
-
             rvItems.gone()
             rvFiles.visible()
-
             rvSelectedItem.adapter = selectAdapter
 
             tvNoSelect.visibility = if (fromWhere == "CreateNew") View.VISIBLE else View.GONE
             tvFolderName.text = if (fromWhere == "CreateNew") "0/500" else "Select Files"
             cdBottom.visibility = if (fromWhere == "CreateNew") View.VISIBLE else View.GONE
-            rvSelectedItem.visibility =
-                if (fromWhere == "CreateNew") View.INVISIBLE else View.INVISIBLE
+            rvSelectedItem.visibility = if (fromWhere == "CreateNew") View.INVISIBLE else View.INVISIBLE
             tvFolderName.visibility = if (fromWhere == "CreateNew") View.VISIBLE else View.GONE
             tvCreate.text = if (fromWhere == "CreateNew") "Done" else "Create"
 
-            icBack.onClick {
-                onBackPressedDispatcher.onBackPressed()
-            }
+            icBack.onClick { onBackPressedDispatcher.onBackPressed() }
 
             tvImport.onClick {
                 setResult(RESULT_OK, Intent().putExtra("selectedlist", selectedList.toGson()))
@@ -114,13 +117,10 @@ class AllPhotosActivity : AppCompatActivity() {
             tvCreate.onClick {
                 if (fromWhere == "CreateNew") {
                     if (selectedList.isNotEmpty()) {
-                        setResult(
-                            RESULT_OK,
-                            Intent().putExtra("selectedlist", selectedList.toGson())
-                        )
+                        setResult(RESULT_OK, Intent().putExtra("selectedlist", selectedList.toGson()))
                         finish()
                     } else {
-                        "Please select a files".tos(this@AllPhotosActivity)
+                        "Please select files".tos(this@AllPhotosActivity)
                     }
                 } else {
                     if (!hasAllFilesAccessAs(this@AllPhotosActivity)) {
@@ -146,100 +146,72 @@ class AllPhotosActivity : AppCompatActivity() {
             ivDelete.onClick {
                 mediaList.forEach { it.isSelect = false }
                 selectedList.clear()
-
                 selectAdapter?.notifyDataSetChanged()
                 rvItems.adapter?.notifyDataSetChanged()
                 cdBottom.gone()
             }
 
-            val progressDialog = ProgressDialog(this@AllPhotosActivity).apply {
-                setMessage(getString(R.string.processing_files))
-                setCancelable(false)
-            }
-
-            rvFiles.adapter = RvFolderAdapter(this@AllPhotosActivity, list) { it ->
+            rvFiles.adapter = RvFolderAdapter(this@AllPhotosActivity, list) { folder ->
+                selectedFolder = folder
                 mediaList.clear()
 
                 if (fromWhere == "Move" || fromWhere == "Copy") {
                     if (!hasAllFilesAccessAs(this@AllPhotosActivity)) {
                         (getString(R.string.all_files_access_required)).tos(this@AllPhotosActivity)
-//                    activity.startActivityWithBundle<AllFilePermissionActivity>(Bundle().apply {
-//                        putString("isFrom", "Activitys")
-//                    })
-                        AllFilesAccessDialog(this@AllPhotosActivity) {
-
-                        }
+                        AllFilesAccessDialog(this@AllPhotosActivity) {}
                         return@RvFolderAdapter
                     }
 
-                    progressDialog.show() // Show loader
+                    progressDialog.show()
                     CoroutineScope(Dispatchers.IO).launch {
                         var successCount = 0
 
                         selectionArrayList.forEach { filePath ->
-                            val sourceFile = File(filePath)
-                            val destinationFolder = getFolderPathByBucketId(it.bucketId)
-
-                            if (destinationFolder != null) {
-                                val destinationDir = File(destinationFolder)
-                                if (!destinationDir.exists()) destinationDir.mkdirs() // Create directory if it doesn't exist
-
-                                val destinationFile = File(destinationDir, sourceFile.name)
-
-                                if (sourceFile.exists()) {
-                                    try {
-                                        // If the destination file exists, delete it to overwrite
-                                        if (destinationFile.exists()) destinationFile.delete()
-
-                                        val isSuccessful = when (fromWhere) {
-                                            "Move" -> moveFile(sourceFile, destinationFile)
-                                            "Copy" -> copyFile(sourceFile, destinationFile)
-                                            else -> false
-                                        }
-
-                                        if (isSuccessful) successCount++
-                                    } catch (e: Exception) {
-                                        Log.e(
-                                            "FileOperation",
-                                            "Error during file ${fromWhere.lowercase(Locale.getDefault())}: ${e.message}"
-                                        )
+                            try {
+                                val sourceFile = File(filePath)
+                                val destinationFolderPath = getFolderPathByBucketId(folder.bucketId)
+                                    ?: run {
+                                        Log.e("FileOperation", "Couldn't get destination folder path")
+                                        return@forEach
                                     }
-                                } else {
-                                    Log.e(
-                                        "FileOperation",
-                                        "Source file does not exist: ${sourceFile.path}"
-                                    )
+
+                                val destinationFolder = File(destinationFolderPath).apply {
+                                    if (!exists() && !mkdirs()) {
+                                        Log.e("FileOperation", "Failed to create destination folder")
+                                        return@forEach
+                                    }
                                 }
-                            } else {
-                                Log.e(
-                                    "FileOperation",
-                                    "Destination folder not found for bucket_id: ${it.bucketId}"
-                                )
+
+                                val destinationFile = File(destinationFolder, sourceFile.name)
+
+                                val result = when (fromWhere) {
+                                    "Copy" -> copyFileWithScopedStorage(sourceFile, destinationFile)
+                                    "Move" -> moveFileWithScopedStorage(sourceFile, destinationFile)
+                                    else -> false
+                                }
+
+                                if (result) {
+                                    successCount++
+                                    updateMediaStore(sourceFile, destinationFile, fromWhere == "Move")
+                                }
+                            } catch (e: Exception) {
+                                Log.e("FileOperation", "Error during file operation", e)
                             }
                         }
 
                         withContext(Dispatchers.Main) {
-                            progressDialog.dismiss() // Hide loader
-
-                            if (successCount == selectionArrayList.size) {
-                                "${successCount} files ${fromWhere.lowercase(Locale.getDefault())}d successfully".tos(
-                                    this@AllPhotosActivity
-                                )
-                            } else {
-                                "Some files failed to ${fromWhere.lowercase(Locale.getDefault())}".tos(
-                                    this@AllPhotosActivity
-                                )
+                            progressDialog.dismiss()
+                            showOperationResult(successCount, selectionArrayList.size)
+                            if (successCount > 0) {
+                                setResult(RESULT_OK)
+                                finish()
                             }
-
-                            setResult(RESULT_OK)
-                            finish() // Close the activity
                         }
                     }
                 } else {
                     rvItems.visible()
                     rvFiles.gone()
-                    mediaList =
-                        MediaServices.getMediaByBucketId(this@AllPhotosActivity, it.bucketId)
+                    mediaList = MediaServices.getMediaByBucketId(this@AllPhotosActivity, folder.bucketId)
 
                     mediaList.forEach {
                         selectedList.forEach { selected ->
@@ -256,12 +228,7 @@ class AllPhotosActivity : AppCompatActivity() {
                             rvSelectedItem.scrollToPosition(selectedList.size - 1)
                         } else selectedList.remove(it)
 
-                        if (selectedList.isEmpty()) {
-                            cdBottom.gone()
-                        } else {
-                            cdBottom.visible()
-                        }
-
+                        if (selectedList.isEmpty()) cdBottom.gone() else cdBottom.visible()
                         tvSelectedItems.text = "${selectedList.size} Selected"
                         tvFolderName.text = "${selectedList.size}/500"
                         rvItems.adapter?.notifyDataSetChanged()
@@ -272,30 +239,151 @@ class AllPhotosActivity : AppCompatActivity() {
         }
     }
 
-    fun copyFile(sourceFile: File, destinationFile: File): Boolean {
+    private fun copyFileWithScopedStorage(sourceFile: File, destinationFile: File): Boolean {
         return try {
-            sourceFile.inputStream().use { input ->
-                destinationFile.outputStream().use { output ->
-                    input.copyTo(output)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                // Use MediaStore API for Android 10+
+                val mimeType = getMimeType(sourceFile.path)
+                val collection = when {
+                    mimeType?.startsWith("video/") == true -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                    else -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
                 }
+
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, sourceFile.name)
+                    put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+                    put(MediaStore.MediaColumns.RELATIVE_PATH,
+                        "${Environment.DIRECTORY_PICTURES}/${File(destinationFile.parent).name}")
+                    put(MediaStore.MediaColumns.IS_PENDING, 1)
+                }
+
+                val uri = contentResolver.insert(collection, contentValues) ?: return false
+
+                contentResolver.openOutputStream(uri)?.use { outputStream ->
+                    sourceFile.inputStream().use { inputStream ->
+                        inputStream.copyTo(outputStream)
+                    }
+                }
+
+                contentValues.clear()
+                contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                contentResolver.update(uri, contentValues, null, null)
+                true
+            } else {
+                // Legacy file copy for Android 9 and below
+                sourceFile.inputStream().use { input ->
+                    destinationFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+                true
             }
-            true
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("FileOperation", "Copy failed", e)
             false
         }
     }
 
-    fun getFolderPathByBucketId(bucketId: String): String? {
-        Log.d("BucketDebug", "Searching for bucketId: $bucketId")
+    private fun moveFileWithScopedStorage(sourceFile: File, destinationFile: File): Boolean {
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                // First copy using scoped storage
+                if (copyFileWithScopedStorage(sourceFile, destinationFile)) {
+                    // Then delete original
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        val collection = when {
+                            getMimeType(sourceFile.path)?.startsWith("video/") == true ->
+                                MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                            else -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                        }
+                        contentResolver.delete(
+                            ContentUris.withAppendedId(collection, getMediaId(sourceFile)),
+                            null,
+                            null
+                        ) > 0
+                    } else {
+                        sourceFile.delete()
+                    }
+                } else false
+            } else {
+                // Legacy move operation for Android 9 and below
+                sourceFile.renameTo(destinationFile) || run {
+                    if (copyFileWithScopedStorage(sourceFile, destinationFile)) {
+                        sourceFile.delete()
+                    } else false
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("FileOperation", "Move failed", e)
+            false
+        }
+    }
 
-        // SAFELY define projection without referencing RELATIVE_PATH on pre-Q
+    private fun getMediaId(file: File): Long {
+        val projection = arrayOf(MediaStore.MediaColumns._ID)
+        val selection = "${MediaStore.MediaColumns.DATA} = ?"
+        val selectionArgs = arrayOf(file.absolutePath)
+
+        val uri = if (file.path.endsWith(".mp4")) {
+            MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+        } else {
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        }
+
+        return contentResolver.query(uri, projection, selection, selectionArgs, null)?.use { cursor ->
+            if (cursor.moveToFirst()) cursor.getLong(0) else -1L
+        } ?: -1L
+    }
+
+    private fun updateMediaStore(sourceFile: File, destinationFile: File, isMove: Boolean) {
+        MediaScannerConnection.scanFile(
+            this,
+            arrayOf(destinationFile.absolutePath),
+            null,
+            null
+        )
+        if (isMove) {
+            MediaScannerConnection.scanFile(
+                this,
+                arrayOf(sourceFile.absolutePath),
+                null,
+                null
+            )
+        }
+    }
+
+    private fun showOperationResult(successCount: Int, totalFiles: Int) {
+        val message = when {
+            successCount == totalFiles ->
+                "Successfully ${fromWhere.lowercase()}d all $successCount files"
+            successCount > 0 ->
+                "Successfully ${fromWhere.lowercase()}d $successCount of $totalFiles files"
+            else ->
+                "Failed to ${fromWhere.lowercase()} files"
+        }
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    }
+
+    private fun getMimeType(path: String): String? {
+        return when {
+            path.endsWith(".jpg", ignoreCase = true) -> "image/jpeg"
+            path.endsWith(".jpeg", ignoreCase = true) -> "image/jpeg"
+            path.endsWith(".png", ignoreCase = true) -> "image/png"
+            path.endsWith(".gif", ignoreCase = true) -> "image/gif"
+            path.endsWith(".mp4", ignoreCase = true) -> "video/mp4"
+            path.endsWith(".mkv", ignoreCase = true) -> "video/x-matroska"
+            path.endsWith(".webp", ignoreCase = true) -> "image/webp"
+            else -> null
+        }
+    }
+
+    @SuppressLint("Range")
+    fun getFolderPathByBucketId(bucketId: String): String? {
         val projection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // Use string literal for relative_path to avoid class loading issues
             arrayOf(
                 MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
                 MediaStore.Images.Media.DATA,
-                "relative_path"  // Avoid constant; use direct column name
+                MediaStore.Images.Media.RELATIVE_PATH
             )
         } else {
             arrayOf(
@@ -307,7 +395,7 @@ class AllPhotosActivity : AppCompatActivity() {
         val selection = "${MediaStore.Images.Media.BUCKET_ID} = ?"
         val selectionArgs = arrayOf(bucketId)
 
-        contentResolver.query(
+        return contentResolver.query(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
             projection,
             selection,
@@ -315,112 +403,18 @@ class AllPhotosActivity : AppCompatActivity() {
             null
         )?.use { cursor ->
             if (cursor.moveToFirst()) {
-                val bucketName = cursor.getString(
-                    cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME)
-                )
-                Log.d("BucketDebug", "Found folder: $bucketName")
-
-                return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                    // Pre-Q path: Use DATA column
-                    val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
-                    File(cursor.getString(dataColumn)).parent
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.RELATIVE_PATH))
+                        ?.let {
+                            Environment.getExternalStorageDirectory().path + "/" + it
+                        }?.removeSuffix("/")
+                        ?: cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA))
+                            ?.substringBeforeLast("/")
                 } else {
-                    // Post-Q path: Use string literal for column name
-                    val relativePathColumn = cursor.getColumnIndexOrThrow("relative_path")
-                    val fullPath = "${Environment.getExternalStorageDirectory()}/${
-                        cursor.getString(relativePathColumn)
-                    }".removeSuffix("/")
-                    Log.d("BucketDebug", "Resolved path: $fullPath")
-                    fullPath
+                    cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA))
+                        ?.substringBeforeLast("/")
                 }
-            } else {
-                Log.e("BucketDebug", "No folder found for bucketId: $bucketId")
-            }
-        }
-
-        return null
-    }
-
-//    fun getFolderPathByBucketId(bucketId: String): String? {
-//        Log.d("BucketDebug", "Searching for bucketId: $bucketId")
-//
-//        // Define projection based on Android version
-//        val projection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-//            arrayOf(
-//                MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
-//                MediaStore.Images.Media.DATA,
-//                MediaStore.Images.Media.RELATIVE_PATH
-//            )
-//        } else {
-//            arrayOf(
-//                MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
-//                MediaStore.Images.Media.DATA
-//            )
-//        }
-//
-//        val selection = "${MediaStore.Images.Media.BUCKET_ID} = ?"
-//        val selectionArgs = arrayOf(bucketId)
-//
-//        contentResolver.query(
-//            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-//            projection,
-//            selection,
-//            selectionArgs,
-//            null
-//        )?.use { cursor ->
-//            if (cursor.moveToFirst()) {
-//                val bucketName =
-//                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME))
-//                Log.d("BucketDebug", "Found folder: $bucketName")
-//
-//                return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-//                    // Pre-Q: Use DATA column to get parent directory
-//                    val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
-//                    File(cursor.getString(dataColumn)).parent
-//                } else {
-//                    // Q+: Use RELATIVE_PATH from projection
-//                    val relativePathColumn =
-//                        cursor.getColumnIndexOrThrow(MediaStore.Images.Media.RELATIVE_PATH)
-//                    val fullPath = "${Environment.getExternalStorageDirectory()}/${
-//                        cursor.getString(relativePathColumn)
-//                    }".removeSuffix("/")
-//                    Log.d("BucketDebug", "Resolved path: $fullPath")
-//                    fullPath
-//                }
-//            } else {
-//                Log.e("BucketDebug", "No folder found for bucketId: $bucketId")
-//            }
-//        }
-//
-//        return null
-//    }
-//    todo: below android 15 work
-//    fun getFolderPathByBucketId(bucketId: String): String? {
-//        val projection =
-//            arrayOf(MediaStore.Images.Media.BUCKET_DISPLAY_NAME, MediaStore.Images.Media.DATA)
-//        val selection = "${MediaStore.Images.Media.BUCKET_ID} = ?"
-//        val selectionArgs = arrayOf(bucketId)
-//
-//        contentResolver.query(
-//            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, selection, selectionArgs, null
-//        )?.use { cursor ->
-//            if (cursor.moveToFirst()) {
-//                val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
-//                val filePath = cursor.getString(dataColumn)
-//                return File(filePath).parent // Return the parent directory of the first matching file
-//            }
-//        }
-//        return null
-//    }
-
-    fun moveFile(sourceFile: File, destinationFile: File): Boolean {
-        return try {
-            sourceFile.copyTo(destinationFile, overwrite = true)
-            sourceFile.delete()
-            true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
+            } else null
         }
     }
 }

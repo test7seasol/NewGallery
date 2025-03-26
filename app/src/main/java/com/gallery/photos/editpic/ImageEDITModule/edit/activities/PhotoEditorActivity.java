@@ -1620,27 +1620,35 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
             PhotoEditorActivity.this.mLoading(true);
         }
 
-        @Override // android.os.AsyncTask
+        @Override
         protected Void doInBackground(Void... voids) {
             try {
                 // Get the current bitmap safely
                 Bitmap currentBitmap = PhotoEditorActivity.this.photo_editor_view.getCurrentBitmap();
-
-                // Check if bitmap exists and isn't recycled
                 if (currentBitmap == null || currentBitmap.isRecycled()) {
                     Log.e("PhotoEditor", "Current bitmap is null or recycled");
                     return null;
                 }
 
-                // Create a safe copy of the bitmap for processing
-                Bitmap safeBitmap = currentBitmap.copy(currentBitmap.getConfig(), true);
-                if (safeBitmap == null) {
-                    Log.e("PhotoEditor", "Failed to create bitmap copy");
+                // Create a synchronized copy of the bitmap to avoid race conditions
+                Bitmap safeBitmap;
+                synchronized (currentBitmap) {
+                    safeBitmap = currentBitmap.copy(currentBitmap.getConfig(), true);
+                }
+                if (safeBitmap == null || safeBitmap.isRecycled()) {
+                    Log.e("PhotoEditor", "Failed to create bitmap copy or copy is recycled");
                     return null;
                 }
 
                 // Create thumbnail from the safe copy
                 Bitmap thumbnail = ThumbnailUtils.extractThumbnail(safeBitmap, 100, 100);
+                if (thumbnail == null || thumbnail.isRecycled()) {
+                    Log.e("PhotoEditor", "Thumbnail creation failed or is recycled");
+                    if (!safeBitmap.isRecycled()) {
+                        safeBitmap.recycle();
+                    }
+                    return null;
+                }
 
                 // Process based on selected feature
                 switch (PhotoEditorActivity.this.selectedFeatures) {
@@ -1681,11 +1689,11 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
                         break;
                 }
 
-                // Clean up
+                // Clean up bitmaps only if they aren't already recycled
                 if (!safeBitmap.isRecycled()) {
                     safeBitmap.recycle();
                 }
-                if (thumbnail != null && !thumbnail.isRecycled()) {
+                if (!thumbnail.isRecycled()) {
                     thumbnail.recycle();
                 }
 
@@ -1694,6 +1702,7 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
             }
             return null;
         }
+
         @Override // android.os.AsyncTask
         public void onPostExecute(Void r9) {
 
@@ -2091,25 +2100,65 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
 
         @Override // android.os.AsyncTask
         public Bitmap doInBackground(String... strArr) {
+            Bitmap bitmap = null;
+            Bitmap rotateBitmap = null;
+            InputStream inputStream = null;
+
             try {
                 Uri fromFile = Uri.fromFile(new File(strArr[0]));
-                Bitmap bitmap = MediaStore.Images.Media.getBitmap(PhotoEditorActivity.this.getContentResolver(), fromFile);
+                inputStream = PhotoEditorActivity.this.getContentResolver().openInputStream(fromFile);
+
+                // Decode the bitmap
+                bitmap = MediaStore.Images.Media.getBitmap(PhotoEditorActivity.this.getContentResolver(), fromFile);
+
+                // Scale if needed
                 float width = bitmap.getWidth();
                 float height = bitmap.getHeight();
                 float max = Math.max(width / 1280.0f, height / 1280.0f);
+
                 if (max > 1.0f) {
-                    bitmap = Bitmap.createScaledBitmap(bitmap, (int) (width / max), (int) (height / max), false);
+                    Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, (int) (width / max), (int) (height / max), false);
+                    if (scaledBitmap != bitmap) {
+                        bitmap.recycle();
+                        bitmap = scaledBitmap;
+                    }
                 }
-                Bitmap rotateBitmap = SystemUtil.rotateBitmap(bitmap, new ExifInterface(PhotoEditorActivity.this.getContentResolver().openInputStream(fromFile)).getAttributeInt(ExifInterface.TAG_ORIENTATION, 1));
+
+                // Rotate the bitmap
+                inputStream = PhotoEditorActivity.this.getContentResolver().openInputStream(fromFile);
+                ExifInterface exif = new ExifInterface(inputStream);
+                int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+
+                rotateBitmap = SystemUtil.rotateBitmap(bitmap, orientation);
+
+                // Only recycle if we created a new rotated bitmap
                 if (rotateBitmap != bitmap) {
                     bitmap.recycle();
                 }
+
                 return rotateBitmap;
+
             } catch (Exception e) {
                 e.printStackTrace();
+                // Clean up if we had an error
+                if (bitmap != null && !bitmap.isRecycled()) {
+                    bitmap.recycle();
+                }
+                if (rotateBitmap != null && !rotateBitmap.isRecycled()) {
+                    rotateBitmap.recycle();
+                }
                 return null;
+            } finally {
+                try {
+                    if (inputStream != null) {
+                        inputStream.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
+
         @Override // android.os.AsyncTask
         public void onPostExecute(Bitmap bitmap) {
             if (bitmap == null || bitmap.isRecycled()) {

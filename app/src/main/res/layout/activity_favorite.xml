@@ -30,31 +30,17 @@
 
         <TextView
             android:id="@+id/tvTitleFavourite"
-            android:layout_width="wrap_content"
+            android:layout_width="315dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:layout_marginStart="@dimen/_10sdp"
             android:layout_weight="1"
             android:fontFamily="@font/sans_regular"
-            android:layout_marginStart="@dimen/_10sdp"
             android:gravity="start"
             android:text="@string/favorites"
             android:textColor="@color/black"
             android:textSize="@dimen/_18sdp" />
 
-        <androidx.constraintlayout.utils.widget.ImageFilterView
-            android:id="@+id/searchiconid"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginEnd="@dimen/_5sdp"
-            android:adjustViewBounds="true"
-            android:background="@drawable/samsungripple"
-            android:gravity="center"
-            android:padding="@dimen/_5sdp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/ic_search_vector"
-            android:tint="@color/black"
-            android:visibility="gone" />
 
         <androidx.constraintlayout.utils.widget.ImageFilterView
             android:id="@+id/menuFav"
