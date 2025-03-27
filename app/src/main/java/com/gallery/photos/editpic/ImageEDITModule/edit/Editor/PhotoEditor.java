@@ -33,6 +33,9 @@ public class PhotoEditor implements BrushViewChangeListener {
     public PhotoEditorView parentView;
     private List<View> redoViews;
 
+    public boolean isBrushDrawingMode() {
+        return brushDrawingView != null && brushDrawingView.isBrushDrawingMode();
+    }
     public interface OnSaveListener {
         void onFailure(Exception exc);
 

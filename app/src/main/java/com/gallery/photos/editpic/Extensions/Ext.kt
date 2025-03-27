@@ -205,7 +205,6 @@ fun Activity.onBackground(onNext: () -> Unit) {
     }
 }
 
-
 fun shareImageFromUrl(context: Context, imageUrl: String) {
     CoroutineScope(Dispatchers.IO).launch {
         try {

@@ -287,6 +287,10 @@ public class BrushDrawingView extends View {
         return true;
     }
 
+    public boolean isBrushDrawingMode() {
+        return mBrushDrawMode; // Assuming `isBrushDrawingMode` is a boolean field in BrushDrawingView
+    }
+
     public static class LinePath {
         private Paint mDrawPaint;
         private Path mDrawPath;

@@ -9,6 +9,7 @@ import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 
@@ -102,16 +103,41 @@ public class ScaleImage extends AppCompatImageView implements ScaleGestureDetect
     }
 
     private void setStartValues() {
-        this.startValues = new float[9];
-        new Matrix(getImageMatrix()).getValues(this.startValues);
-        float f = this.startValues[0];
-        this.calculatedMinScale = 1.0f * f;
-        this.calculatedMaxScale = f * 6.0f;
-        Drawable drawable = getDrawable();
-        if (drawable.getIntrinsicHeight() < drawable.getIntrinsicWidth()) {
-            this.sizeOfMinSide = drawable.getIntrinsicHeight();
-        } else {
-            this.sizeOfMinSide = drawable.getIntrinsicWidth();
+        try {
+            this.startValues = new float[9];
+            Matrix matrix = getImageMatrix();
+            if (matrix != null) {
+                matrix.getValues(this.startValues);
+                float f = this.startValues[0];
+                this.calculatedMinScale = 1.0f * f;
+                this.calculatedMaxScale = f * 6.0f;
+            } else {
+                // Default scale values if matrix is null
+                this.calculatedMinScale = 1.0f;
+                this.calculatedMaxScale = 6.0f;
+            }
+
+            Drawable drawable = getDrawable();
+            if (drawable != null) {
+                int height = drawable.getIntrinsicHeight();
+                int width = drawable.getIntrinsicWidth();
+
+                if (height > 0 && width > 0) { // Check for valid dimensions
+                    this.sizeOfMinSide = Math.min(height, width);
+                } else {
+                    // Use view dimensions if drawable dimensions are invalid
+                    this.sizeOfMinSide = Math.min(getWidth(), getHeight());
+                }
+            } else {
+                // Use view dimensions when drawable is null
+                this.sizeOfMinSide = Math.min(getWidth(), getHeight());
+            }
+        } catch (Exception e) {
+            Log.e("ScaleImage", "Error in setStartValues", e);
+            // Set safe default values
+            this.calculatedMinScale = 1.0f;
+            this.calculatedMaxScale = 6.0f;
+            this.sizeOfMinSide = Math.min(getWidth(), getHeight());
         }
     }
 

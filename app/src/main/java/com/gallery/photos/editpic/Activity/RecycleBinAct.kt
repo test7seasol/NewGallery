@@ -1,11 +1,16 @@
 package com.gallery.photos.editpic.Activity
 
+import android.annotation.SuppressLint
 import android.app.ProgressDialog
+import android.content.ContentResolver
 import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
+import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.view.View
@@ -36,6 +41,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.IOException
 
 class RecycleBinAct : AppCompatActivity() {
@@ -280,37 +286,6 @@ class RecycleBinAct : AppCompatActivity() {
         }
     }
 
-    fun restoreAllFilesFromRecycleBin(deleteList: List<DeleteMediaModel>) {
-        progressDialog.show()  // Show loader before starting the restore process
-
-        CoroutineScope(Dispatchers.Main).launch {
-            try {
-                withContext(Dispatchers.IO) {
-                    // Launch individual coroutines for each file restore and wait for all of them to complete
-                        async {
-                            restoreSelectedFilesFromRecycleBin(
-                                deleteList
-                            )
-                        }
-
-                    // Delete all records from the recycle bin table
-                    deleteMediaDao.deleteAllMedia()
-                }
-
-                // Update UI on the main thread after everything is done
-                progressDialog.dismiss()
-                ("${deleteList.size} files restored successfully").tos(this@RecycleBinAct)
-                setResult(RESULT_OK)
-                finish()  // Close the screen
-
-                Log.d("RestoreAllFiles", "All media records removed from the recycle bin table.")
-            } catch (e: Exception) {
-                progressDialog.dismiss()
-                Log.e("RestoreAllFiles", "Error while restoring files: ${e.message}")
-                "Failed to restore files".tos(this@RecycleBinAct)
-            }
-        }
-    }
 
     fun restoreSelectedFilesFromRecycleBin(
         selectedList: List<DeleteMediaModel>,
@@ -329,7 +304,7 @@ class RecycleBinAct : AppCompatActivity() {
                 withContext(Dispatchers.IO) {
                     selectedList.map { item ->
                         async {
-                            restoreSelectFileFromRecycleBin(item)
+                            restoreSelectFileFromRecycleBin(item, this@RecycleBinAct)
                         }
                     }.awaitAll()  // Wait until all files are restored
                 }
@@ -356,91 +331,434 @@ class RecycleBinAct : AppCompatActivity() {
     }
 
     // ✅ Handles different Android versions for restoring files
-    private fun restoreSelectFileFromRecycleBin(item: DeleteMediaModel) {
+    private fun restoreSelectFileFromRecycleBin(item: DeleteMediaModel, context: Context) {
         val sourceFile = File(item.binPath)
-        val destinationFile = File(item.mediaPath)
-
         if (!sourceFile.exists()) {
             Log.e("RestoreFile", "Source file not found: ${item.binPath}")
             return
         }
 
-        destinationFile.absolutePath.log()
+        try {
+            val contentResolver = context.contentResolver
+            val mimeType = getMimeType(context, sourceFile) ?: "application/octet-stream"
+
+            when {
+                item.mediaPath.startsWith("content://") -> {
+                    val originalUri = Uri.parse(item.mediaPath)
+
+                    // First verify if the original URI still exists and is writable
+                    if (isUriValidAndWritable(contentResolver, originalUri)) {
+                        try {
+                            restoreViaContentUri(context, sourceFile, originalUri, mimeType)
+                            return
+                        } catch (e: Exception) {
+                            Log.w("RestoreFile", "Failed to restore to original URI, falling back", e)
+                        }
+                    }
+
+                    // If original URI is invalid, create new entry in appropriate location
+                    Log.w("RestoreFile", "Original URI not found, creating new entry")
+                    val newUri = restoreViaMediaStore(
+                        context = context,
+                        sourceFile = sourceFile,
+                        displayName = sourceFile.name,
+                        mimeType = mimeType,
+                        preferredLocation = getPreferredLocationFromOriginalUri(context, originalUri, mimeType)
+                    )
+
+                    // Update database with new URI if needed
+                    CoroutineScope(Dispatchers.IO).launch {
+                        Log.w("RestoreFile", "Udpate Database")
+
+//                        deleteMediaDao.deleteMedia(deleteMediaModel)
+                    }
+                }
+
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !isLegacyStorageEnabled(context) -> {
+                    restoreViaMediaStore(context, sourceFile, sourceFile.name, mimeType)
+                }
+
+                else -> {
+                    // For file paths, try original path first, then fallback
+                    val destinationFile = File(item.mediaPath)
+                    if (destinationFile.parentFile?.exists() == true) {
+                        restoreViaFileSystem(sourceFile, destinationFile, context, mimeType)
+                    } else {
+                        // Fallback to standard location
+                        val fallbackPath = getFallbackPath(context, mimeType, sourceFile.name)
+                        restoreViaFileSystem(sourceFile, File(fallbackPath), context, mimeType)
+                    }
+                }
+            }
+
+            // Remove from database
+            CoroutineScope(Dispatchers.IO).launch {
+                deleteMediaDao.deleteMedia(item)
+            }
+
+        } catch (e: Exception) {
+            Log.e("RestoreFile", "Error restoring file: ${e.message}", e)
+            // Consider showing error to user
+        }
+    }
+
+    private fun isUriValidAndWritable(contentResolver: ContentResolver, uri: Uri): Boolean {
+        return try {
+            contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                cursor.count > 0
+            } ?: false
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private fun getPreferredLocationFromOriginalUri(context: Context, originalUri: Uri, mimeType: String): String? {
+        return try {
+            context.contentResolver.query(originalUri,
+                arrayOf(MediaStore.MediaColumns.RELATIVE_PATH),
+                null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    cursor.getString(0)
+                } else {
+                    getDefaultRelativePath(mimeType)
+                }
+            }
+        } catch (e: Exception) {
+            getDefaultRelativePath(mimeType)
+        }
+    }
+
+    private fun restoreViaMediaStore(
+        context: Context,
+        sourceFile: File,
+        displayName: String,
+        mimeType: String,
+        preferredLocation: String? = null
+    ): Uri {
+        val contentResolver = context.contentResolver
+        val collectionUri = getMediaCollectionUri(mimeType)
+
+        val values = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
+            put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+            put(MediaStore.MediaColumns.SIZE, sourceFile.length())
+            put(MediaStore.MediaColumns.DATE_MODIFIED, sourceFile.lastModified() / 1000)
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                put(MediaStore.MediaColumns.RELATIVE_PATH,
+                    preferredLocation ?: getDefaultRelativePath(mimeType))
+                put(MediaStore.MediaColumns.IS_PENDING, 1)
+            } else {
+                put(MediaStore.MediaColumns.DATA,
+                    preferredLocation?.let { "$it/$displayName" }
+                        ?: getFallbackPath(context, mimeType, displayName))
+            }
+        }
+
+        val uri = contentResolver.insert(collectionUri, values)
+            ?: throw IOException("Failed to create MediaStore entry")
 
         try {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                // ✅ Android 9 and below: Move file normally
-                val parentDir = destinationFile.parentFile
-                if (parentDir != null && !parentDir.exists()) {
-                    parentDir.mkdirs() // Create parent directories if they don’t exist
+            contentResolver.openOutputStream(uri)?.use { outputStream ->
+                sourceFile.inputStream().use { inputStream ->
+                    inputStream.copyTo(outputStream)
                 }
-                sourceFile.copyTo(destinationFile, overwrite = true)
-                sourceFile.delete() // Remove from recycle bin
+            } ?: throw IOException("Failed to open output stream")
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                values.clear()
+                values.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                contentResolver.update(uri, values, null, null)
             } else {
-                // ✅ Android 10+ (Scoped Storage): Use MediaStore API
-                val contentResolver = applicationContext.contentResolver
-                val mimeType = getMimeType(sourceFile) ?: "image/jpeg" // Default to image/jpeg
-
-                val collectionUri = when {
-                    mimeType.startsWith("image/") -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-                    mimeType.startsWith("video/") -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                    mimeType.startsWith("audio/") -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-                    else -> MediaStore.Downloads.EXTERNAL_CONTENT_URI // Fallback for non-media files
-                }
-
-                // Extract the relative path from the original mediaPath
-                val originalPath = item.mediaPath
-                val relativePath =
-                    getRelativePath(originalPath) // Custom function to compute relative path
-
-                val values = ContentValues().apply {
-                    put(MediaStore.MediaColumns.DISPLAY_NAME, destinationFile.name)
-                    put(
-                        MediaStore.MediaColumns.RELATIVE_PATH,
-                        relativePath
-                    ) // Use original directory
-                    put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
-                    put(MediaStore.MediaColumns.IS_PENDING, 1) // Mark as pending
-                }
-
-                val uri = contentResolver.insert(collectionUri, values)
-                uri?.let {
-                    contentResolver.openOutputStream(it)?.use { outputStream ->
-                        sourceFile.inputStream()
-                            .use { inputStream -> inputStream.copyTo(outputStream) }
-                    }
-                    values.clear()
-                    values.put(MediaStore.MediaColumns.IS_PENDING, 0) // Mark as complete
-                    contentResolver.update(it, values, null, null)
-                } ?: run {
-                    Log.e("RestoreFile", "Failed to insert into MediaStore")
-                    return
-                }
-                sourceFile.delete() // Remove from recycle bin
+                MediaScannerConnection.scanFile(
+                    context,
+                    arrayOf(getPathFromContentValues(values)),
+                    arrayOf(mimeType),
+                    null
+                )
             }
 
-            // ✅ Remove from Room database
-            CoroutineScope(Dispatchers.IO).launch {
-                deleteMediaDao?.deleteMedia(item)
+            if (!sourceFile.delete()) {
+                Log.w("RestoreFile", "Failed to delete source file")
             }
 
-            Log.d("RestoreFile", "File restored successfully: ${destinationFile.absolutePath}")
+            return uri
         } catch (e: Exception) {
-            Log.e("RestoreFile", "Failed to restore file: ${e.message}")
+            contentResolver.delete(uri, null, null)
+            throw IOException("Failed to write file content", e)
         }
     }
 
-    // Helper function to compute the relative path
-    private fun getRelativePath(fullPath: String): String {
-        val storageRoot = "/storage/emulated/0/"
-        return if (fullPath.startsWith(storageRoot)) {
-            val relative = fullPath.substringAfter(storageRoot)
-            val directory = relative.substringBeforeLast("/")
-            directory.ifEmpty { "DCIM" } // Fallback to DCIM if no directory
-        } else {
-            "DCIM" // Fallback if path doesn’t match expected structure
+    private fun getMediaCollectionUri(mimeType: String): Uri {
+        return when {
+            mimeType.startsWith("image/") -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                } else {
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                }
+            }
+            mimeType.startsWith("video/") -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                } else {
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                }
+            }
+            mimeType.startsWith("audio/") -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                } else {
+                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                }
+            }
+            else -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                } else {
+                    MediaStore.Files.getContentUri("external")
+                }
+            }
         }
     }
+
+    private fun restoreViaContentUri(context: Context, sourceFile: File, destinationUri: Uri, mimeType: String) {
+        try {
+            context.contentResolver.openOutputStream(destinationUri)?.use { outputStream ->
+                sourceFile.inputStream().use { inputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            } ?: throw IOException("Failed to open output stream")
+
+            if (!sourceFile.delete()) {
+                Log.w("RestoreFile", "Failed to delete source file")
+            }
+        } catch (e: FileNotFoundException) {
+            Log.w("RestoreFile", "Original URI not writable, creating new entry")
+            restoreViaMediaStore(context, sourceFile, sourceFile.name, mimeType)
+        } catch (e: Exception) {
+            Log.e("RestoreFile", "Error restoring via content URI", e)
+            throw e
+        }
+    }
+
+    private fun restoreViaFileSystem(sourceFile: File, destinationFile: File, context: Context, mimeType: String) {
+        try {
+            destinationFile.parentFile?.let { parent ->
+                if (!parent.exists() && !parent.mkdirs()) {
+                    throw IOException("Failed to create parent directory")
+                }
+            }
+
+            sourceFile.copyTo(destinationFile, overwrite = true)
+
+            if (!sourceFile.delete()) {
+                Log.w("RestoreFile", "Failed to delete source file")
+            }
+
+            MediaScannerConnection.scanFile(
+                context,
+                arrayOf(destinationFile.absolutePath),
+                arrayOf(mimeType),
+                null
+            )
+        } catch (e: Exception) {
+            Log.e("RestoreFile", "Error restoring via file system", e)
+            throw e
+        }
+    }
+
+    // Helper functions
+    private fun getFallbackPath(context: Context, mimeType: String, fileName: String): String {
+        val baseDir = when {
+            mimeType.startsWith("image/") -> Environment.DIRECTORY_PICTURES
+            mimeType.startsWith("video/") -> Environment.DIRECTORY_MOVIES
+            mimeType.startsWith("audio/") -> Environment.DIRECTORY_MUSIC
+            else -> Environment.DIRECTORY_DOWNLOADS
+        }
+        return File(context.getExternalFilesDir(baseDir), fileName).absolutePath
+    }
+
+    private fun getDefaultRelativePath(mimeType: String): String {
+        return when {
+            mimeType.startsWith("image/") -> Environment.DIRECTORY_PICTURES + "/Restored"
+            mimeType.startsWith("video/") -> Environment.DIRECTORY_MOVIES + "/Restored"
+            mimeType.startsWith("audio/") -> Environment.DIRECTORY_MUSIC + "/Restored"
+            else -> Environment.DIRECTORY_DOWNLOADS + "/Restored"
+        }
+    }
+
+    private fun getPathFromContentValues(values: ContentValues): String {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            Environment.getExternalStorageDirectory().absolutePath +
+                    "/${values.getAsString(MediaStore.MediaColumns.RELATIVE_PATH)}/" +
+                    values.getAsString(MediaStore.MediaColumns.DISPLAY_NAME)
+        } else {
+            values.getAsString(MediaStore.MediaColumns.DATA) ?: ""
+        }
+    }
+
+    private fun isLegacyStorageEnabled(context: Context): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Environment.isExternalStorageLegacy()
+        } else {
+            context.getSharedPreferences("storage_prefs", Context.MODE_PRIVATE)
+                .getBoolean("legacy_storage", false)
+        }
+    }
+
+
+
+
+    private fun restoreViaMediaStore(context: Context, sourceFile: File, originalPath: String?, mimeType: String): Uri {
+        val contentResolver = context.contentResolver
+
+        // 1. Determine the correct MediaStore collection URI based on Android version
+        val collectionUri = when {
+            mimeType.startsWith("image/") -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                } else {
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                }
+            }
+            mimeType.startsWith("video/") -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                } else {
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                }
+            }
+            mimeType.startsWith("audio/") -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                } else {
+                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                }
+            }
+            else -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                } else {
+                    MediaStore.Files.getContentUri("external")
+                }
+            }
+        }
+
+        // 2. Extract file information
+        val fileName = sourceFile.name
+        val relativePath = originalPath?.let { getRelativePath(it) } ?: getDefaultRelativePath(mimeType)
+
+        // 3. Prepare ContentValues with all required fields
+        val values = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+            put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+
+            // Only add RELATIVE_PATH for Android Q+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
+            } else {
+                // For older versions, we need to set the full path
+                val destinationPath = if (originalPath != null && File(originalPath).parentFile?.exists() == true) {
+                    originalPath
+                } else {
+                    getFallbackPath(context, mimeType, fileName)
+                }
+                put(MediaStore.MediaColumns.DATA, destinationPath)
+            }
+
+            put(MediaStore.MediaColumns.SIZE, sourceFile.length())
+            put(MediaStore.MediaColumns.DATE_MODIFIED, sourceFile.lastModified() / 1000)
+
+            // For Android Q+, use IS_PENDING
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                put(MediaStore.MediaColumns.IS_PENDING, 1)
+            }
+        }
+
+        // 4. Try to insert the MediaStore entry
+        val uri = contentResolver.insert(collectionUri, values)
+            ?: throw IOException("Failed to create MediaStore entry - insert returned null")
+
+        try {
+            // 5. Write the file content
+            contentResolver.openOutputStream(uri)?.use { outputStream ->
+                sourceFile.inputStream().use { inputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            } ?: throw IOException("Failed to open output stream for $uri")
+
+            // 6. For Android Q+, mark as not pending
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                values.clear()
+                values.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                contentResolver.update(uri, values, null, null)
+            }
+
+            // 7. Delete the source file from recycle bin
+            if (!sourceFile.delete()) {
+                Log.w("RestoreFile", "Failed to delete source file: ${sourceFile.absolutePath}")
+            }
+
+            // 8. For pre-Q, notify media scanner
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                MediaScannerConnection.scanFile(
+                    context,
+                    arrayOf(getPathFromContentValues(values)),
+                    arrayOf(mimeType),
+                    null
+                )
+            }
+
+            return uri
+        } catch (e: Exception) {
+            // Clean up if anything went wrong
+            contentResolver.delete(uri, null, null)
+            throw IOException("Failed to write file content: ${e.message}", e)
+        }
+    }
+
+
+
+    private fun getRelativePath(mediaPath: String): String {
+        return try {
+            val externalStoragePath = Environment.getExternalStorageDirectory().absolutePath
+            if (mediaPath.startsWith(externalStoragePath)) {
+                mediaPath.removePrefix("$externalStoragePath/").substringBeforeLast("/")
+            } else {
+                getDefaultRelativePathFromMime(mediaPath)
+            }
+        } catch (e: Exception) {
+            getDefaultRelativePathFromMime(mediaPath)
+        }
+    }
+
+    private fun getDefaultRelativePathFromMime(path: String): String {
+        val extension = path.substringAfterLast('.', "").lowercase()
+        return when (extension) {
+            "jpg", "jpeg", "png", "gif", "webp" -> Environment.DIRECTORY_PICTURES + "/Restored"
+            "mp4", "mkv", "mov", "avi" -> Environment.DIRECTORY_MOVIES + "/Restored"
+            "mp3", "wav", "ogg", "m4a" -> Environment.DIRECTORY_MUSIC + "/Restored"
+            else -> Environment.DIRECTORY_DOWNLOADS + "/Restored"
+        }
+    }
+
+    private fun getMimeType(context: Context, file: File): String? {
+        return try {
+            val extension = MimeTypeMap.getFileExtensionFromUrl(file.path)?.lowercase()
+            MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+                ?: context.contentResolver.getType(Uri.fromFile(file))
+                ?: "application/octet-stream"
+        } catch (e: Exception) {
+            "application/octet-stream"
+        }
+    }
+
+
+
+    // Restore using MediaStore by recreating the file
+    @SuppressLint("NewApi")
+
 
     // Helper function to get MIME type (unchanged, assuming you have it)
     private fun getMimeType(file: File): String? {
@@ -479,32 +797,6 @@ class RecycleBinAct : AppCompatActivity() {
             true
         } catch (e: IOException) {
             Log.e("RestoreFile", "IOException occurred: ${e.message}")
-            false
-        }
-    }
-
-    fun restoreSelectFileFromRecycleBin(
-        binFilePath: String, originalFilePath: String, mediaDateAdded: Long, item: DeleteMediaModel
-    ): Boolean {
-        val binFile = File(binFilePath)
-        if (!binFile.exists()) {
-            Log.e("RestoreFile", "Selected File does not exist in recycle bin: $binFilePath")
-            return false
-        }
-
-        val originalFile = File(originalFilePath)
-        return try {
-            binFile.copyTo(originalFile, overwrite = true)
-            originalFile.setLastModified(mediaDateAdded)
-            binFile.delete()
-            Log.d("RestoreFile", "Selected File restored to: ${originalFile.absolutePath}")
-            notifySystemGallery(originalFilePath)  // Notify system gallery
-            CoroutineScope(Dispatchers.IO).launch {
-                deleteMediaDao.getMediaById(item.mediaId)?.let { deleteMediaDao.deleteMedia(it) }
-            }
-            true
-        } catch (e: IOException) {
-            Log.e("RestoreFile", "Selected IOException occurred: ${e.message}")
             false
         }
     }

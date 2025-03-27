@@ -14,7 +14,6 @@ import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.util.Log
 import android.view.View
-import android.widget.Toast
 import androidx.viewpager2.widget.ViewPager2
 import com.gallery.photos.editpic.Adapter.FavouriteViewPagerAdapter
 import com.gallery.photos.editpic.Dialogs.AllFilesAccessDialog
@@ -45,7 +44,6 @@ import com.gallery.photos.editpic.RoomDB.Dao.HideMediaDao
 import com.gallery.photos.editpic.Utils.DeleteMediaStoreSingleton.deleteselectedPosition
 import com.gallery.photos.editpic.Utils.FavouriteMediaStoreSingleton
 import com.gallery.photos.editpic.Utils.FavouriteMediaStoreSingleton.favouriteimageList
-import com.gallery.photos.editpic.Utils.MediaStoreSingleton.imageList
 import com.gallery.photos.editpic.databinding.ActivityFavouriteviewPagerBinding
 import com.gallery.photos.editpic.myadsworld.MyAddPrefs
 import com.gallery.photos.editpic.myadsworld.MyAllAdCommonClass
@@ -255,8 +253,9 @@ class FavouriteViewPagerActivity : BaseActivity() {
                             viewpagerselectedPosition = binding.viewPager.currentItem
 
                             runOnUiThread {
+                                if (imageListFavourite.size + 1 >= viewpagerselectedPosition) {
+
                                 imageListFavourite.removeAt(viewpagerselectedPosition)
-                                viewpagerselectedPosition = binding.viewPager.currentItem
 
                                 viewPagerAdapter.notifyDataSetChanged()
 
@@ -268,6 +267,7 @@ class FavouriteViewPagerActivity : BaseActivity() {
                                     updateImageTitle(viewpagerselectedPosition)
                                 } else {
                                     finish() // Close activity if no more images
+                                }
                                 }
                             }
                         } else {
@@ -542,7 +542,7 @@ class FavouriteViewPagerActivity : BaseActivity() {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {  // Android 11+ (API 30+)
             moveToRecycleBinScopedStorage(originalFilePath)
         } else {
-            moveToRecycleBinLegacy(originalFilePath)
+            moveToRecycleBinLegacy(originalFilePath, this)
         }
     }
 
@@ -753,33 +753,124 @@ class FavouriteViewPagerActivity : BaseActivity() {
     }
 
     // ✅ Android 10 and Below - Uses Direct File Access
-    fun moveToRecycleBinLegacy(originalFilePath: String): Boolean {
-        val originalFile = File(originalFilePath)
-        if (!originalFile.exists()) {
+    fun moveToRecycleBinLegacy(originalFilePath: String, context: Context): Boolean {
+        val contentResolver = context.contentResolver
+
+        // Determine if the input is a content URI or file path
+        val isContentUri = originalFilePath.startsWith("content://")
+        val sourceUri = if (isContentUri) Uri.parse(originalFilePath) else null
+        val sourceFile = if (!isContentUri) File(originalFilePath) else null
+
+        // Check if the source exists
+        if (isContentUri && sourceUri != null) {
+            // Verify content URI exists by querying ContentResolver
+            contentResolver.query(sourceUri, null, null, null, null)?.use { cursor ->
+                if (!cursor.moveToFirst()) {
+                    Log.e("MoveToRecycleBin", "Content URI does not exist: $originalFilePath")
+                    return false
+                }
+            } ?: run {
+                Log.e("MoveToRecycleBin", "Failed to query content URI: $originalFilePath")
+                return false
+            }
+        } else if (sourceFile != null && !sourceFile.exists()) {
             Log.e("MoveToRecycleBin", "File does not exist: $originalFilePath")
             return false
         }
 
-        val recycleBin = createRecycleBin()
-        val recycledFile = File(recycleBin, originalFile.name)
+        // Prepare recycle bin directory in app-specific storage
+        val recycleBin = File(context.getExternalFilesDir(null), ".gallery_recycleBin").apply {
+            if (!exists()) {
+                if (!mkdirs()) {
+                    Log.e("MoveToRecycleBin", "Failed to create recycle bin directory")
+                    return false
+                }
+            }
+        }
+
+        // Get file name and MIME type
+        val (fileName, mimeType) = if (isContentUri && sourceUri != null) {
+            getFileInfoFromUri(context, sourceUri)
+        } else {
+            Pair(
+                sourceFile!!.name,
+                context.contentResolver.getType(Uri.fromFile(sourceFile)) ?: "*/*"
+            )
+        }
+
+        val recycledFile = File(recycleBin, fileName)
 
         return try {
-            originalFile.copyTo(recycledFile, overwrite = true)  // Copy to recycle bin
-            Log.d("MoveToRecycleBin", "File copied to recycle bin: ${recycledFile.absolutePath}")
-
-            if (originalFile.delete()) {
-                Log.d("MoveToRecycleBin", "Original file deleted")
+            // Copy the file to recycle bin
+            val copySuccess = if (isContentUri && sourceUri != null) {
+                contentResolver.openInputStream(sourceUri)?.use { inputStream ->
+                    FileOutputStream(recycledFile).use { outputStream ->
+                        inputStream.copyTo(outputStream)
+                        true
+                    }
+                } ?: false.also {
+                    Log.e("MoveToRecycleBin", "Failed to open input stream for $sourceUri")
+                }
             } else {
-                Log.e("MoveToRecycleBin", "Failed to delete original file")
+                sourceFile!!.copyTo(recycledFile, overwrite = true)
+                true
             }
 
-            saveToDatabase(recycledFile.absolutePath)
-            true
+            if (!copySuccess) {
+                Log.e("MoveToRecycleBin", "Failed to copy file to recycle bin: $originalFilePath")
+                return false
+            }
+
+            Log.d("MoveToRecycleBin", "File copied to recycle bin: ${recycledFile.absolutePath}")
+
+            // Delete the original file
+            val deleteSuccess = if (isContentUri && sourceUri != null) {
+                contentResolver.delete(sourceUri, null, null) > 0
+            } else {
+                sourceFile!!.delete()
+            }
+
+            if (deleteSuccess) {
+                Log.d("MoveToRecycleBin", "Original file deleted: $originalFilePath")
+                // Notify MediaScanner about the new file in recycle bin
+                MediaScannerConnection.scanFile(
+                    context, arrayOf(recycledFile.absolutePath), arrayOf(mimeType), null
+                )
+                true
+            } else {
+                Log.e("MoveToRecycleBin", "Failed to delete original: $originalFilePath")
+                recycledFile.delete() // Clean up if deletion fails
+                false
+            }
         } catch (e: IOException) {
-            Log.e("MoveToRecycleBin", "IOException: ${e.message}")
-            e.printStackTrace()
+            Log.e("MoveToRecycleBin", "IOException during file operation: ${e.message}", e)
+            recycledFile.delete() // Clean up on failure
+            false
+        } catch (e: SecurityException) {
+            Log.e("MoveToRecycleBin", "SecurityException: ${e.message}", e)
+            recycledFile.delete() // Clean up on failure
             false
         }
+    }
+
+    private fun getFileInfoFromUri(context: Context, uri: Uri): Pair<String, String> {
+        var fileName = "unknown_file"
+        var mimeType = "*/*"
+        context.contentResolver.query(
+            uri,
+            arrayOf(MediaStore.MediaColumns.DISPLAY_NAME, MediaStore.MediaColumns.MIME_TYPE),
+            null,
+            null,
+            null
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val nameIndex = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME)
+                val mimeIndex = cursor.getColumnIndex(MediaStore.MediaColumns.MIME_TYPE)
+                if (nameIndex >= 0) fileName = cursor.getString(nameIndex)
+                if (mimeIndex >= 0) mimeType = cursor.getString(mimeIndex) ?: "*/*"
+            }
+        }
+        return Pair(fileName, mimeType)
     }
 
     fun saveToDatabase(binPath: String) {

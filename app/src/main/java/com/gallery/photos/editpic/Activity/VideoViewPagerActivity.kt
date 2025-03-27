@@ -40,6 +40,7 @@ import com.gallery.photos.editpic.myadsworld.MyAllAdCommonClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.io.File
 import java.io.IOException
 import java.util.UUID
@@ -130,7 +131,6 @@ class VideoViewPagerActivity : BaseActivity() {
                 }
             }
 
-
             binding.bottomActions.bottomFavorite.setOnClickListener {
                 val position = viewpagerselectedPosition
                 val currentMedia = videoimageList[position]
@@ -211,9 +211,55 @@ class VideoViewPagerActivity : BaseActivity() {
 
                 DeleteWithRememberDialog(this@VideoViewPagerActivity) {
                     run {
+                        val currentMedia = imageListVideo[viewpagerselectedPosition]
+                        CoroutineScope(Dispatchers.IO).launch {
+                            favouriteMediaDao?.getMediaById(currentMedia.videoId)
+                                ?.let { favouriteMediaDao?.deleteMedia(it) }
+                        }
+                        val isMoved = moveToRecycleBin(deleteMediaModel!!.mediaPath)
+                        if (isMoved) {
+                            deleteMediaModel!!.binPath = File(
+                                createRecycleBin(), deleteMediaModel!!.mediaName
+                            ).absolutePath
+
+                            CoroutineScope(Dispatchers.IO).launch {
+                                deleteMediaDao!!.insertMedia(deleteMediaModel!!)  // Insert into Room DB
+                            }
+
+                            viewpagerselectedPosition = binding.viewPager.currentItem
+
+                            runOnUiThread {
+                                if (imageListVideo.size + 1 >= viewpagerselectedPosition) {
+
+                                    imageListVideo.removeAt(viewpagerselectedPosition)
+
+                                    videoDisplayAdapter.notifyDataSetChanged()
+
+                                    if (imageListVideo.isNotEmpty()) {
+//                                (imageListFavourite.toList())
+                                        binding.viewPager.setCurrentItem(
+                                            viewpagerselectedPosition, false
+                                        )
+                                        updateImageTitle(viewpagerselectedPosition)
+                                    } else {
+                                        finish() // Close activity if no more images
+                                    }
+                                }
+                            }
+                        } else {
+                            Timber.tag("FileDeletion")
+                                .e("Failed to move file: ${deleteMediaModel!!.mediaPath}")
+                        }
+                    }
+                }
+
+/*
+                DeleteWithRememberDialog(this@VideoViewPagerActivity) {
+                    run {
                         moveToRecycleBin(deleteMediaModel!!.mediaPath)
                     }
                 }
+*/
             }
         }
     }

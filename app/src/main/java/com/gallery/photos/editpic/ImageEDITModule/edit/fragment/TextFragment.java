@@ -3,6 +3,7 @@ package com.gallery.photos.editpic.ImageEDITModule.edit.fragment;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.ConnectivityManager;
@@ -16,6 +17,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -24,6 +26,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
@@ -46,6 +49,7 @@ import com.gallery.photos.editpic.ImageEDITModule.edit.utils.PreferenceUtil;
 import com.gallery.photos.editpic.ImageEDITModule.edit.utils.SystemUtil;
 import com.gallery.photos.editpic.R;
 import com.smarteist.autoimageslider.IndicatorView.animation.type.ColorAnimation;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -99,6 +103,10 @@ public class TextFragment extends DialogFragment implements View.OnClickListener
     TextView textViewSet;
     TextView textViewShadow;
     TextView text_view_preview_effect;
+
+    public void dismisslayout() {
+        dismiss();
+    }
 
     public interface TextEditor {
         void onBackButton();
@@ -233,7 +241,18 @@ public class TextFragment extends DialogFragment implements View.OnClickListener
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(new DisplayMetrics());
         this.inputMethodManager = (InputMethodManager) getActivity().getSystemService("input_method");
         setDefaultStyleForEdittext();
-        this.inputMethodManager.toggleSoftInput(2, 0);
+//        this.inputMethodManager.toggleSoftInput(2, 0);
+        view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams)
+                        linear_layout_edit_text_tools.getLayoutParams();
+                params.bottomMargin = 0;
+                linear_layout_edit_text_tools.setLayoutParams(params);
+            }
+        });
+        showKeyboard();
+
         this.recycler_view_fonts.setLayoutManager(new GridLayoutManager(getContext(), 5));
         FontAdapter fontAdapter = new FontAdapter(getContext(), FontFile.getListFonts());
         this.fontAdapter = fontAdapter;
@@ -621,85 +640,114 @@ public class TextFragment extends DialogFragment implements View.OnClickListener
     @SuppressLint("WrongConstant")
     @Override // android.view.View.OnClickListener
     public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.imageViewAlignCenter /* 2131362253 */:
-                if (this.polishText.getTextAlign() == 2 || this.polishText.getTextAlign() == 3) {
-                    this.polishText.setTextAlign(4);
-                    this.image_view_align_center.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_format_align_center_select));
-                    this.image_view_align_left.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_format_align_left));
-                    this.image_view_align_right.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_format_align_right));
+        int id = view.getId();
+        if (id == R.id.imageViewAlignCenter) { /* 2131362253 */
+            if (this.polishText.getTextAlign() == 2 || this.polishText.getTextAlign() == 3) {
+                this.polishText.setTextAlign(4);
+                this.image_view_align_center.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_format_align_center_select));
+                this.image_view_align_left.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_format_align_left));
+                this.image_view_align_right.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_format_align_right));
+            }
+            this.text_view_preview_effect.setTextAlignment(this.polishText.getTextAlign());
+            this.text_view_preview_effect.setText(this.text_view_preview_effect.getText().toString().trim() + " ");
+            TextView textView = this.text_view_preview_effect;
+            textView.setText(textView.getText().toString().trim());
+        } else if (id == R.id.image_view_keyboard) {
+           /* this.image_view_keyboard.setColorFilter(getResources().getColor(R.color.hovercolor));
+            this.image_view_color.setColorFilter(getResources().getColor(R.color.default_icon_color));
+            toggleTextEditEditable(true);
+            binding.addTextEditText.setVisibility(View.VISIBLE);
+            binding.addTextEditText.requestFocus();
+            this.scroll_view_change_font_layout.setVisibility(View.GONE);
+            this.linear_layout_edit_text_tools.invalidate();
+            this.inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);*/
+
+            view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    Rect r = new Rect();
+                    view.getWindowVisibleDisplayFrame(r);
+
+                    int screenHeight = view.getRootView().getHeight();
+                    int keypadHeight = screenHeight - r.bottom;
+
+                    // If more than 15% of the screen height is covered by keyboard
+                    if (keypadHeight > screenHeight * 0.15) {
+                        // Keyboard is visible
+                        ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams)
+                                linear_layout_edit_text_tools.getLayoutParams();
+                        params.bottomMargin = keypadHeight;
+                        linear_layout_edit_text_tools.setLayoutParams(params);
+                    } else {
+                        // Keyboard is hidden
+                        ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams)
+                                linear_layout_edit_text_tools.getLayoutParams();
+                        params.bottomMargin = 0;
+                        linear_layout_edit_text_tools.setLayoutParams(params);
+                    }
                 }
-                this.text_view_preview_effect.setTextAlignment(this.polishText.getTextAlign());
-                this.text_view_preview_effect.setText(this.text_view_preview_effect.getText().toString().trim() + " ");
-                TextView textView = this.text_view_preview_effect;
-                textView.setText(textView.getText().toString().trim());
-                break;
-            case R.id.imageViewAlignLeft /* 2131362254 */:
-                if (this.polishText.getTextAlign() == 3 || this.polishText.getTextAlign() == 4) {
-                    this.polishText.setTextAlign(2);
-                    this.image_view_align_left.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_format_align_left_select));
-                    this.image_view_align_center.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_format_align_center));
-                    this.image_view_align_right.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_format_align_right));
-                }
-                this.text_view_preview_effect.setTextAlignment(this.polishText.getTextAlign());
-                this.text_view_preview_effect.setText(this.text_view_preview_effect.getText().toString().trim() + " ");
-                TextView textView2 = this.text_view_preview_effect;
-                textView2.setText(textView2.getText().toString().trim());
-                break;
-            case R.id.imageViewAlignRight /* 2131362255 */:
-                if (this.polishText.getTextAlign() == 4 || this.polishText.getTextAlign() == 2) {
-                    this.polishText.setTextAlign(3);
-                    this.image_view_align_left.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_format_align_left));
-                    this.image_view_align_center.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_format_align_center));
-                    this.image_view_align_right.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_format_align_right_select));
-                }
-                this.text_view_preview_effect.setTextAlignment(this.polishText.getTextAlign());
-                this.text_view_preview_effect.setText(this.text_view_preview_effect.getText().toString().trim() + " ");
-                TextView textView3 = this.text_view_preview_effect;
-                textView3.setText(textView3.getText().toString().trim());
-                break;
-            case R.id.image_view_color /* 2131362348 */:
-                this.image_view_keyboard.setColorFilter(getResources().getColor(R.color.white));
-                this.image_view_color.setColorFilter(getResources().getColor(R.color.mainColor));
+            });
+            showKeyboard();
+        } else if (id == R.id.imageViewAlignLeft) { /* 2131362254 */
+            if (this.polishText.getTextAlign() == 3 || this.polishText.getTextAlign() == 4) {
+                this.polishText.setTextAlign(2);
+                this.image_view_align_left.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_format_align_left_select));
+                this.image_view_align_center.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_format_align_center));
+                this.image_view_align_right.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_format_align_right));
+            }
+            this.text_view_preview_effect.setTextAlignment(this.polishText.getTextAlign());
+            this.text_view_preview_effect.setText(this.text_view_preview_effect.getText().toString().trim() + " ");
+            TextView textView2 = this.text_view_preview_effect;
+            textView2.setText(textView2.getText().toString().trim());
+        } else if (id == R.id.imageViewAlignRight) { /* 2131362255 */
+            if (this.polishText.getTextAlign() == 4 || this.polishText.getTextAlign() == 2) {
+                this.polishText.setTextAlign(3);
+                this.image_view_align_left.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_format_align_left));
+                this.image_view_align_center.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_format_align_center));
+                this.image_view_align_right.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_format_align_right_select));
+            }
+            this.text_view_preview_effect.setTextAlignment(this.polishText.getTextAlign());
+            this.text_view_preview_effect.setText(this.text_view_preview_effect.getText().toString().trim() + " ");
+            TextView textView3 = this.text_view_preview_effect;
+            textView3.setText(textView3.getText().toString().trim());
+        } else if (id == R.id.image_view_color) { /* 2131362348 */
+            this.image_view_keyboard.setColorFilter(getResources().getColor(R.color.white));
+            this.image_view_color.setColorFilter(getResources().getColor(R.color.mainColor));
+            this.inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            this.scroll_view_change_font_layout.setVisibility(View.VISIBLE);
+            toggleTextEditEditable(false);
+            this.add_text_edit_text.setVisibility(View.GONE);
+            this.seekbar_background_opacity.setProgress(255 - this.polishText.getBackgroundAlpha());
+            this.seekbar_text_size.setProgress(this.polishText.getTextSize());
+            this.seekbar_radius.setProgress(this.polishText.getBackgroundBorder());
+            this.seekbar_width.setProgress(this.polishText.getPaddingWidth());
+            this.seekbar_height.setProgress(this.polishText.getPaddingHeight());
+            this.textColorOpacity.setProgress(255 - this.polishText.getTextAlpha());
+            this.shadowAdapter.setSelectedItem(this.polishText.getFontIndex());
+            this.fontAdapter.setSelectedItem(this.polishText.getFontIndex());
+            this.checkbox_background.setChecked(this.polishText.isShowBackground());
+            this.checkbox_background.setChecked(this.polishText.isShowBackground());
+        } else if (id == R.id.image_view_keyboard) { /* 2131362354 */
+            this.image_view_keyboard.setColorFilter(getResources().getColor(R.color.mainColor));
+            this.image_view_color.setColorFilter(getResources().getColor(R.color.white));
+            toggleTextEditEditable(true);
+            this.add_text_edit_text.setVisibility(View.VISIBLE);
+            this.add_text_edit_text.requestFocus();
+            this.scroll_view_change_font_layout.setVisibility(View.GONE);
+            this.linear_layout_edit_text_tools.invalidate();
+            this.inputMethodManager.toggleSoftInput(2, 0);
+        } else if (id == R.id.image_view_save_change) { /* 2131362359 */
+            if (this.polishText.getText() == null || this.polishText.getText().length() == 0) {
                 this.inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                this.scroll_view_change_font_layout.setVisibility(View.VISIBLE);
-                toggleTextEditEditable(false);
-                this.add_text_edit_text.setVisibility(View.GONE);
-                this.seekbar_background_opacity.setProgress(255 - this.polishText.getBackgroundAlpha());
-                this.seekbar_text_size.setProgress(this.polishText.getTextSize());
-                this.seekbar_radius.setProgress(this.polishText.getBackgroundBorder());
-                this.seekbar_width.setProgress(this.polishText.getPaddingWidth());
-                this.seekbar_height.setProgress(this.polishText.getPaddingHeight());
-                this.textColorOpacity.setProgress(255 - this.polishText.getTextAlpha());
-                this.shadowAdapter.setSelectedItem(this.polishText.getFontIndex());
-                this.fontAdapter.setSelectedItem(this.polishText.getFontIndex());
-                this.checkbox_background.setChecked(this.polishText.isShowBackground());
-                this.checkbox_background.setChecked(this.polishText.isShowBackground());
-                break;
-            case R.id.image_view_keyboard /* 2131362354 */:
-                this.image_view_keyboard.setColorFilter(getResources().getColor(R.color.mainColor));
-                this.image_view_color.setColorFilter(getResources().getColor(R.color.white));
-                toggleTextEditEditable(true);
-                this.add_text_edit_text.setVisibility(View.VISIBLE);
-                this.add_text_edit_text.requestFocus();
-                this.scroll_view_change_font_layout.setVisibility(View.GONE);
-                this.linear_layout_edit_text_tools.invalidate();
-                this.inputMethodManager.toggleSoftInput(2, 0);
-                break;
-            case R.id.image_view_save_change /* 2131362359 */:
-                if (this.polishText.getText() == null || this.polishText.getText().length() == 0) {
-                    this.inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                    this.textEditor.onBackButton();
-                    dismiss();
-                    break;
-                } else {
-                    this.polishText.setTextWidth(this.text_view_preview_effect.getMeasuredWidth());
-                    this.polishText.setTextHeight(this.text_view_preview_effect.getMeasuredHeight());
-                    this.inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                    this.textEditor.onDone(this.polishText);
-                    dismiss();
-                    break;
-                }
+                this.textEditor.onBackButton();
+                dismiss();
+            } else {
+                this.polishText.setTextWidth(this.text_view_preview_effect.getMeasuredWidth());
+                this.polishText.setTextHeight(this.text_view_preview_effect.getMeasuredHeight());
+                this.inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                this.textEditor.onDone(this.polishText);
+                dismiss();
+            }
         }
     }
 
@@ -707,6 +755,21 @@ public class TextFragment extends DialogFragment implements View.OnClickListener
         this.add_text_edit_text.setFocusable(z);
         this.add_text_edit_text.setFocusableInTouchMode(z);
         this.add_text_edit_text.setClickable(z);
+    }
+
+    private void showKeyboard() {
+
+        this.image_view_keyboard.setColorFilter(getResources().getColor(R.color.appcolor));
+        this.image_view_color.setColorFilter(getResources().getColor(R.color.iconColor));
+        toggleTextEditEditable(true);
+        add_text_edit_text.setVisibility(View.VISIBLE);
+        add_text_edit_text.requestFocus();
+        this.scroll_view_change_font_layout.setVisibility(View.GONE);
+        this.linear_layout_edit_text_tools.invalidate();
+        // Show keyboard without forcing layout changes
+        add_text_edit_text.postDelayed(() -> {
+            inputMethodManager.showSoftInput(add_text_edit_text, InputMethodManager.SHOW_IMPLICIT);
+        }, 100);
     }
 
     private List<ImageView> getTextFunctions() {

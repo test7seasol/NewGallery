@@ -2,10 +2,13 @@ package com.gallery.photos.editpic.Fragment
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.Activity.RESULT_OK
 import android.app.ProgressDialog
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
@@ -14,8 +17,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.RelativeLayout
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -34,12 +39,10 @@ import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.name.getMediaDatabase
 import com.gallery.photos.editpic.Extensions.notifyGalleryRoot
 import com.gallery.photos.editpic.Extensions.onClick
-import com.gallery.photos.editpic.Extensions.shareMultipleFilesVideo
 import com.gallery.photos.editpic.Extensions.tos
 import com.gallery.photos.editpic.Extensions.visible
 import com.gallery.photos.editpic.Model.DeleteMediaModel
 import com.gallery.photos.editpic.Model.FavouriteMediaModel
-import com.gallery.photos.editpic.Model.MediaModel
 import com.gallery.photos.editpic.Model.VideoModel
 import com.gallery.photos.editpic.PopupDialog.PicturesBottomPopup
 import com.gallery.photos.editpic.PopupDialog.TopMenuVideosCustomPopup
@@ -218,7 +221,7 @@ class AllVideosFragment : Fragment() {
             llShare.onClick {
                 val selectedFiles = videoAdapter.selectedItems.distinctBy { it.videoPath }
                 if (selectedFiles.size <= 100) {
-                    shareMultipleFilesVideo(selectedFiles, requireActivity())
+                    shareMultipleVideoFiles(selectedFiles, requireActivity())
                 } else {
                     (getString(R.string.max_selection_limit_is_100)).tos(requireActivity())
                 }
@@ -365,6 +368,125 @@ class AllVideosFragment : Fragment() {
                 pictureBottom.show(llMore, 0, 0)
             }
 
+        }
+    }
+
+    fun shareMultipleVideoFiles(filePaths: List<VideoModel>, context: Context) {
+        val fileUris = ArrayList<Uri>()
+
+        filePaths.forEach { video ->
+            try {
+                var uri = Uri.parse(video.videoPath)
+
+                val finalUri = when {
+                    // If it's already a content URI (e.g., from MediaStore)
+                    uri.scheme == "content" -> uri
+
+                    // Android 7-9 (API 24-28): Nougat, Oreo, Pie
+                    Build.VERSION.SDK_INT <= Build.VERSION_CODES.P -> {
+                        val file = File(video.videoPath)
+                        FileProvider.getUriForFile(
+                            context,
+                            "${context.packageName}.provider",
+                            file
+                        )
+                    }
+
+                    // Android 10-11 (API 29-30): Q, R
+                    Build.VERSION.SDK_INT <= Build.VERSION_CODES.R -> {
+                        FileProvider.getUriForFile(
+                            context,
+                            "${context.packageName}.provider",
+                            File(video.videoPath)
+                        )
+                    }
+
+                    // Android 12-15 (API 31-35+): S, Tiramisu, UpsideDownCake, VanillaIceCream
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+                        FileProvider.getUriForFile(
+                            context,
+                            "${context.packageName}.provider",
+                            File(video.videoPath)
+                        )
+                    }
+
+                    else -> {
+                        // Fallback for future versions
+                        FileProvider.getUriForFile(
+                            context,
+                            "${context.packageName}.provider",
+                            File(video.videoPath)
+                        )
+                    }
+                }
+
+                if (finalUri != null) {
+                    // Grant URI permission
+                    context.grantUriPermission(
+                        context.packageName,
+                        finalUri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                    fileUris.add(finalUri)
+                    Log.d("ShareVideos", "✅ Video URI added: $finalUri")
+                } else {
+                    Log.e("ShareVideos", "⚠️ Null URI for: ${video.videoPath}")
+                }
+            } catch (e: Exception) {
+                Log.e("ShareVideos", "❌ Error processing video URI: ${video.videoPath}", e)
+            }
+        }
+
+        if (fileUris.isNotEmpty()) {
+            // Since this is specifically for videos, we can set a video-specific MIME type
+            val shareIntent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+                type = "video/*" // Default to video type since we're sharing videos
+
+                // Optionally validate MIME types if provided
+                val mimeTypes = filePaths.map { "mp4" ?: "video/*" }
+                if (mimeTypes.all { it.startsWith("video/") }) {
+                    type = "video/*"
+                } else {
+                    Log.w("ShareVideos", "Some files may not be videos: $mimeTypes")
+                }
+
+                putParcelableArrayListExtra(Intent.EXTRA_STREAM, fileUris)
+
+                // Handle flags based on Android version
+                flags = when {
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.N -> {
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    }
+                    else -> {
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    }
+                }
+
+                // Optional: Add extra metadata for video sharing
+                putExtra(Intent.EXTRA_TITLE, "Shared Videos")
+            }
+
+            try {
+                val chooserIntent = Intent.createChooser(shareIntent, "Share Videos")
+                if (shareIntent.resolveActivity(context.packageManager) != null) {
+                    context.startActivity(chooserIntent)
+                } else {
+                    Log.e("ShareVideos", "❌ No activity found to handle video share intent")
+                    // Optional: Show a toast or notification to the user
+                    if (context is Activity) {
+                        Toast.makeText(context, "No app available to share videos", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("ShareVideos", "❌ Error starting video share intent", e)
+            }
+        } else {
+            Log.e("ShareVideos", "❌ No valid video files to share")
+            // Optional: Notify user
+            if (context is Activity) {
+                Toast.makeText(context, "No videos available to share", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

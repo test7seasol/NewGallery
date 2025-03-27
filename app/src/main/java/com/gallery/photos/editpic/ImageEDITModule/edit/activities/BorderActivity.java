@@ -7,10 +7,12 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -30,6 +32,7 @@ import com.gallery.photos.editpic.ImageEDITModule.edit.utils.ImageUtils;
 import com.gallery.photos.editpic.R;
 
 import java.util.ArrayList;
+
 import yuku.ambilwarna.AmbilWarnaDialog;
 
 /* loaded from: classes.dex */
@@ -239,7 +242,11 @@ public class BorderActivity extends BaseActivity implements LayoutItemListener, 
         this.dripViewCover.post(new Runnable() { // from class: com.gallery.photos.editphotovideo.activities.BorderActivity.9
             @Override // java.lang.Runnable
             public void run() {
-                BorderActivity.this.initBitmap();
+                try {
+                    BorderActivity.this.initBitmap();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
@@ -255,14 +262,23 @@ public class BorderActivity extends BaseActivity implements LayoutItemListener, 
 
     /* JADX INFO: Access modifiers changed from: private */
     public void initBitmap() {
-        Bitmap bitmap = faceBitmap;
-        if (bitmap != null) {
-            Bitmap bitmapResize = ImageUtils.getBitmapResize(this, bitmap, 1024, 1024);
-            this.selectedBitmap = bitmapResize;
-            this.dripViewCover.setImageBitmap(bitmapResize);
+        // Create a defensive copy if needed
+        Bitmap sourceBitmap = faceBitmap;
+
+        if (sourceBitmap != null && !sourceBitmap.isRecycled()) {
+            try {
+                Bitmap bitmapResize = ImageUtils.getBitmapResize(this, sourceBitmap, 1024, 1024);
+                this.selectedBitmap = bitmapResize;
+                this.dripViewCover.setImageBitmap(bitmapResize);
+            } catch (Exception e) {
+                Log.e("BorderActivity", "Error resizing bitmap", e);
+                // Handle error case (e.g., show placeholder image)
+            }
+        } else {
+            Log.w("BorderActivity", "Source bitmap is null or recycled");
+            // Handle null/recycled case (e.g., show placeholder image)
         }
     }
-
     @Override // com.gallery.photos.editphotovideo.listener.LayoutItemListener
     public void onLayoutListClick(View view, int i) {
         Bitmap bitmapFromAsset = DripUtils.getBitmapFromAsset(this, "frame/" + this.frameAdapter.getItemList().get(i) + ".png");

@@ -244,6 +244,7 @@ class ViewPagerActivity : BaseActivity() {
 
                 DeleteWithRememberDialog(this@ViewPagerActivity) {
                     run {
+                        try {
                         val isMoved = moveToRecycleBin(deleteMediaModel!!.mediaPath)
                         if (isMoved) {
                             deleteMediaModel!!.binPath = File(
@@ -256,26 +257,29 @@ class ViewPagerActivity : BaseActivity() {
                             viewpagerselectedPosition = binding.viewPager.currentItem
 
                             runOnUiThread {
-                                imageList.removeAt(viewpagerselectedPosition)
-                                viewpagerselectedPosition = binding.viewPager.currentItem
+                                if (imageList.size + 1 >= viewpagerselectedPosition) {
+                                    imageList.removeAt(viewpagerselectedPosition)
+                                    viewpagerselectedPosition = binding.viewPager.currentItem
 
-                                viewPagerAdapter.notifyDataSetChanged()
+                                    viewPagerAdapter.notifyDataSetChanged()
 
-                                imageList.removeAt(viewpagerselectedPosition)
-
-                                if (imageList.isNotEmpty()) {
+                                    if (imageList.isNotEmpty()) {
 //                                (imageList.toList())
-                                    binding.viewPager.setCurrentItem(
-                                        viewpagerselectedPosition, false
-                                    )
-                                    updateImageTitle(viewpagerselectedPosition)
-                                } else {
-                                    finish() // Close activity if no more images
+                                        binding.viewPager.setCurrentItem(
+                                            viewpagerselectedPosition, false
+                                        )
+                                        updateImageTitle(viewpagerselectedPosition)
+                                    } else {
+                                        finish() // Close activity if no more images
+                                    }
                                 }
                             }
                         } else {
                             Timber.tag("FileDeletion")
                                 .e("Failed to move file: ${deleteMediaModel!!.mediaPath}")
+                        }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
                         }
                     }
                 }
@@ -292,8 +296,6 @@ class ViewPagerActivity : BaseActivity() {
                 }
 
                 Log.d("FATZ", "Loading image from mediaUri: $mediaUri || filePath: $filePath")
-
-
 
                 val intent = Intent(this@ViewPagerActivity, PhotoEditorActivity::class.java).apply {
                     putExtra(PhotoPicker.KEY_SELECTED_PHOTOS, filePath)
@@ -661,13 +663,12 @@ class ViewPagerActivity : BaseActivity() {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {  // Android 11+ (API 30+)
             moveToRecycleBinScopedStorage(originalFilePath)
         } else {
-            moveToRecycleBinLegacy(originalFilePath)
+            moveToRecycleBinLegacy(originalFilePath, this)
         }
     }
 
     // ✅ Android 11+ (Scoped Storage) - Uses ContentResolver
     fun moveToRecycleBinScopedStorage(originalFilePath: String): Boolean {
-        Log.e("MoveToRecycleBin", "Cannotath: " + originalFilePath)
         val context = applicationContext
         val contentResolver = context.contentResolver
 
@@ -703,7 +704,9 @@ class ViewPagerActivity : BaseActivity() {
             if (destinationFile.exists()) {
                 val deleteSuccess = when {
                     sourceUri.scheme == "content" -> contentResolver.delete(
-                        sourceUri, null, null
+                        sourceUri,
+                        null,
+                        null
                     ) > 0
 
                     sourceUri.scheme == "file" -> File(sourceUri.path!!).delete()
@@ -714,7 +717,9 @@ class ViewPagerActivity : BaseActivity() {
                     // Notify adapter about item removal
                     // Notify MediaStore about changes
                     MediaScannerConnection.scanFile(
-                        context, arrayOf(destinationFile.absolutePath), arrayOf(mimeType), null
+                        context,
+                        arrayOf(destinationFile.absolutePath),
+                        arrayOf(mimeType), null
                     )
                 } else {
                     Log.w("MoveToRecycleBin", "Original file deletion failed, but copy succeeded")
@@ -807,7 +812,6 @@ class ViewPagerActivity : BaseActivity() {
                 }
             }
         }
-
         return null
     }
 
@@ -851,33 +855,127 @@ class ViewPagerActivity : BaseActivity() {
     }
 
     // ✅ Android 10 and Below - Uses Direct File Access
-    fun moveToRecycleBinLegacy(originalFilePath: String): Boolean {
-        val originalFile = File(originalFilePath)
-        if (!originalFile.exists()) {
+    fun moveToRecycleBinLegacy(originalFilePath: String, context: Context): Boolean {
+        val contentResolver = context.contentResolver
+
+        // Determine if the input is a content URI or file path
+        val isContentUri = originalFilePath.startsWith("content://")
+        val sourceUri = if (isContentUri) Uri.parse(originalFilePath) else null
+        val sourceFile = if (!isContentUri) File(originalFilePath) else null
+
+        // Check if the source exists
+        if (isContentUri && sourceUri != null) {
+            // Verify content URI exists by querying ContentResolver
+            contentResolver.query(sourceUri, null, null, null, null)?.use { cursor ->
+                if (!cursor.moveToFirst()) {
+                    Log.e("MoveToRecycleBin", "Content URI does not exist: $originalFilePath")
+                    return false
+                }
+            } ?: run {
+                Log.e("MoveToRecycleBin", "Failed to query content URI: $originalFilePath")
+                return false
+            }
+        } else if (sourceFile != null && !sourceFile.exists()) {
             Log.e("MoveToRecycleBin", "File does not exist: $originalFilePath")
             return false
         }
 
-        val recycleBin = createRecycleBin()
-        val recycledFile = File(recycleBin, originalFile.name)
+        // Prepare recycle bin directory in app-specific storage
+        val recycleBin = File(context.getExternalFilesDir(null), ".gallery_recycleBin").apply {
+            if (!exists()) {
+                if (!mkdirs()) {
+                    Log.e("MoveToRecycleBin", "Failed to create recycle bin directory")
+                    return false
+                }
+            }
+        }
+
+        // Get file name and MIME type
+        val (fileName, mimeType) = if (isContentUri && sourceUri != null) {
+            getFileInfoFromUri(context, sourceUri)
+        } else {
+            Pair(
+                sourceFile!!.name,
+                context.contentResolver.getType(Uri.fromFile(sourceFile)) ?: "*/*"
+            )
+        }
+
+        val recycledFile = File(recycleBin, fileName)
 
         return try {
-            originalFile.copyTo(recycledFile, overwrite = true)  // Copy to recycle bin
-            Log.d("MoveToRecycleBin", "File copied to recycle bin: ${recycledFile.absolutePath}")
-
-            if (originalFile.delete()) {
-                Log.d("MoveToRecycleBin", "Original file deleted")
+            // Copy the file to recycle bin
+            val copySuccess = if (isContentUri && sourceUri != null) {
+                contentResolver.openInputStream(sourceUri)?.use { inputStream ->
+                    FileOutputStream(recycledFile).use { outputStream ->
+                        inputStream.copyTo(outputStream)
+                        true
+                    }
+                } ?: false.also {
+                    Log.e("MoveToRecycleBin", "Failed to open input stream for $sourceUri")
+                }
             } else {
-                Log.e("MoveToRecycleBin", "Failed to delete original file")
+                sourceFile!!.copyTo(recycledFile, overwrite = true)
+                true
             }
 
-            saveToDatabase(recycledFile.absolutePath)
-            true
+            if (!copySuccess) {
+                Log.e("MoveToRecycleBin", "Failed to copy file to recycle bin: $originalFilePath")
+                return false
+            }
+
+            Log.d("MoveToRecycleBin", "File copied to recycle bin: ${recycledFile.absolutePath}")
+
+            // Delete the original file
+            val deleteSuccess = if (isContentUri && sourceUri != null) {
+                contentResolver.delete(sourceUri, null, null) > 0
+            } else {
+                sourceFile!!.delete()
+            }
+
+            if (deleteSuccess) {
+                Log.d("MoveToRecycleBin", "Original file deleted: $originalFilePath")
+                // Notify MediaScanner about the new file in recycle bin
+                MediaScannerConnection.scanFile(
+                    context,
+                    arrayOf(recycledFile.absolutePath),
+                    arrayOf(mimeType),
+                    null
+                )
+                true
+            } else {
+                Log.e("MoveToRecycleBin", "Failed to delete original: $originalFilePath")
+                recycledFile.delete() // Clean up if deletion fails
+                false
+            }
         } catch (e: IOException) {
-            Log.e("MoveToRecycleBin", "IOException: ${e.message}")
-            e.printStackTrace()
+            Log.e("MoveToRecycleBin", "IOException during file operation: ${e.message}", e)
+            recycledFile.delete() // Clean up on failure
+            false
+        } catch (e: SecurityException) {
+            Log.e("MoveToRecycleBin", "SecurityException: ${e.message}", e)
+            recycledFile.delete() // Clean up on failure
             false
         }
+    }
+
+    private fun getFileInfoFromUri(context: Context, uri: Uri): Pair<String, String> {
+        var fileName = "unknown_file"
+        var mimeType = "*/*"
+        context.contentResolver.query(
+            uri,
+            arrayOf(MediaStore.MediaColumns.DISPLAY_NAME, MediaStore.MediaColumns.MIME_TYPE),
+            null,
+            null,
+            null
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val nameIndex = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME)
+                val mimeIndex = cursor.getColumnIndex(MediaStore.MediaColumns.MIME_TYPE)
+                if (nameIndex >= 0) fileName = cursor.getString(nameIndex)
+                if (mimeIndex >= 0) mimeType = cursor.getString(mimeIndex) ?: "*/*"
+            }
+        }
+        return Pair(fileName, mimeType)
     }
 
     // ✅ Helper Function: Save to Room Database

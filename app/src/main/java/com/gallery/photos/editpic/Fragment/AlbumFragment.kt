@@ -90,6 +90,11 @@ class AlbumFragment : Fragment() {
                 val selectedlist = data?.extras?.getString("selectedlist")
                 val selectList = selectedlist!!.fromJSON<ArrayList<MediaModelItem>>()
 
+                if (File(folderName).mkdirs()) {
+                    ("Folder Created DONE").log()
+                } else {
+                    ("Folder Not Created DONE").log()
+                }
                 // Check if folder already exists
                 val folderExists = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     // For Android 10+, check using MediaStore
@@ -383,25 +388,6 @@ class AlbumFragment : Fragment() {
     }
 
     // Fallback method for Android 7-9
-    private fun getLegacyFolderPath(bucketId: String): String? {
-        val projection = arrayOf(
-            MediaStore.Images.Media.DATA
-        )
-
-        return requireActivity().contentResolver.query(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            projection,
-            "${MediaStore.Images.Media.BUCKET_ID} = ?",
-            arrayOf(bucketId),
-            null
-        )?.use { cursor ->
-            if (cursor.moveToFirst()) {
-                cursor.getString(0)?.substringBeforeLast("/")
-            } else {
-                null
-            }
-        }
-    }
 
     fun logAllBucketIds() {
         val projection = arrayOf(
@@ -687,10 +673,9 @@ class AlbumFragment : Fragment() {
 
             createFolder.onClick {
 
-            CreateNewFolderDialog(
-                    requireActivity(), initialPath = Environment.getExternalStoragePublicDirectory(
-                        Environment.DIRECTORY_DCIM
-                    ).path, isFromWhere = "CreateFolder"
+            CreateNewFolderDialog(requireActivity(),
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).path,
+                isFromWhere = "CreateFolder"
                 ) {
                     requireActivity().findViewById<RelativeLayout>(R.id.mainTopTabsContainer)
                         .visible()

@@ -57,6 +57,8 @@ public class BlurActivity extends BaseActivity implements SeekBar.OnSeekBarChang
 
     public static Bitmap blur(Context context, Bitmap bitmap, int radius) {
         // Ensure the bitmap is valid before copying
+        try {
+
         if (bitmap == null || bitmap.isRecycled()) {
             throw new IllegalStateException("Bitmap is null or already recycled");
         }
@@ -83,6 +85,10 @@ public class BlurActivity extends BaseActivity implements SeekBar.OnSeekBarChang
         rs.destroy();
 
         return createBitmap;
+
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @Override // androidx.fragment.app.FragmentActivity, androidx.activity.ComponentActivity, androidx.core.app.ComponentActivity, android.app.Activity

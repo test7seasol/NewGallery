@@ -18,6 +18,7 @@ import android.widget.RelativeLayout
 import androidx.annotation.RequiresApi
 import com.gallery.photos.editpic.Extensions.delayInMillis
 import com.gallery.photos.editpic.Extensions.gone
+import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.tos
 import com.gallery.photos.editpic.Extensions.visible
 import com.gallery.photos.editpic.R
@@ -88,16 +89,39 @@ class CreateNewFolderDialog(
                 return
             }
 
-            isFromWhere == "CreateFolder" -> handleSimpleFolderCreation(folderName)
+            isFromWhere == "CreateFolder" -> {
+                ("$initialPath/$folderName").log()
+                if (File("$initialPath/$folderName").exists()) {
+                    showErrorMessage("Folder already exists")
+                } else {
+                    handleSimpleFolderCreation(folderName)
+                }
+            }
             else -> handleFileOperation(folderName)
         }
     }
 
     private fun handleSimpleFolderCreation(folderName: String) {
+        folderName.log()
         val newFolder = File("$initialPath/$folderName")
+
+        val folderExists =
+            if (initialPath.startsWith(activity.getExternalFilesDir(null)?.absolutePath ?: "")) {
+                // App-specific storage: Use File API
+                newFolder.exists() && newFolder.isDirectory
+            } else {
+                // Shared storage: Use MediaStore for Android 11+
+                doesFolderExistInSharedStorage(activity, "$initialPath/$folderName")
+            }
+
         when {
-            newFolder.exists() -> showErrorMessage("Folder already exists")
-            newFolder.mkdirs() -> {
+            folderExists -> showErrorMessage("Folder already exists")
+
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> {
+                createFolderWithMediaStore(folderName) // Use MediaStore for Android 11+
+            }
+
+            newFolder.mkdirs() -> { // App-specific storage case
                 callback.invoke(folderName)
                 dialog.dismiss()
             }
@@ -106,7 +130,60 @@ class CreateNewFolderDialog(
         }
     }
 
+
+    fun doesFolderExistInSharedStorage(context: Context, folderPath: String): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            // For Android 9 and below, use File API (if you have legacy permissions)
+            val folder = File(folderPath)
+            return folder.exists() && folder.isDirectory
+        }
+
+        // Android 11+ (Scoped Storage)
+        val contentResolver = context.contentResolver
+        val relativePath =
+            folderPath.removePrefix(Environment.getExternalStorageDirectory().absolutePath + "/")
+
+        val projection = arrayOf(MediaStore.Files.FileColumns._ID)
+        val selection =
+            "${MediaStore.Files.FileColumns.RELATIVE_PATH} = ? AND ${MediaStore.Files.FileColumns.MIME_TYPE} IS NULL"
+        val selectionArgs = arrayOf(relativePath)
+
+        contentResolver.query(
+            MediaStore.Files.getContentUri("external"), projection, selection, selectionArgs, null
+        )?.use { cursor ->
+            return cursor.count > 0
+        }
+        return false
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun createFolderWithMediaStore(folderName: String) {
+        val resolver = activity.contentResolver
+        val collection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, folderName)
+            put(
+                MediaStore.MediaColumns.MIME_TYPE,
+                "vnd.android.document/directory"
+            ) // Declare as a folder
+            put(
+                MediaStore.MediaColumns.RELATIVE_PATH,
+                "Documents/$folderName"
+            ) // Change to your required path
+        }
+
+        val uri = resolver.insert(collection, contentValues)
+        if (uri != null) {
+            callback.invoke(folderName)
+            dialog.dismiss()
+        } else {
+            showErrorMessage("Failed to create folder via MediaStore")
+        }
+    }
+
     private fun handleFileOperation(folderName: String) {
+        ("Path For new folder: " + folderName).log()
         val newFolderPath = "$initialPath/$folderName"
         val newFolder = File(newFolderPath)
 

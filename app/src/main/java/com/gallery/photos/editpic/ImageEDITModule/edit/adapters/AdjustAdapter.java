@@ -48,28 +48,22 @@ public class AdjustAdapter extends RecyclerView.Adapter<AdjustAdapter.ViewHolder
             this.maxValue = f3;
         }
 
-        public void setSeekBarIntensity(PhotoEditor photoEditor, float f, boolean z) {
+        public void setSeekBarIntensity(PhotoEditor photoEditor, float progress, boolean z) {
             if (photoEditor != null) {
-                this.seekbarIntensity = f;
-                float calcIntensity = calcIntensity(f);
-                this.intensity = calcIntensity;
-                photoEditor.setFilterIntensityForIndex(calcIntensity, this.index, z);
+                this.seekbarIntensity = progress;
+                intensity = calcIntensity(progress);
+                photoEditor.setFilterIntensityForIndex(intensity, this.index, z);
             }
         }
 
-        public float calcIntensity(float f) {
-            if (f <= 0.0f) {
-                return this.minValue;
-            }
-            if (f >= 1.0f) {
-                return this.maxValue;
-            }
-            if (f <= 0.5f) {
-                float f2 = this.minValue;
-                return f2 + ((this.originValue - f2) * f * 2.0f);
-            }
-            float f3 = this.maxValue;
-            return f3 + ((this.originValue - f3) * (1.0f - f) * 2.0f);
+        public float calcIntensity(float progress) {
+            // Ensure progress is between 0 and 1
+            progress = Math.max(0f, Math.min(1f, progress));
+            // Linear mapping from [0,1] to [minValue, maxValue]
+            return minValue + (maxValue - minValue) * progress;
+            // OR if you need a more complex mapping:
+            // return minValue + (originValue - minValue)  progress  2f;  // For first half
+            // return originValue + (maxValue - originValue)  (progress - 0.5f)  2f; // For second half
         }
     }
 

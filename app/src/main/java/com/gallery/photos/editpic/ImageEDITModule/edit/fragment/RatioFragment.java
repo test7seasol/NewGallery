@@ -239,9 +239,13 @@ public class RatioFragment extends DialogFragment implements AspectAdapter.OnNew
         inflate.findViewById(R.id.image_view_save).setOnClickListener(new View.OnClickListener() { // from class: com.gallery.photos.editphotovideo.fragment.RatioFragment.7
             @Override // android.view.View.OnClickListener
             public void onClick(View view) {
+                try {
                 SaveRatioView saveRatioView = RatioFragment.this.new SaveRatioView();
                 RatioFragment ratioFragment = RatioFragment.this;
                 saveRatioView.execute(ratioFragment.getBitmapFromView(ratioFragment.frame_layout_wrapper));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
         return inflate;
@@ -398,9 +402,13 @@ public class RatioFragment extends DialogFragment implements AspectAdapter.OnNew
     }
 
     public Bitmap getBitmapFromView(View view) {
-        Bitmap createBitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
-        view.draw(new Canvas(createBitmap));
-        return createBitmap;
+        try {
+            Bitmap createBitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
+            view.draw(new Canvas(createBitmap));
+            return createBitmap;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public void mLoading(boolean z) {

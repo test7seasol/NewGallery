@@ -1,5 +1,8 @@
 package com.gallery.photos.editpic.ImageEDITModule.edit.activities;
 
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
+
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Intent;
@@ -331,7 +334,7 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
             @Override
             public void onClick(View v) {
                 mLoading(true);
-                constraint_layout_confirmP.setVisibility(View.GONE);
+                constraint_layout_confirmP.setVisibility(GONE);
                 runOnUiThread(new Runnable() { // from class: com.gallery.photos.editphotovideo.activities.PhotoEditorActivity$$ExternalSyntheticLambda1
                     @Override // java.lang.Runnable
                     public final void run() {
@@ -412,9 +415,9 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
     }
 
     public void iEraserBrush() {
-        this.linLayoutColor.setVisibility(View.GONE);
-        this.linearLayoutSize.setVisibility(View.GONE);
-        this.linearLayoutEraser.setVisibility(View.VISIBLE);
+        this.linLayoutColor.setVisibility(GONE);
+        this.linearLayoutSize.setVisibility(GONE);
+        this.linearLayoutEraser.setVisibility(VISIBLE);
         this.imageViewEraser.setColorFilter(ContextCompat.getColor(this, R.color.mainColor));
         this.imageViewPaint.setColorFilter(ContextCompat.getColor(this, R.color.white));
         this.imageViewNeon.setColorFilter(ContextCompat.getColor(this, R.color.white));
@@ -427,9 +430,9 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
 
     public void iNeonBrush() {
         this.selectedFeatures = FEATURES.NEON;
-        this.linLayoutColor.setVisibility(View.VISIBLE);
-        this.linearLayoutSize.setVisibility(View.VISIBLE);
-        this.linearLayoutEraser.setVisibility(View.GONE);
+        this.linLayoutColor.setVisibility(VISIBLE);
+        this.linearLayoutSize.setVisibility(VISIBLE);
+        this.linearLayoutEraser.setVisibility(GONE);
         this.imageViewEraser.setColorFilter(ContextCompat.getColor(this, R.color.white));
         this.imageViewPaint.setColorFilter(ContextCompat.getColor(this, R.color.white));
         this.imageViewNeon.setColorFilter(ContextCompat.getColor(this, R.color.mainColor));
@@ -443,9 +446,9 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
 
     public void iColorBrush() {
         this.selectedFeatures = FEATURES.COLOR;
-        this.linLayoutColor.setVisibility(View.VISIBLE);
-        this.linearLayoutSize.setVisibility(View.VISIBLE);
-        this.linearLayoutEraser.setVisibility(View.GONE);
+        this.linLayoutColor.setVisibility(VISIBLE);
+        this.linearLayoutSize.setVisibility(VISIBLE);
+        this.linearLayoutEraser.setVisibility(GONE);
         this.imageViewEraser.setColorFilter(ContextCompat.getColor(this, R.color.white));
         this.imageViewNeon.setColorFilter(ContextCompat.getColor(this, R.color.white));
         this.imageViewPaint.setColorFilter(ContextCompat.getColor(this, R.color.mainColor));
@@ -460,7 +463,7 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
     private void initViews() {
         this.relative_layout_loading = (RelativeLayout) findViewById(R.id.relative_layout_loading);
         this.linLayoutColor = (LinearLayout) findViewById(R.id.linLayoutColor);
-        this.relative_layout_loading.setVisibility(View.VISIBLE);
+        this.relative_layout_loading.setVisibility(VISIBLE);
         this.linear_layout_wrapper_sticker_list = (LinearLayout) findViewById(R.id.linear_layout_wrapper_sticker_list);
         PhotoEditorView photoEditorView = (PhotoEditorView) findViewById(R.id.photo_editor_view);
         this.photo_editor_view = photoEditorView;
@@ -492,7 +495,7 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
         this.seekbar_overlay = (SeekBar) findViewById(R.id.seekbar_overlay);
         SeekBar seekBar = (SeekBar) findViewById(R.id.seekbarStickerAlpha);
         this.seekbarStickerAlpha = seekBar;
-        seekBar.setVisibility(View.GONE);
+        seekBar.setVisibility(GONE);
         this.constraint_layout_brush = (ConstraintLayout) findViewById(R.id.constraintLayoutPaint);
         this.relative_layout_wrapper_photo = (RelativeLayout) findViewById(R.id.relative_layout_wrapper_photo);
         this.imageViewPaint = (ImageView) findViewById(R.id.imageViewPaint);
@@ -511,15 +514,15 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
         ImageView imageView = (ImageView) findViewById(R.id.image_view_compare_adjust);
         this.image_view_compare_adjust = imageView;
         imageView.setOnTouchListener(this.onCompareTouchListener);
-        this.image_view_compare_adjust.setVisibility(View.GONE);
+        this.image_view_compare_adjust.setVisibility(GONE);
         ImageView imageView2 = (ImageView) findViewById(R.id.image_view_compare_filter);
         this.image_view_compare_filter = imageView2;
         imageView2.setOnTouchListener(this.onCompareTouchListener);
-        this.image_view_compare_filter.setVisibility(View.GONE);
+        this.image_view_compare_filter.setVisibility(GONE);
         ImageView imageView3 = (ImageView) findViewById(R.id.image_view_compare_overlay);
         this.image_view_compare_overlay = imageView3;
         imageView3.setOnTouchListener(this.onCompareTouchListener);
-        this.image_view_compare_overlay.setVisibility(View.GONE);
+        this.image_view_compare_overlay.setVisibility(GONE);
         findViewById(R.id.image_view_exit).setOnClickListener(new View.OnClickListener() { // from class: com.gallery.photos.editphotovideo.activities.PhotoEditorActivity$$ExternalSyntheticLambda2
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
@@ -594,7 +597,7 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
         });
         ImageView imageView4 = (ImageView) findViewById(R.id.imageViewAddSticker);
         this.imageViewAddSticker = imageView4;
-        imageView4.setVisibility(View.GONE);
+        imageView4.setVisibility(GONE);
         this.imageViewAddSticker.setOnClickListener(new View.OnClickListener() { // from class: com.gallery.photos.editphotovideo.activities.PhotoEditorActivity$$ExternalSyntheticLambda3
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
@@ -611,7 +614,7 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
         });
         SeekBar seekBar2 = (SeekBar) findViewById(R.id.seekbar_adjust);
         this.seekbar_adjust = seekBar2;
-        seekBar2.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() { // from class: com.gallery.photos.editphotovideo.activities.PhotoEditorActivity.11
+        seekbar_adjust.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() { // from class: com.gallery.photos.editphotovideo.activities.PhotoEditorActivity.11
             @Override // android.widget.SeekBar.OnSeekBarChangeListener
             public void onStartTrackingTouch(SeekBar seekBar3) {
             }
@@ -684,7 +687,7 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
             @Override
             // com.gallery.photos.editphotovideo.sticker.StickerView.OnStickerOperationListener
             public void onStickerAdded(Sticker sticker) {
-                PhotoEditorActivity.this.seekbarStickerAlpha.setVisibility(View.VISIBLE);
+                PhotoEditorActivity.this.seekbarStickerAlpha.setVisibility(VISIBLE);
                 PhotoEditorActivity.this.seekbarStickerAlpha.setProgress(sticker.getAlpha());
             }
 
@@ -696,20 +699,20 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
                     PhotoEditorActivity.this.photo_editor_view.replace(sticker);
                     PhotoEditorActivity.this.photo_editor_view.invalidate();
                 }
-                PhotoEditorActivity.this.seekbarStickerAlpha.setVisibility(View.VISIBLE);
+                PhotoEditorActivity.this.seekbarStickerAlpha.setVisibility(VISIBLE);
                 PhotoEditorActivity.this.seekbarStickerAlpha.setProgress(sticker.getAlpha());
             }
 
             @Override
             // com.gallery.photos.editphotovideo.sticker.StickerView.OnStickerOperationListener
             public void onStickerDeleted(Sticker sticker) {
-                PhotoEditorActivity.this.seekbarStickerAlpha.setVisibility(View.GONE);
+                PhotoEditorActivity.this.seekbarStickerAlpha.setVisibility(GONE);
             }
 
             @Override
             // com.gallery.photos.editphotovideo.sticker.StickerView.OnStickerOperationListener
             public void onStickerTouchOutside() {
-                PhotoEditorActivity.this.seekbarStickerAlpha.setVisibility(View.GONE);
+                PhotoEditorActivity.this.seekbarStickerAlpha.setVisibility(GONE);
             }
 
             @Override
@@ -876,7 +879,7 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
 
     /* renamed from: lambda$initViews$5$com-artRoom-photo-editor-activities-PhotoEditorActivity, reason: not valid java name */
     void m264xc49cea06(View view) {
-        this.imageViewAddSticker.setVisibility(View.GONE);
+        this.imageViewAddSticker.setVisibility(GONE);
         slideUp(this.linear_layout_wrapper_sticker_list);
     }
 
@@ -894,7 +897,7 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
     }
 
     public void slideUp(View view) {
-        view.setVisibility(View.VISIBLE);
+        view.setVisibility(VISIBLE);
         Animation loadAnimation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
         this.slideUpAnimation = loadAnimation;
         view.startAnimation(loadAnimation);
@@ -914,7 +917,7 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
     }
 
     public void slideDown(View view) {
-        view.setVisibility(View.GONE);
+        view.setVisibility(GONE);
         view.startAnimation(this.slideDownAnimation);
         this.slideDownAnimation.setAnimationListener(new Animation.AnimationListener() { // from class: com.gallery.photos.editphotovideo.activities.PhotoEditorActivity.17
             @Override // android.view.animation.Animation.AnimationListener
@@ -962,134 +965,148 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
         Log.d(TAG, "onStopViewChangeListener() called with: viewType = [" + viewType + "]");
     }
 
-    @Override // android.view.View.OnClickListener
+    @Override
     public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.closeSticker /* 2131362001 */:
+        int viewId = view.getId();
 
-                slideDown(this.constraint_layout_sticker);
-                slideUp(this.recycler_view_tools);
+        if (viewId == R.id.closeSticker) {
+            relativeLayoutSaveSticker.setVisibility(GONE);
+            constraint_save_control.setVisibility(VISIBLE);
+            slideDown(this.constraint_layout_sticker);
+            slideUp(this.recycler_view_tools);
+            photo_editor_view.removeAllStickers();
+        } else if (viewId == R.id.imageViewClosePaint) {
+           /* slideDown(this.constraint_layout_brush);
+            slideUp(this.recycler_view_tools);
+            this.constraint_layout_confirmP.setVisibility(View.GONE);
+            constraint_save_control.setVisibility(VISIBLE);*/
+            photoEditor.clearBrushAllViews();
+            if (photoEditor.isBrushDrawingMode()) {
+                photoEditor.setBrushDrawingMode(false); // Disable painting mode
+                toogleDrawBottomToolbar(false); // Hide brush toolbar
+                slideDown(constraint_layout_brush); // Hide brush settings
+                slideUp(recycler_view_tools); // Show main tools
+                this.constraint_layout_confirmP.setVisibility(GONE);
+                this.recycler_view_tools_effect.setVisibility(GONE);
+                constraint_save_control.setVisibility(VISIBLE);
+                return;
+            }
+        } else if (viewId == R.id.image_view_close_adjust) {
+            Log.e("TAGee", "onClick:image_view_close_adjust");
+            this.photoEditor.setFilterEffect("");
+            this.currentMode = ToolEditor.NONE;
+            this.image_view_compare_adjust.setVisibility(View.GONE);
+            findViewById(R.id.constraint_layout_confirm_adjust).setVisibility(GONE);
+            slideDown(this.constraint_layout_adjust);
+            slideUp(this.recycler_view_tools);
+            slideDownSaveView();
+            setGuideLine();
+            updateLayout();
+//            resetToOriginalImage();
 
-            case R.id.imageViewClosePaint /* 2131362269 */:
-//                slideDown(this.constraint_layout_brush);
-//                slideUp(this.recycler_view_tools);
-
-            case R.id.image_view_close_adjust /* 2131362343 */:
-                Log.e("TAGee", "onClick:image_view_close_adjust ");
-             /*   new SaveFilterAsBitmap().execute(new Void[0]);
-                this.image_view_compare_adjust.setVisibility(View.GONE);
-                slideDown(this.constraint_layout_adjust);
-                slideUp(this.recycler_view_tools);
-                slideDownSaveView();
-                setGuideLine();
-                updateLayout();*/
-//                this.currentMode = ToolEditor.NONE;
-
-            case R.id.image_view_close_filter /* 2131362344 */:
-
-                slideDown(this.constraint_layout_filter);
-                slideUp(this.recycler_view_tools);
-
-            case R.id.image_view_close_overlay /* 2131362345 */:
-                slideDown(this.constraint_layout_overlay);
-                slideUp(this.recycler_view_tools);
-
-            case R.id.image_view_close_text /* 2131362346 */:
-                slideDownSaveView();
-                onBackPressed();
-                break;
-            case R.id.imageViewPaintRedo /* 2131362295 */:
-                this.photoEditor.redoBrush();
-                break;
-            case R.id.imageViewPaintUndo /* 2131362296 */:
-                this.photoEditor.undoBrush();
-                break;
-            case R.id.imageViewRedo /* 2131362301 */:
-                setRedo();
-                break;
-            case R.id.imageViewSavePaint /* 2131362311 */:
-                mLoading(true);
-                this.constraint_layout_confirmP.setVisibility(View.GONE);
-                runOnUiThread(new Runnable() { // from class: com.gallery.photos.editphotovideo.activities.PhotoEditorActivity$$ExternalSyntheticLambda1
-                    @Override // java.lang.Runnable
-                    public final void run() {
-                        PhotoEditorActivity.this.m267x53538b3();
-                    }
-                });
-                slideDownSaveView();
-                this.currentMode = ToolEditor.NONE;
-                break;
-            case R.id.imageViewUndo /* 2131362320 */:
-                setUndo();
-                break;
-            case R.id.image_view_save_adjust /* 2131362358 */:
-                new SaveFilterAsBitmap().execute(new Void[0]);
-                this.image_view_compare_adjust.setVisibility(View.GONE);
-                slideDown(this.constraint_layout_adjust);
-                slideUp(this.recycler_view_tools);
-                slideDownSaveView();
-                setGuideLine();
-                updateLayout();
-                this.currentMode = ToolEditor.NONE;
-                break;
-            case R.id.image_view_save_filter /* 2131362360 */:
-                new SaveFilterAsBitmap().execute(new Void[0]);
-                this.image_view_compare_filter.setVisibility(View.GONE);
-                slideDown(this.constraint_layout_filter);
-                slideUp(this.recycler_view_tools);
-                slideDownSaveView();
-                setGuideLine();
-                updateLayout();
-                this.currentMode = ToolEditor.NONE;
-                break;
-            case R.id.image_view_save_overlay /* 2131362361 */:
-                new SaveFilterAsBitmap().execute(new Void[0]);
-                slideDown(this.constraint_layout_overlay);
-                slideUp(this.recycler_view_tools);
-                this.image_view_compare_overlay.setVisibility(View.GONE);
-                slideDownSaveView();
-                setGuideLine();
-                updateLayout();
-                this.currentMode = ToolEditor.NONE;
-                break;
-            case R.id.image_view_save_text /* 2131362362 */:
-                this.photo_editor_view.setHandlingSticker(null);
-                this.photo_editor_view.setLocked(true);
-                this.relativeLayoutSaveText.setVisibility(View.GONE);
-                if (!this.photo_editor_view.getStickers().isEmpty()) {
-                    new SaveStickerAsBitmap().execute(new Void[0]);
+//            this.currentMode = ToolEditor.NONE;
+        } else if (viewId == R.id.image_view_close_filter) {
+            constraint_save_control.setVisibility(VISIBLE);
+            slideDown(this.constraint_layout_filter);
+            slideUp(this.recycler_view_tools);
+            this.photoEditor.setFilterEffect("");
+//            this.currentMode = ToolEditor.NONE;
+        } else if (viewId == R.id.image_view_close_overlay) {
+            slideDown(this.constraint_layout_overlay);
+            slideUp(this.recycler_view_tools);
+            slideDownSaveControl();
+            this.photoEditor.setFilterEffect("");
+            this.currentMode = ToolEditor.NONE;
+        } else if (viewId == R.id.image_view_close_text) {
+            slideDownSaveView();
+            slideDown(this.relativeLayoutSaveText);
+            slideUp(this.recycler_view_tools);
+            this.relativeLayoutText.setVisibility(GONE);
+            constraint_save_control.setVisibility(VISIBLE);
+            textEditorDialogFragment.dismisslayout();
+//            onBackPressed();
+        } else if (viewId == R.id.imageViewPaintRedo) {
+            this.photoEditor.redoBrush();
+        } else if (viewId == R.id.imageViewPaintUndo) {
+            this.photoEditor.undoBrush();
+        } else if (viewId == R.id.imageViewRedo) {
+            setRedo();
+        } else if (viewId == R.id.imageViewSavePaint) {
+            mLoading(true);
+            this.constraint_layout_confirmP.setVisibility(View.GONE);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    m267x53538b3();
                 }
-                setGuideLine();
-                slideDown(this.relativeLayoutText);
-                slideUp(this.recycler_view_tools);
-                slideDownSaveView();
-                updateLayout();
-                this.currentMode = ToolEditor.NONE;
-                break;
-            case R.id.saveSticker /* 2131362792 */:
-                this.photo_editor_view.setHandlingSticker(null);
-                this.photo_editor_view.setLocked(true);
-                this.relativeLayoutSaveSticker.setVisibility(View.GONE);
-                this.imageViewAddSticker.setVisibility(View.GONE);
-                if (!this.photo_editor_view.getStickers().isEmpty()) {
-                    new SaveStickerAsBitmap().execute(new Void[0]);
-                }
-                updateLayout();
-                setGuideLine();
-                slideDown(this.linear_layout_wrapper_sticker_list);
-                slideDown(this.constraint_layout_sticker);
-                slideDown(this.relativeLayoutSaveSticker);
-                slideUp(this.recycler_view_tools);
-                slideDownSaveView();
-                this.currentMode = ToolEditor.NONE;
-                break;
+            });
+            slideDownSaveView();
+            this.currentMode = ToolEditor.NONE;
+        } else if (viewId == R.id.imageViewUndo) {
+            setUndo();
+        } else if (viewId == R.id.image_view_save_adjust) {
+            new SaveFilterAsBitmap().execute();
+            this.image_view_compare_adjust.setVisibility(View.GONE);
+            slideDown(this.constraint_layout_adjust);
+            findViewById(R.id.constraint_layout_confirm_adjust).setVisibility(GONE);
+            slideUp(this.recycler_view_tools);
+            slideDownSaveView();
+            setGuideLine();
+            updateLayout();
+            this.currentMode = ToolEditor.NONE;
+        } else if (viewId == R.id.image_view_save_filter) {
+            new SaveFilterAsBitmap().execute();
+            this.image_view_compare_filter.setVisibility(View.GONE);
+            slideDown(this.constraint_layout_filter);
+            slideUp(this.recycler_view_tools);
+            slideDownSaveView();
+            setGuideLine();
+            updateLayout();
+            this.currentMode = ToolEditor.NONE;
+        } else if (viewId == R.id.image_view_save_overlay) {
+            new SaveFilterAsBitmap().execute();
+            slideDown(this.constraint_layout_overlay);
+            slideUp(this.recycler_view_tools);
+            this.image_view_compare_overlay.setVisibility(View.GONE);
+            slideDownSaveView();
+            setGuideLine();
+            updateLayout();
+            this.currentMode = ToolEditor.NONE;
+        } else if (viewId == R.id.image_view_save_text) {
+            this.photo_editor_view.setHandlingSticker(null);
+            this.photo_editor_view.setLocked(true);
+            this.relativeLayoutSaveText.setVisibility(View.GONE);
+            if (!this.photo_editor_view.getStickers().isEmpty()) {
+                new SaveStickerAsBitmap().execute();
+            }
+            setGuideLine();
+            slideDown(this.relativeLayoutText);
+            slideUp(this.recycler_view_tools);
+            slideDownSaveView();
+            updateLayout();
+            this.currentMode = ToolEditor.NONE;
+        } else if (viewId == R.id.saveSticker) {
+            this.photo_editor_view.setHandlingSticker(null);
+            this.photo_editor_view.setLocked(true);
+            this.relativeLayoutSaveSticker.setVisibility(View.GONE);
+            this.imageViewAddSticker.setVisibility(View.GONE);
+            if (!this.photo_editor_view.getStickers().isEmpty()) {
+                new SaveStickerAsBitmap().execute();
+            }
+            updateLayout();
+            setGuideLine();
+            slideDown(this.linear_layout_wrapper_sticker_list);
+            slideDown(this.constraint_layout_sticker);
+            slideDown(this.relativeLayoutSaveSticker);
+            slideUp(this.recycler_view_tools);
+            slideDownSaveView();
+            this.currentMode = ToolEditor.NONE;
         }
     }
-
     /* renamed from: lambda$onClick$7$com-artRoom-photo-editor-activities-PhotoEditorActivity, reason: not valid java name */
     void m267x53538b3() {
         this.photoEditor.setBrushDrawingMode(false);
-        this.imageViewEraser.setVisibility(View.GONE);
+        this.imageViewEraser.setVisibility(GONE);
         slideDown(this.constraint_layout_brush);
         slideUp(this.recycler_view_tools);
         setGuideLine();
@@ -1148,10 +1165,10 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
                 iColorBrush();
                 updateLayout();
                 this.photoEditor.setBrushDrawingMode(true);
-                this.constraint_layout_confirmP.setVisibility(View.VISIBLE);
+                this.constraint_layout_confirmP.setVisibility(VISIBLE);
                 slideDown(this.recycler_view_tools);
                 slideUp(this.constraint_layout_brush);
-                this.recycler_view_tools_effect.setVisibility(View.GONE);
+                this.recycler_view_tools_effect.setVisibility(GONE);
                 slideUpSaveControl();
                 toogleDrawBottomToolbar(true);
                 setGuideLinePaint();
@@ -1171,8 +1188,8 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
                 openTextFragment();
                 slideDown(this.recycler_view_tools);
                 slideUp(this.relativeLayoutSaveText);
-                this.relativeLayoutText.setVisibility(View.VISIBLE);
-                this.recycler_view_tools_effect.setVisibility(View.GONE);
+                this.relativeLayoutText.setVisibility(VISIBLE);
+                this.recycler_view_tools_effect.setVisibility(GONE);
                 setGuideLine();
                 break;
             case E_TOOLS:
@@ -1220,13 +1237,13 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
             case STICKER:
                 Log.e(TAG, "onToolSelected: HSL");
 
-                this.constraint_layout_sticker.setVisibility(View.VISIBLE);
-                this.linear_layout_wrapper_sticker_list.setVisibility(View.VISIBLE);
+                this.constraint_layout_sticker.setVisibility(VISIBLE);
+                this.linear_layout_wrapper_sticker_list.setVisibility(VISIBLE);
                 updateLayout();
                 slideUpSaveView();
                 this.photo_editor_view.setLocked(false);
                 slideDown(this.recycler_view_tools);
-                this.recycler_view_tools_effect.setVisibility(View.GONE);
+                this.recycler_view_tools_effect.setVisibility(GONE);
                 slideUp(this.constraint_layout_sticker);
                 slideUp(this.relativeLayoutSaveSticker);
                 setGuideLine();
@@ -1247,7 +1264,7 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
                 Log.e(TAG, "onToolSelected: E_TOOLS");
                 slideUpSaveView();
                 updateLayout();
-                this.image_view_compare_adjust.setVisibility(View.VISIBLE);
+                this.image_view_compare_adjust.setVisibility(VISIBLE);
                 AdjustAdapter adjustAdapter = new AdjustAdapter(getApplicationContext(), this);
                 this.mAdjustAdapter = adjustAdapter;
                 this.recycler_view_adjust.setAdapter(adjustAdapter);
@@ -1261,13 +1278,13 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
                 constraintSet2.applyTo(this.constraint_layout_root_view);
                 slideUp(this.constraint_layout_adjust);
                 slideDown(this.recycler_view_tools);
-                this.recycler_view_tools_effect.setVisibility(View.GONE);
+                this.recycler_view_tools_effect.setVisibility(GONE);
                 break;
             case RATIO:
                 Log.e(TAG, "onToolSelected: STICKER");
 
                 new ShowRatioFragment().execute(new Void[0]);
-                this.recycler_view_tools_effect.setVisibility(View.GONE);
+                this.recycler_view_tools_effect.setVisibility(GONE);
                 break;
 //            case SQUARE:
 //                new ShowSplashFragment(true).execute(new Void[0]);
@@ -1277,7 +1294,7 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
                 Log.e(TAG, "onToolSelected: MIRROR");
 
                 CropperFragment.show(this, this, this.photo_editor_view.getCurrentBitmap());
-                this.recycler_view_tools_effect.setVisibility(View.GONE);
+                this.recycler_view_tools_effect.setVisibility(GONE);
                 break;
 //            case PAINT:
 //                new openShapeFragment().execute(new Void[0]);
@@ -1289,13 +1306,13 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
                 BitmapTransfer.bitmap = this.photo_editor_view.getCurrentBitmap();
                 startActivityForResult(new Intent(this, (Class<?>) MirrorActivity.class), 900);
                 overridePendingTransition(R.anim.enter, R.anim.exit);
-                this.recycler_view_tools_effect.setVisibility(View.GONE);
+                this.recycler_view_tools_effect.setVisibility(GONE);
                 break;
             case SQUARE:
                 Log.e(TAG, "onToolSelected: SQUARE");
 
                 new openSplashFragment(true).execute(new Void[0]);
-                this.recycler_view_tools_effect.setVisibility(View.GONE);
+                this.recycler_view_tools_effect.setVisibility(GONE);
                 break;
            /* case SPLASHING:
                 Log.e(TAG, "onToolSelected: SPLASHING" );
@@ -1323,29 +1340,29 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
                 slideUpSaveView();
                 this.selectedFeatures = FEATURES.OVERLAY;
                 new LoadOverlayBitmap().execute(new Void[0]);
-                this.recycler_view_tools_effect.setVisibility(View.GONE);
+                this.recycler_view_tools_effect.setVisibility(GONE);
                 break;
             case SPLASH:
                 BitmapTransfer.bitmap = this.photo_editor_view.getCurrentBitmap();
                 startActivityForResult(new Intent(this, (Class<?>) SplashActivity.class), 900);
                 overridePendingTransition(R.anim.enter, R.anim.exit);
-                this.recycler_view_tools_effect.setVisibility(View.GONE);
+                this.recycler_view_tools_effect.setVisibility(GONE);
                 break;
             case BLUR:
                 BitmapTransfer.bitmap = this.photo_editor_view.getCurrentBitmap();
                 startActivityForResult(new Intent(this, (Class<?>) BlurActivity.class), 900);
                 overridePendingTransition(R.anim.enter, R.anim.exit);
-                this.recycler_view_tools_effect.setVisibility(View.GONE);
+                this.recycler_view_tools_effect.setVisibility(GONE);
                 break;
             case BODY:
                 this.selectedFeatures = FEATURES.BODY;
                 new dripEffect().execute(new Void[0]);
-                this.recycler_view_tools_effect.setVisibility(View.GONE);
+                this.recycler_view_tools_effect.setVisibility(GONE);
                 break;
             case NEON:
                 this.selectedFeatures = FEATURES.WING;
                 new dripEffect().execute(new Void[0]);
-                this.recycler_view_tools_effect.setVisibility(View.GONE);
+                this.recycler_view_tools_effect.setVisibility(GONE);
                 break;
            /* case BG_CHANGE:
                 this.selectedFeatures = FEATURES.BG_CHANGE;
@@ -1355,7 +1372,7 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
             case FRAME:
                 this.selectedFeatures = FEATURES.BORDER;
                 new dripEffect().execute(new Void[0]);
-                this.recycler_view_tools_effect.setVisibility(View.GONE);
+                this.recycler_view_tools_effect.setVisibility(GONE);
                 break;
            /* case DOUBLE:
                 this.selectedFeatures = FEATURES.DOUBLE;
@@ -1395,27 +1412,27 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
     }
 
     public void slideUpSaveView() {
-        this.constraint_save_control.setVisibility(View.GONE);
+        this.constraint_save_control.setVisibility(GONE);
     }
 
     public void slideUpSaveControl() {
-        this.constraint_save_control.setVisibility(View.GONE);
+        this.constraint_save_control.setVisibility(GONE);
     }
 
     public void slideDownSaveControl() {
-        this.constraint_save_control.setVisibility(View.VISIBLE);
+        this.constraint_save_control.setVisibility(VISIBLE);
     }
 
     public void slideDownSaveView() {
-        this.constraint_save_control.setVisibility(View.VISIBLE);
+        this.constraint_save_control.setVisibility(VISIBLE);
     }
 
     @Override // androidx.activity.ComponentActivity, android.app.Activity
     public void onBackPressed() {
         super.onBackPressed();
-        this.recycler_view_tools_effect.setVisibility(View.GONE);
-        if (constraint_layout_adjust.getVisibility() == View.VISIBLE) {
-            constraint_layout_adjust.setVisibility(View.GONE);
+        this.recycler_view_tools_effect.setVisibility(GONE);
+        if (constraint_layout_adjust.getVisibility() == VISIBLE) {
+            constraint_layout_adjust.setVisibility(GONE);
             slideDown(constraint_layout_adjust);
             slideUp(recycler_view_tools);
         } else {
@@ -1480,7 +1497,7 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
     public void addSticker(int i, Bitmap bitmap) {
         this.photo_editor_view.addSticker(new DrawableSticker(new BitmapDrawable(getResources(), bitmap)));
         slideDown(this.linear_layout_wrapper_sticker_list);
-        this.imageViewAddSticker.setVisibility(View.VISIBLE);
+        this.imageViewAddSticker.setVisibility(VISIBLE);
     }
 
     @Override // com.gallery.photos.editphotovideo.fragment.CropperFragment.OnCropPhoto
@@ -1576,7 +1593,7 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
             photoEditorActivity2.slideDown(photoEditorActivity2.recycler_view_tools);
             PhotoEditorActivity photoEditorActivity3 = PhotoEditorActivity.this;
             photoEditorActivity3.slideUp(photoEditorActivity3.constraint_layout_filter);
-            PhotoEditorActivity.this.image_view_compare_filter.setVisibility(View.VISIBLE);
+            PhotoEditorActivity.this.image_view_compare_filter.setVisibility(VISIBLE);
             PhotoEditorActivity.this.seekbar_filter.setProgress(100);
             ConstraintSet constraintSet = new ConstraintSet();
             constraintSet.clone(PhotoEditorActivity.this.constraint_layout_root_view);
@@ -1717,7 +1734,7 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
                 photoEditorActivity2.slideDown(photoEditorActivity2.recycler_view_tools);
                 PhotoEditorActivity photoEditorActivity3 = PhotoEditorActivity.this;
                 photoEditorActivity3.slideUp(photoEditorActivity3.constraint_layout_overlay);
-                PhotoEditorActivity.this.image_view_compare_overlay.setVisibility(View.VISIBLE);
+                PhotoEditorActivity.this.image_view_compare_overlay.setVisibility(VISIBLE);
                 ConstraintSet constraintSet = new ConstraintSet();
                 constraintSet.clone(PhotoEditorActivity.this.constraint_layout_root_view);
                 constraintSet.connect(PhotoEditorActivity.this.relative_layout_wrapper_photo.getId(), 1, PhotoEditorActivity.this.constraint_layout_root_view.getId(), 1, 0);
@@ -1795,6 +1812,7 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
 
         @Override // android.os.AsyncTask
         public void onPostExecute(List<Bitmap> list) {
+            try {
             if (list == null && list.isEmpty()) {
                 Toast.makeText(PhotoEditorActivity.this, "Failed to process image", Toast.LENGTH_SHORT).show();
                 return;
@@ -1804,6 +1822,10 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
                 SplashFragment.show(PhotoEditorActivity.this, list.get(0), null, list.get(1), PhotoEditorActivity.this, true);
             }
             PhotoEditorActivity.this.mLoading(false);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -2202,12 +2224,12 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
                 RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(-1, -2);
                 layoutParams.addRule(13);
                 this.photo_editor_view.setLayoutParams(layoutParams);
-                this.photo_editor_view.setVisibility(View.VISIBLE);
+                this.photo_editor_view.setVisibility(VISIBLE);
             } else {
                 RelativeLayout.LayoutParams layoutParams2 = new RelativeLayout.LayoutParams((int) ((height * f2) / f), -1);
                 layoutParams2.addRule(13);
                 this.photo_editor_view.setLayoutParams(layoutParams2);
-                this.photo_editor_view.setVisibility(View.VISIBLE);
+                this.photo_editor_view.setVisibility(VISIBLE);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -2252,10 +2274,10 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
     public void mLoading(boolean z) {
         if (z) {
             getWindow().setFlags(16, 16);
-            this.relative_layout_loading.setVisibility(View.VISIBLE);
+            this.relative_layout_loading.setVisibility(VISIBLE);
         } else {
             getWindow().clearFlags(16);
-            this.relative_layout_loading.setVisibility(View.GONE);
+            this.relative_layout_loading.setVisibility(GONE);
         }
     }
 

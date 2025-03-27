@@ -2,6 +2,7 @@ package com.gallery.photos.editpic.Fragment
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.Activity.RESULT_OK
 import android.app.AlertDialog
 import android.app.ProgressDialog
@@ -23,6 +24,7 @@ import android.view.LayoutInflater
 import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.MimeTypeMap
 import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -235,7 +237,7 @@ class RecentsPictureFragment : Fragment() {
             llShare.onClick {
                 val selectedFiles = mediaAdapter.selectedItems.distinctBy { it.mediaPath }
                 if (selectedFiles.size <= 100) {
-                    shareMultipleFilesA(selectedFiles, requireActivity())
+                    shareMultipleFiles(selectedFiles, requireActivity())
                 } else {
                     (getString(R.string.max_selection_limit_is_100)).tos(requireActivity())
                 }
@@ -532,59 +534,144 @@ class RecentsPictureFragment : Fragment() {
         binding.recyclerViewRecentPictures.scheduleLayoutAnimation()
     }
 
-    fun shareMultipleFilesA(filePaths: List<MediaModel>, context: Context) {
+
+    fun shareMultipleFiles(filePaths: List<MediaModel>, context: Context) {
         val fileUris = ArrayList<Uri>()
 
         filePaths.forEach { media ->
-            val uri = Uri.parse(media.mediaPath) // Parse content URI
-            Log.e("ShareFiles", "Checking URI: $uri")
-
             try {
-                val fileUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    uri // Use the URI directly
-                } else {
-                    FileProvider.getUriForFile(
-                        context,
-                        "${context.packageName}.provider",
-                        File(media.mediaPath)
-                    )
+                var uri = Uri.parse(media.mediaPath)
+
+                val finalUri = when {
+                    // If it's already a content URI (works across all versions)
+                    uri.scheme == "content" -> uri
+
+                    // Android 7-9 (API 24-28): Nougat, Oreo, Pie
+                    Build.VERSION.SDK_INT <= Build.VERSION_CODES.P -> {
+                        val file = File(media.mediaPath)
+                        FileProvider.getUriForFile(
+                            context,
+                            "${context.packageName}.provider",
+                            file
+                        )
+                    }
+
+                    // Android 10-11 (API 29-30): Q, R
+                    Build.VERSION.SDK_INT <= Build.VERSION_CODES.R -> {
+                        FileProvider.getUriForFile(
+                            context,
+                            "${context.packageName}.provider",
+                            File(media.mediaPath)
+                        )
+                    }
+
+                    // Android 12-15 (API 31-35+): S, Tiramisu, UpsideDownCake, VanillaIceCream
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+                        FileProvider.getUriForFile(
+                            context,
+                            "${context.packageName}.provider",
+                            File(media.mediaPath)
+                        )
+                    }
+
+                    else -> {
+                        // Fallback for any unforeseen versions
+                        FileProvider.getUriForFile(
+                            context,
+                            "${context.packageName}.provider",
+                            File(media.mediaPath)
+                        )
+                    }
                 }
 
-                if (fileUri != null) {
-                    fileUris.add(fileUri)
-                    Log.d("ShareFiles", "✅ URI added: $fileUri")
+                if (finalUri != null) {
+                    context.grantUriPermission(
+                        context.packageName,
+                        finalUri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                    fileUris.add(finalUri)
+                    Log.d("ShareFiles", "✅ URI added: $finalUri")
                 } else {
-                    Log.e("ShareFiles", "⚠️ Failed to get valid URI for: $uri")
+                    Log.e("ShareFiles", "⚠️ Null URI for: ${media.mediaPath}")
                 }
             } catch (e: Exception) {
-                Log.e("ShareFiles", "❌ Error processing URI: $uri", e)
+                Log.e("ShareFiles", "❌ Error processing URI: ${media.mediaPath}", e)
             }
         }
 
-        fun getCommonMimeType(mimeTypes: List<String>): String {
-            return when {
-                mimeTypes.all { it.startsWith("image/") } -> "image/*"  // If all are images
-                mimeTypes.all { it.startsWith("video/") } -> "video/*"  // If all are videos
-                else -> "*/*"  // Mixed or unknown types
+        // Function to get MIME type from file path if not provided
+        fun getMimeTypeFromPath(path: String): String {
+            val extension = MimeTypeMap.getFileExtensionFromUrl(path)?.lowercase()
+            return when (extension) {
+                "mp4" -> "video/mp4" // Explicitly handle MP4 files
+                else -> MimeTypeMap.getSingleton()
+                    .getMimeTypeFromExtension(extension) ?: "video/*"
             }
         }
 
         if (fileUris.isNotEmpty()) {
-            val mimeType = getCommonMimeType(filePaths.map { it.mediaMimeType })
+            // Map MIME types, prioritizing MP4 detection
+            val mimeTypes = filePaths.map { media ->
+                media.mediaMimeType ?: getMimeTypeFromPath(media.mediaPath)
+            }
 
             val shareIntent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
-                type = mimeType
+                // Default to video/mp4 since we're focusing on MP4 files
+                type = "video/mp4"
+
+                // Validate that all files are videos, preferably MP4
+                val allVideos = mimeTypes.all { it.startsWith("video/") }
+                val allMp4 = mimeTypes.all { it == "video/mp4" }
+
+                when {
+                    allMp4 -> type = "video/mp4" // All are MP4 files
+                    allVideos -> type = "video/*" // All are videos but not all MP4
+                    else -> {
+                        type = "*/*" // Mixed content
+                        Log.w("ShareFiles", "Some files may not be videos: $mimeTypes")
+                    }
+                }
+
                 putParcelableArrayListExtra(Intent.EXTRA_STREAM, fileUris)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+
+                flags = when {
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.N -> {
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    }
+
+                    else -> {
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    }
+                }
+
+                // Add extra metadata for video sharing
+                putExtra(Intent.EXTRA_TITLE, "Shared MP4 Videos")
             }
 
             try {
-                context.startActivity(Intent.createChooser(shareIntent, "Share Files"))
+                val chooserIntent = Intent.createChooser(shareIntent, "Share MP4 Videos")
+                if (shareIntent.resolveActivity(context.packageManager) != null) {
+                    context.startActivity(chooserIntent)
+                } else {
+                    Log.e("ShareFiles", "❌ No activity found to handle share intent")
+                    if (context is Activity) {
+                        Toast.makeText(
+                            context,
+                            "No app available to share videos",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
             } catch (e: Exception) {
                 Log.e("ShareFiles", "❌ Error starting share intent", e)
             }
         } else {
-            Log.e("ShareFiles", "❌ No valid files to share.")
+            Log.e("ShareFiles", "❌ No valid files to share")
+            if (context is Activity) {
+                Toast.makeText(context, "No videos available to share", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -690,7 +777,7 @@ class RecentsPictureFragment : Fragment() {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {  // Android 11+ (API 30+)
             moveToRecycleBinScopedStorage(originalFilePath)
         } else {
-            moveToRecycleBinLegacy(originalFilePath)
+            moveToRecycleBinLegacy(originalFilePath, requireActivity())
         }
     }
 
@@ -931,34 +1018,129 @@ class RecentsPictureFragment : Fragment() {
     }
 
     // ✅ Android 10 and Below - Uses Direct File Access
-    fun moveToRecycleBinLegacy(originalFilePath: String): Boolean {
-        val originalFile = File(originalFilePath)
-        if (!originalFile.exists()) {
+    fun moveToRecycleBinLegacy(originalFilePath: String, context: Context): Boolean {
+        val contentResolver = context.contentResolver
+
+        // Determine if the input is a content URI or file path
+        val isContentUri = originalFilePath.startsWith("content://")
+        val sourceUri = if (isContentUri) Uri.parse(originalFilePath) else null
+        val sourceFile = if (!isContentUri) File(originalFilePath) else null
+
+        // Check if the source exists
+        if (isContentUri && sourceUri != null) {
+            // Verify content URI exists by querying ContentResolver
+            contentResolver.query(sourceUri, null, null, null, null)?.use { cursor ->
+                if (!cursor.moveToFirst()) {
+                    Log.e("MoveToRecycleBin", "Content URI does not exist: $originalFilePath")
+                    return false
+                }
+            } ?: run {
+                Log.e("MoveToRecycleBin", "Failed to query content URI: $originalFilePath")
+                return false
+            }
+        } else if (sourceFile != null && !sourceFile.exists()) {
             Log.e("MoveToRecycleBin", "File does not exist: $originalFilePath")
             return false
         }
 
-        val recycleBin = createRecycleBin()
-        val recycledFile = File(recycleBin, originalFile.name)
+        // Prepare recycle bin directory in app-specific storage
+        val recycleBin = File(context.getExternalFilesDir(null), ".gallery_recycleBin").apply {
+            if (!exists()) {
+                if (!mkdirs()) {
+                    Log.e("MoveToRecycleBin", "Failed to create recycle bin directory")
+                    return false
+                }
+            }
+        }
+
+        // Get file name and MIME type
+        val (fileName, mimeType) = if (isContentUri && sourceUri != null) {
+            getFileInfoFromUri(context, sourceUri)
+        } else {
+            Pair(
+                sourceFile!!.name,
+                context.contentResolver.getType(Uri.fromFile(sourceFile)) ?: "*/*"
+            )
+        }
+
+        val recycledFile = File(recycleBin, fileName)
 
         return try {
-            originalFile.copyTo(recycledFile, overwrite = true)  // Copy to recycle bin
-            Log.d("MoveToRecycleBin", "File copied to recycle bin: ${recycledFile.absolutePath}")
-
-            if (originalFile.delete()) {
-                Log.d("MoveToRecycleBin", "Original file deleted")
+            // Copy the file to recycle bin
+            val copySuccess = if (isContentUri && sourceUri != null) {
+                contentResolver.openInputStream(sourceUri)?.use { inputStream ->
+                    FileOutputStream(recycledFile).use { outputStream ->
+                        inputStream.copyTo(outputStream)
+                        true
+                    }
+                } ?: false.also {
+                    Log.e("MoveToRecycleBin", "Failed to open input stream for $sourceUri")
+                }
             } else {
-                Log.e("MoveToRecycleBin", "Failed to delete original file")
+                sourceFile!!.copyTo(recycledFile, overwrite = true)
+                true
             }
 
-            true
+            if (!copySuccess) {
+                Log.e("MoveToRecycleBin", "Failed to copy file to recycle bin: $originalFilePath")
+                return false
+            }
+
+            Log.d("MoveToRecycleBin", "File copied to recycle bin: ${recycledFile.absolutePath}")
+
+            // Delete the original file
+            val deleteSuccess = if (isContentUri && sourceUri != null) {
+                contentResolver.delete(sourceUri, null, null) > 0
+            } else {
+                sourceFile!!.delete()
+            }
+
+            if (deleteSuccess) {
+                Log.d("MoveToRecycleBin", "Original file deleted: $originalFilePath")
+                // Notify MediaScanner about the new file in recycle bin
+                MediaScannerConnection.scanFile(
+                    context,
+                    arrayOf(recycledFile.absolutePath),
+                    arrayOf(mimeType),
+                    null
+                )
+                true
+            } else {
+                Log.e("MoveToRecycleBin", "Failed to delete original: $originalFilePath")
+                recycledFile.delete() // Clean up if deletion fails
+                false
+            }
         } catch (e: IOException) {
-            Log.e("MoveToRecycleBin", "IOException: ${e.message}")
-            e.printStackTrace()
+            Log.e("MoveToRecycleBin", "IOException during file operation: ${e.message}", e)
+            recycledFile.delete() // Clean up on failure
+            false
+        } catch (e: SecurityException) {
+            Log.e("MoveToRecycleBin", "SecurityException: ${e.message}", e)
+            recycledFile.delete() // Clean up on failure
             false
         }
     }
 
+    // Helper function to get file info from a content URI
+    private fun getFileInfoFromUri(context: Context, uri: Uri): Pair<String, String> {
+        var fileName = "unknown_file"
+        var mimeType = "*/*"
+        context.contentResolver.query(
+            uri,
+            arrayOf(MediaStore.MediaColumns.DISPLAY_NAME, MediaStore.MediaColumns.MIME_TYPE),
+            null,
+            null,
+            null
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val nameIndex = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME)
+                val mimeIndex = cursor.getColumnIndex(MediaStore.MediaColumns.MIME_TYPE)
+                if (nameIndex >= 0) fileName = cursor.getString(nameIndex)
+                if (mimeIndex >= 0) mimeType = cursor.getString(mimeIndex) ?: "*/*"
+            }
+        }
+        return Pair(fileName, mimeType)
+    }
     override fun onResume() {
         super.onResume()
         ("onResume Fragment").log()
@@ -966,6 +1148,7 @@ class RecentsPictureFragment : Fragment() {
             isOneTime = false
             requestMediaPermission()
         }
+
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
             if (ContextCompat.checkSelfPermission(
                     requireActivity(), Manifest.permission.READ_EXTERNAL_STORAGE
@@ -978,9 +1161,7 @@ class RecentsPictureFragment : Fragment() {
         } else {
             viewModel.loadRecentMedia()
         }
-
         //        binding.recyclerViewRecentPictures.adapter?.notifyDataSetChanged() // Ensure UI updates
-
     }
 
     private fun requestStoragePermission() {
