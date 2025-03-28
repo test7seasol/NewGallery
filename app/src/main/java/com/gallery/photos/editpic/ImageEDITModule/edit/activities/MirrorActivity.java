@@ -725,11 +725,13 @@ public class MirrorActivity extends AppCompatActivity {
                 this.progressDialog.cancel();
             }
             if (this.resultPath != null) {
-                BitmapTransfer.bitmap = this.bitmapPath;
-                Intent intent = new Intent(MirrorActivity.this, (Class<?>) PhotoEditorActivity.class);
-                intent.putExtra("MESSAGE", "done");
-                MirrorActivity.this.setResult(-1, intent);
-                MirrorActivity.this.finish();
+                // In MirrorActivity, after saving:
+                BitmapTransfer.bitmap =  this.bitmapPath;; // Set the edited result
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra("MESSAGE", "done");
+                setResult(RESULT_OK, resultIntent);
+                finish();
+
             }
             MirrorActivity mirrorActivity = MirrorActivity.this;
             mirrorActivity.new MyMediaScannerConnectionClient(mirrorActivity.getApplicationContext(), new File(this.resultPath), null);

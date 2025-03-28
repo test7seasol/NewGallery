@@ -145,7 +145,7 @@ class SplashActivity : AppCompatActivity() {
     }
 
     private fun hasAllRequiredPermissions(): Boolean {
-        return canDrawOverlays(this) && hasMediaPermissions()
+        return canDrawOverlays(this)
     }
 
     private fun hasAllFilesAccess(): Boolean {

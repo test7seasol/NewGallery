@@ -20,6 +20,7 @@
             android:layout_height="@dimen/_25sdp"
             android:layout_gravity="center"
             android:layout_marginStart="@dimen/_8sdp"
+            android:background="?selectableItemBackground"
             android:padding="@dimen/_2sdp"
             android:src="@drawable/backicon"
             android:tint="@color/black" />
@@ -45,6 +46,7 @@
             android:layout_marginStart="@dimen/_10sdp"
             android:layout_marginEnd="@dimen/_10sdp"
             android:fontFamily="@font/sans_bold"
+            android:background="?selectableItemBackground"
             android:gravity="end"
             android:text="@string/create"
             android:textColor="@color/black"

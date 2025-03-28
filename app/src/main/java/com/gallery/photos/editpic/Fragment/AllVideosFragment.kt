@@ -5,13 +5,17 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Activity.RESULT_OK
 import android.app.ProgressDialog
+import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.provider.MediaStore
+import android.provider.OpenableColumns
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -62,6 +66,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 
 class AllVideosFragment : Fragment() {
@@ -505,37 +510,374 @@ class AllVideosFragment : Fragment() {
     }
 
     fun moveToRecycleBin(originalFilePath: String): Boolean {
-        val originalFile = File(originalFilePath)
-        if (!originalFile.exists()) {
-            Log.e("MoveToRecycleBin", "File does not exist: $originalFilePath")
-            return false
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {  // Android 11+ (API 30+)
+            moveToRecycleBinScopedStorage(originalFilePath)
+        } else {
+            moveToRecycleBinLegacy(originalFilePath, requireActivity())
+        }
+    }
+
+
+    fun moveToRecycleBinScopedStorage(originalFilePath: String): Boolean {
+        val context = requireActivity().applicationContext
+        val contentResolver = context.contentResolver
+
+        // 1. Get proper URI for the source file
+        val sourceUri = when {
+            originalFilePath.startsWith("content://") -> Uri.parse(originalFilePath)
+            else -> getMediaStoreUriFromPath(context, originalFilePath) ?: run {
+                Log.e("MoveToRecycleBin", "Cannot find MediaStore URI for path: $originalFilePath")
+                return false
+            }
         }
 
-        val recycleBin = createRecycleBin()
-        val recycledFile = File(recycleBin, originalFile.name)
+        // 2. Get file information with proper extension handling
+        val (fileName, mimeType) = getFileInfo(context, sourceUri, originalFilePath)
+
+        // 3. Prepare recycle bin directory
+        val recycleBin = File(context.getExternalFilesDir(null), ".gallery_recycleBin").apply {
+            if (!exists()) mkdirs()
+        }
+        val destinationFile = File(recycleBin, fileName)
 
         return try {
-            Log.d("MoveToRecycleBin", "Moving file to recycle bin: ${originalFile.absolutePath}")
-
-            originalFile.copyTo(recycledFile, overwrite = true)  // Copy to recycle bin
-            Log.d("MoveToRecycleBin", "File copied to recycle bin: ${recycledFile.absolutePath}")
-
-            if (originalFile.delete()) {
-                Log.d("MoveToRecycleBin", "Original file deleted: ${originalFile.absolutePath}")
-                true
-            } else {
-                Log.e(
-                    "MoveToRecycleBin",
-                    "Failed to delete original file: ${originalFile.absolutePath}"
-                )
-                false
+            // 4. Copy the file
+            contentResolver.openInputStream(sourceUri)?.use { inputStream ->
+                FileOutputStream(destinationFile).use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            } ?: return false.also {
+                Log.e("MoveToRecycleBin", "Failed to open input stream")
             }
-        } catch (e: IOException) {
-            Log.e("MoveToRecycleBin", "IOException occurred: ${e.message}", e)
+
+            // 5. Delete original only if copy succeeded
+            if (destinationFile.exists()) {
+                val deleteSuccess = when {
+                    sourceUri.scheme == "content" -> contentResolver.delete(
+                        sourceUri,
+                        null,
+                        null
+                    ) > 0
+
+                    sourceUri.scheme == "file" -> File(sourceUri.path!!).delete()
+                    else -> false
+                }
+
+                if (deleteSuccess) {
+                    // Notify adapter about item removal
+                    // Notify MediaStore about changes
+                    MediaScannerConnection.scanFile(
+                        context,
+                        arrayOf(destinationFile.absolutePath),
+                        arrayOf(mimeType), null
+                    )
+                } else {
+                    Log.w("MoveToRecycleBin", "Original file deletion failed, but copy succeeded")
+                    return false
+                }
+            }
+
+            true
+        } catch (e: Exception) {
+            Log.e("MoveToRecycleBin", "Error: ${e.message}")
             false
         }
     }
 
+    // Enhanced file information extractor with extension support
+    private fun getFileInfo(
+        context: Context,
+        uri: Uri,
+        originalPath: String
+    ): Pair<String, String> {
+        // Get original filename or generate one
+        val originalName = getFileNameFromUri(context, uri) ?: originalPath.substringAfterLast('/')
+
+        // Determine extension from filename or path
+        val fileExt = when {
+            originalName.contains('.') -> originalName.substringAfterLast('.')
+            originalPath.contains('.') -> originalPath.substringAfterLast('.')
+            else -> "dat"
+        }.lowercase()
+
+        // Generate proper filename
+        val fileName = if (originalName.contains('.')) {
+            originalName
+        } else {
+            "deleted_${System.currentTimeMillis()}.$fileExt"
+        }
+
+        // Determine MIME type
+        val mimeType = when (fileExt) {
+            "jpg", "jpeg" -> "image/jpeg"
+            "png" -> "image/png"
+            "gif" -> "image/gif"
+            "heic", "heif" -> "image/heif"
+            "mp4", "m4v" -> "video/mp4"
+            "mov" -> "video/quicktime"
+            "ts" -> "video/mp2t"
+            "webp" -> "image/webp"
+            "bmp" -> "image/bmp"
+            "svg" -> "image/svg+xml"
+            else -> requireActivity().contentResolver.getType(uri) ?: "application/octet-stream"
+        }
+
+        return Pair(fileName, mimeType)
+    }
+
+    // Enhanced MediaStore URI finder for all media types
+    private fun getMediaStoreUriFromPath(context: Context, filePath: String): Uri? {
+        val file = File(filePath)
+        val fileName = file.name
+        val relativePath = filePath.substringAfterLast("/DCIM/").substringBeforeLast("/")
+
+        // Supported media collections to search
+        val mediaCollections = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            listOf(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                MediaStore.Files.getContentUri("external")
+            )
+        } else {
+            TODO("VERSION.SDK_INT < Q")
+        }
+
+        // Try each media collection
+        for (contentUri in mediaCollections) {
+            findInMediaStore(context, contentUri, fileName, "DCIM/$relativePath/")?.let {
+                return it
+            }
+        }
+
+        // Fallback to search by absolute path
+        return findInMediaStoreByData(context, filePath)
+    }
+
+    private fun findInMediaStore(
+        context: Context,
+        contentUri: Uri,
+        fileName: String,
+        relativePath: String
+    ): Uri? {
+        val projection = arrayOf(MediaStore.MediaColumns._ID)
+        val selection =
+            "${MediaStore.MediaColumns.RELATIVE_PATH} = ? AND ${MediaStore.MediaColumns.DISPLAY_NAME} = ?"
+        val selectionArgs = arrayOf(relativePath, fileName)
+
+        return context.contentResolver.query(
+            contentUri,
+            projection,
+            selection,
+            selectionArgs,
+            null
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
+                ContentUris.withAppendedId(contentUri, id)
+            } else null
+        }
+    }
+
+    private fun findInMediaStoreByData(context: Context, filePath: String): Uri? {
+        val file = File(filePath)
+        val fileName = file.name
+
+        // Supported media collections to search
+        val mediaCollections = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            listOf(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                MediaStore.Files.getContentUri("external")
+            )
+        } else {
+            TODO("VERSION.SDK_INT < Q")
+        }
+
+        for (contentUri in mediaCollections) {
+            val projection = arrayOf(MediaStore.MediaColumns._ID)
+            val selection =
+                "${MediaStore.MediaColumns.DATA} = ? OR ${MediaStore.MediaColumns.DISPLAY_NAME} = ?"
+            val selectionArgs = arrayOf(filePath, fileName)
+
+            context.contentResolver.query(
+                contentUri,
+                projection,
+                selection,
+                selectionArgs,
+                null
+            )?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val id =
+                        cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
+                    return ContentUris.withAppendedId(contentUri, id)
+                }
+            }
+        }
+
+        return null
+    }
+
+    // File name extraction
+    private fun getFileNameFromUri(context: Context, uri: Uri): String? {
+        return when (uri.scheme) {
+            "content" -> {
+                context.contentResolver.query(
+                    uri,
+                    arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null
+                )?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME))
+                    } else null
+                }
+            }
+
+            "file" -> uri.lastPathSegment
+            else -> uri.lastPathSegment
+        }
+    }
+
+    // Helper function to get MediaStore URI from file path
+    // Improved filename extraction
+    fun getFileNameFromUri(uri: Uri): String? {
+        var name: String? = null
+        val cursor = requireActivity().contentResolver.query(uri, null, null, null, null)
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (nameIndex != -1) {
+                    name = it.getString(nameIndex)
+                }
+            }
+        }
+        return name
+    }
+
+    // ✅ Android 10 and Below - Uses Direct File Access
+    fun moveToRecycleBinLegacy(originalFilePath: String, context: Context): Boolean {
+        val contentResolver = context.contentResolver
+
+        // Determine if the input is a content URI or file path
+        val isContentUri = originalFilePath.startsWith("content://")
+        val sourceUri = if (isContentUri) Uri.parse(originalFilePath) else null
+        val sourceFile = if (!isContentUri) File(originalFilePath) else null
+
+        // Check if the source exists
+        if (isContentUri && sourceUri != null) {
+            // Verify content URI exists by querying ContentResolver
+            contentResolver.query(sourceUri, null, null, null, null)?.use { cursor ->
+                if (!cursor.moveToFirst()) {
+                    Log.e("MoveToRecycleBin", "Content URI does not exist: $originalFilePath")
+                    return false
+                }
+            } ?: run {
+                Log.e("MoveToRecycleBin", "Failed to query content URI: $originalFilePath")
+                return false
+            }
+        } else if (sourceFile != null && !sourceFile.exists()) {
+            Log.e("MoveToRecycleBin", "File does not exist: $originalFilePath")
+            return false
+        }
+
+        // Prepare recycle bin directory in app-specific storage
+        val recycleBin = File(context.getExternalFilesDir(null), ".gallery_recycleBin").apply {
+            if (!exists()) {
+                if (!mkdirs()) {
+                    Log.e("MoveToRecycleBin", "Failed to create recycle bin directory")
+                    return false
+                }
+            }
+        }
+
+        // Get file name and MIME type
+        val (fileName, mimeType) = if (isContentUri && sourceUri != null) {
+            getFileInfoFromUri(context, sourceUri)
+        } else {
+            Pair(
+                sourceFile!!.name,
+                context.contentResolver.getType(Uri.fromFile(sourceFile)) ?: "*/*"
+            )
+        }
+
+        val recycledFile = File(recycleBin, fileName)
+
+        return try {
+            // Copy the file to recycle bin
+            val copySuccess = if (isContentUri && sourceUri != null) {
+                contentResolver.openInputStream(sourceUri)?.use { inputStream ->
+                    FileOutputStream(recycledFile).use { outputStream ->
+                        inputStream.copyTo(outputStream)
+                        true
+                    }
+                } ?: false.also {
+                    Log.e("MoveToRecycleBin", "Failed to open input stream for $sourceUri")
+                }
+            } else {
+                sourceFile!!.copyTo(recycledFile, overwrite = true)
+                true
+            }
+
+            if (!copySuccess) {
+                Log.e("MoveToRecycleBin", "Failed to copy file to recycle bin: $originalFilePath")
+                return false
+            }
+
+            Log.d("MoveToRecycleBin", "File copied to recycle bin: ${recycledFile.absolutePath}")
+
+            // Delete the original file
+            val deleteSuccess = if (isContentUri && sourceUri != null) {
+                contentResolver.delete(sourceUri, null, null) > 0
+            } else {
+                sourceFile!!.delete()
+            }
+
+            if (deleteSuccess) {
+                Log.d("MoveToRecycleBin", "Original file deleted: $originalFilePath")
+                // Notify MediaScanner about the new file in recycle bin
+                MediaScannerConnection.scanFile(
+                    context,
+                    arrayOf(recycledFile.absolutePath),
+                    arrayOf(mimeType),
+                    null
+                )
+                true
+            } else {
+                Log.e("MoveToRecycleBin", "Failed to delete original: $originalFilePath")
+                recycledFile.delete() // Clean up if deletion fails
+                false
+            }
+        } catch (e: IOException) {
+            Log.e("MoveToRecycleBin", "IOException during file operation: ${e.message}", e)
+            recycledFile.delete() // Clean up on failure
+            false
+        } catch (e: SecurityException) {
+            Log.e("MoveToRecycleBin", "SecurityException: ${e.message}", e)
+            recycledFile.delete() // Clean up on failure
+            false
+        }
+    }
+
+    // Helper function to get file info from a content URI
+    private fun getFileInfoFromUri(context: Context, uri: Uri): Pair<String, String> {
+        var fileName = "unknown_file"
+        var mimeType = "*/*"
+        context.contentResolver.query(
+            uri,
+            arrayOf(MediaStore.MediaColumns.DISPLAY_NAME, MediaStore.MediaColumns.MIME_TYPE),
+            null,
+            null,
+            null
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val nameIndex = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME)
+                val mimeIndex = cursor.getColumnIndex(MediaStore.MediaColumns.MIME_TYPE)
+                if (nameIndex >= 0) fileName = cursor.getString(nameIndex)
+                if (mimeIndex >= 0) mimeType = cursor.getString(mimeIndex) ?: "*/*"
+            }
+        }
+        return Pair(fileName, mimeType)
+    }
 
     override fun onResume() {
         super.onResume()

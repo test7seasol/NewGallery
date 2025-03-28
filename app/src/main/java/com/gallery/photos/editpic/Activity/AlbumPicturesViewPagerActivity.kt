@@ -16,6 +16,7 @@ import android.provider.OpenableColumns
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.core.net.toUri
 import androidx.viewpager2.widget.ViewPager2
 import com.gallery.photos.editpic.Adapter.ViewPagerAdapter
 import com.gallery.photos.editpic.Dialogs.AllFilesAccessDialog
@@ -496,19 +497,7 @@ class AlbumPicturesViewPagerActivity : BaseActivity() {
         Log.d("NotifyGallery", "Broadcast sent for $filePath")
     }
 
-    fun createRecycleBin(): File {
-        val recycleBin = File(getExternalFilesDir(null), ".gallery_recycleBin")
-        if (!recycleBin.exists()) {
-            if (recycleBin.mkdirs()) {
-                Log.d("RecycleBin", "Recycle bin created at: ${recycleBin.absolutePath}")
-            } else {
-                Log.e("RecycleBin", "Failed to create recycle bin at: ${recycleBin.absolutePath}")
-            }
-        } else {
-            Log.d("RecycleBin", "Recycle bin already exists at: ${recycleBin.absolutePath}")
-        }
-        return recycleBin
-    }
+
 
     fun moveToRecycleBin(originalFilePath: String): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {  // Android 11+ (API 30+)
@@ -518,9 +507,9 @@ class AlbumPicturesViewPagerActivity : BaseActivity() {
         }
     }
 
-    // ✅ Android 11+ (Scoped Storage) - Uses ContentResolver
+    // Assuming contentResolver, deleteMediaModel, and deleteMediaDao are available in the context (e.g., Activity/Fragment/ViewModel)
     fun moveToRecycleBinScopedStorage(originalFilePath: String): Boolean {
-        // First get the MediaStore URI for the file
+        // Get the MediaStore URI for the file
         val uri = getMediaStoreUriFromPath(originalFilePath) ?: run {
             Log.e("MoveToRecycleBin", "Could not get MediaStore URI for path: $originalFilePath")
             return false
@@ -532,7 +521,7 @@ class AlbumPicturesViewPagerActivity : BaseActivity() {
         } catch (e: Exception) {
             Log.e("MoveToRecycleBin", "Failed to open InputStream: ${e.message}")
             return false
-        }
+        } ?: return false
 
         val recycleBin = createRecycleBin()
         val recycledFile = File(
@@ -542,9 +531,9 @@ class AlbumPicturesViewPagerActivity : BaseActivity() {
         return try {
             // Copy file to recycle bin
             recycledFile.outputStream().use { output ->
-                inputStream?.copyTo(output)
+                inputStream.copyTo(output)
             }
-            inputStream?.close()
+            inputStream.close()
 
             Log.d("MoveToRecycleBin", "File copied to recycle bin: ${recycledFile.absolutePath}")
 
@@ -554,48 +543,87 @@ class AlbumPicturesViewPagerActivity : BaseActivity() {
                 Log.d("MoveToRecycleBin", "Original file deleted successfully")
             } else {
                 Log.e("MoveToRecycleBin", "Failed to delete original file from MediaStore")
-                // If delete failed, delete the copy we made
                 recycledFile.delete()
                 return false
             }
 
             // Insert into Room Database
-            CoroutineScope(Dispatchers.IO).launch {
-                deleteMediaModel?.let { model ->
-                    model.binPath = recycledFile.absolutePath
-                    deleteMediaDao?.insertMedia(model)
-                    Log.d(
-                        "MoveToRecycleBin",
-                        "Inserted into Room database: ${recycledFile.absolutePath}"
-                    )
-                }
-            }
+//            CoroutineScope(Dispatchers.IO).launch {
+//                deleteMediaModel?.let { model ->
+//                    model.binPath = recycledFile.absolutePath
+//                    deleteMediaDao?.insertMedia(model)
+//                    Log.d("MoveToRecycleBin", "Inserted into Room database: ${recycledFile.absolutePath}")
+//                }
+//            }
 
             true
         } catch (e: IOException) {
             Log.e("MoveToRecycleBin", "IOException: ${e.message}")
             e.printStackTrace()
-            // Clean up if something went wrong
             recycledFile.delete()
             false
         }
     }
 
+    // Updated to handle images, videos, and other files
     private fun getMediaStoreUriFromPath(filePath: String): Uri? {
-        val projection = arrayOf(MediaStore.Images.Media._ID)
-        val selection = "${MediaStore.Images.Media.DATA} = ?"
+        val file = File(filePath)
+        val mimeType = contentResolver.getType(file.toUri()) ?: getMimeTypeFromExtension(file.extension)
+
+        // Determine the appropriate MediaStore collection based on MIME type or file extension
+        val collection = when {
+            mimeType?.startsWith("image/") == true -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            mimeType?.startsWith("video/") == true -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+            file.extension.lowercase() in listOf("mp4", "mkv", "avi", "mov") -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+            else -> MediaStore.Files.getContentUri("external") // Fallback for other file types
+        }
+
+        val projection = arrayOf(MediaStore.MediaColumns._ID)
+        val selection = "${MediaStore.MediaColumns.DATA} = ?"
         val selectionArgs = arrayOf(filePath)
 
-        contentResolver.query(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, selection, selectionArgs, null
-        )?.use { cursor ->
+        return contentResolver.query(collection, projection, selection, selectionArgs, null)?.use { cursor ->
             if (cursor.moveToFirst()) {
-                val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID))
-                return ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+                val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
+                ContentUris.withAppendedId(collection, id)
+            } else {
+                Log.w("MediaStoreQuery", "No entry found in $collection for $filePath")
+                null
             }
         }
-        return null
     }
+
+    // Helper to infer MIME type from file extension if contentResolver fails
+    private fun getMimeTypeFromExtension(extension: String): String? {
+        return when (extension.lowercase()) {
+            "jpg", "jpeg", "png", "gif" -> "image/$extension"
+            "mp4", "mkv", "avi", "mov" -> "video/$extension"
+            else -> null
+        }
+    }
+
+    // Get file name from Uri
+    private fun getFileNameFromUri(uri: Uri): String? {
+        var name: String? = null
+        contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                if (nameIndex != -1) {
+                    name = cursor.getString(nameIndex)
+                }
+            }
+        }
+        return name
+    }
+
+    // Placeholder for your recycle bin directory creation logic
+    private fun createRecycleBin(): File {
+        val recycleBinDir = File(getExternalFilesDir(null), "RecycleBin")
+        if (!recycleBinDir.exists()) recycleBinDir.mkdirs()
+        return recycleBinDir
+    }
+
+
     // ✅ Android 10 and Below - Uses Direct File Access
     fun moveToRecycleBinLegacy(originalFilePath: String, context: Context): Boolean {
         val contentResolver = context.contentResolver
@@ -718,39 +746,6 @@ class AlbumPicturesViewPagerActivity : BaseActivity() {
             }
         }
         return Pair(fileName, mimeType)
-    }
-
-    // ✅ Helper Function: Save to Room Database
-    fun saveToDatabase(binPath: String) {
-        CoroutineScope(Dispatchers.IO).launch {
-            deleteMediaModel!!.binPath = binPath
-            deleteMediaModel!!.mediaDateAdded = imageList[viewpagerselectedPosition].mediaDateAdded
-
-            deleteMediaDao!!.insertMedia(deleteMediaModel!!)  // Save path for restoration
-
-            runOnUiThread {
-                imageList.removeAt(viewpagerselectedPosition)
-                if (imageList.isEmpty()) {
-                    finish()
-                } else setupViewPager(imageList, viewpagerselectedPosition)
-            }
-            Log.d("MoveToRecycleBin", "Media record inserted into Room database.")
-        }
-    }
-
-    // ✅ Helper Function: Get File Name from URI
-    fun getFileNameFromUri(uri: Uri): String? {
-        var name: String? = null
-        val cursor = contentResolver.query(uri, null, null, null, null)
-        cursor?.use {
-            if (it.moveToFirst()) {
-                val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                if (nameIndex != -1) {
-                    name = it.getString(nameIndex)
-                }
-            }
-        }
-        return name
     }
 
     var isOneTimeVisibleTools = false

@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.View
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.multidex.MultiDexApplication
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.android.volley.Request
@@ -16,6 +17,7 @@ import com.android.volley.toolbox.Volley
 import com.gallery.photos.editpic.BuildConfig
 import com.gallery.photos.editpic.Extensions.log
 import com.gallery.photos.editpic.Extensions.toGson
+import com.gallery.photos.editpic.ImageEDITModule.edit.ArtRoom
 import com.gallery.photos.editpic.myadsworld.MyAESUTIL
 import com.gallery.photos.editpic.myadsworld.MyAddPrefs
 import com.gallery.photos.editpic.myadsworld.MyAllAdCommonClass
@@ -28,7 +30,7 @@ import org.json.JSONException
 import org.json.JSONObject
 
 
-class MyApplicationClass : Application() {
+class MyApplicationClass : ArtRoom() {
 
     companion object {
         fun isConnected(context: Context): kotlin.Boolean {

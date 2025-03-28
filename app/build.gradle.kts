@@ -136,7 +136,6 @@ dependencies {
     implementation("ro.holdone:keyboardheightprovider:1.0.3")
 //    implementation("net.sf.kxml:kxml2:2.3.0")
 
-
     //Firebase
     implementation(platform("com.google.firebase:firebase-bom:33.0.0")) // Use the latest version
     implementation("com.google.firebase:firebase-analytics-ktx")

@@ -12,10 +12,11 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
-import android.provider.OpenableColumns
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.core.net.toUri
 import androidx.viewpager2.widget.ViewPager2
 import com.gallery.photos.editpic.Adapter.ViewPagerAdapter
 import com.gallery.photos.editpic.Dialogs.AllFilesAccessDialog
@@ -371,6 +372,77 @@ class ViewPagerActivity : BaseActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.R)
+    fun renameFileToHideOnly11(context: Context, originalUri: String): Boolean {
+        return try {
+            val uri = Uri.parse(originalUri)
+            val fileName = getFileNameFromUri(context, uri) ?: return false
+            val newName = if (fileName.startsWith(".")) fileName else ".$fileName"
+
+            // 1. Rename using MediaStore (works on Android 11+)
+            val renamed = renameFileUsingMediaStore(context, uri, newName)
+
+            if (renamed) {
+                // 2. Update database in background
+                CoroutineScope(Dispatchers.IO).launch {
+                    updateMediaDatabases()
+                }
+                true
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            Log.e("RenameFile", "Failed to rename file", e)
+            false
+        }
+    }
+
+    /**
+     * Gets the filename from a MediaStore Uri (for content:// URIs).
+     */
+    private fun getFileNameFromUri(context: Context, uri: Uri): String? {
+        return context.contentResolver.query(
+            uri,
+            arrayOf(MediaStore.MediaColumns.DISPLAY_NAME),
+            null,
+            null,
+            null
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME))
+            } else {
+                null
+            }
+        }
+    }
+
+    /**
+     * Renames a file using MediaStore (for Android 11+).
+     */
+    private fun renameFileUsingMediaStore(context: Context, uri: Uri, newName: String): Boolean {
+        return try {
+            val values = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, newName)
+            }
+            context.contentResolver.update(uri, values, null, null) > 0
+        } catch (e: Exception) {
+            Log.e("RenameFile", "Error renaming file in MediaStore", e)
+            false
+        }
+    }
+
+    /**
+     * Updates the database after hiding the file.
+     */
+    private suspend fun updateMediaDatabases() {
+        favouriteMediaDao?.getMediaById(hideMediaModel?.mediaId ?: return)?.let {
+            favouriteMediaDao?.deleteMedia(it)
+        }
+        hideMediaModel?.let {
+            hideMediaDao?.insertMedia(it)
+        }
+    }
+
 
     fun renameFileToHide(context: Context, originalFilePath: String): Boolean {
         val originalFile = File(originalFilePath)
@@ -379,28 +451,36 @@ class ViewPagerActivity : BaseActivity() {
             return false
         }
 
-        return if (Build.VERSION.SDK_INT == Build.VERSION_CODES.R || Build.VERSION.SDK_INT == Build.VERSION_CODES.S) {
-            val parentDir = originalFile.parentFile
-            val newFileName =
-                if (!originalFile.name.startsWith(".")) ".${originalFile.name}" else originalFile.name
-            val hiddenFile = File(parentDir, newFileName)
-
-            CoroutineScope(Dispatchers.IO).launch {
-                favouriteMediaDao!!.getMediaById(hideMediaModel!!.mediaId)
-                    ?.let { favouriteMediaDao!!.deleteMedia(it) }
-                hideMediaModel?.let { hideMediaDao!!.insertMedia(it) }
+        return when (Build.VERSION.SDK_INT) {
+            Build.VERSION_CODES.R -> {
+                renameFileToHideOnly11(this, originalFilePath)
             }
 
-            renameFileUsingMediaStore(context, originalFilePath, newFileName)
-        } else {
-            renameAndHidePhoto(originalFilePath)/*    if (originalFile.renameTo(hiddenFile)) {
-                    Log.d("RenameFile", "File renamed: ${hiddenFile.absolutePath}")
-                    notifySystemGallery(context, hiddenFile.absolutePath)
-                    true
-                } else {
-                    Log.e("RenameFile", "Failed to rename file.")
-                    false
-                }*/
+            Build.VERSION_CODES.S -> {
+                val parentDir = originalFile.parentFile
+                val newFileName =
+                    if (!originalFile.name.startsWith(".")) ".${originalFile.name}" else originalFile.name
+                val hiddenFile = File(parentDir, newFileName)
+
+                CoroutineScope(Dispatchers.IO).launch {
+                    favouriteMediaDao!!.getMediaById(hideMediaModel!!.mediaId)
+                        ?.let { favouriteMediaDao!!.deleteMedia(it) }
+                    hideMediaModel?.let { hideMediaDao!!.insertMedia(it) }
+                }
+
+                renameFileUsingMediaStore(context, originalFilePath, newFileName)
+            }
+
+            else -> {
+                renameAndHidePhoto(originalFilePath)/*    if (originalFile.renameTo(hiddenFile)) {
+                        Log.d("RenameFile", "File renamed: ${hiddenFile.absolutePath}")
+                        notifySystemGallery(context, hiddenFile.absolutePath)
+                        true
+                    } else {
+                        Log.e("RenameFile", "Failed to rename file.")
+                        false
+                    }*/
+            }
         }
     }
 
@@ -660,7 +740,7 @@ class ViewPagerActivity : BaseActivity() {
     }
 
     fun moveToRecycleBin(originalFilePath: String): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {  // Android 11+ (API 30+)
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {  // Android 11+ (API 30+)
             moveToRecycleBinScopedStorage(originalFilePath)
         } else {
             moveToRecycleBinLegacy(originalFilePath, this)
@@ -669,67 +749,61 @@ class ViewPagerActivity : BaseActivity() {
 
     // ✅ Android 11+ (Scoped Storage) - Uses ContentResolver
     fun moveToRecycleBinScopedStorage(originalFilePath: String): Boolean {
-        val context = applicationContext
-        val contentResolver = context.contentResolver
-
-        // 1. Get proper URI for the source file
-        val sourceUri = when {
-            originalFilePath.startsWith("content://") -> Uri.parse(originalFilePath)
-            else -> getMediaStoreUriFromPath(context, originalFilePath) ?: run {
-                Log.e("MoveToRecycleBin", "Cannot find MediaStore URI for path: $originalFilePath")
-                return false
-            }
+        // Get the MediaStore URI for the file
+        val uri = getMediaStoreUriFromPath(originalFilePath) ?: run {
+            Log.e("MoveToRecycleBin", "Could not get MediaStore URI for path: $originalFilePath")
+            return false
         }
 
-        // 2. Get file information with proper extension handling
-        val (fileName, mimeType) = getFileInfo(context, sourceUri, originalFilePath)
+        val contentResolver = contentResolver
+        val inputStream = try {
+            contentResolver.openInputStream(uri)
+        } catch (e: Exception) {
+            Log.e("MoveToRecycleBin", "Failed to open InputStream: ${e.message}")
+            return false
+        } ?: return false
 
-        // 3. Prepare recycle bin directory
-        val recycleBin = File(context.getExternalFilesDir(null), ".gallery_recycleBin").apply {
-            if (!exists()) mkdirs()
-        }
-        val destinationFile = File(recycleBin, fileName)
+        val recycleBin = createRecycleBin()
+        val recycledFile = File(
+            recycleBin, getFileNameFromUri(uri) ?: "deleted_file_${System.currentTimeMillis()}"
+        )
 
         return try {
-            // 4. Copy the file
-            contentResolver.openInputStream(sourceUri)?.use { inputStream ->
-                FileOutputStream(destinationFile).use { outputStream ->
-                    inputStream.copyTo(outputStream)
-                }
-            } ?: return false.also {
-                Log.e("MoveToRecycleBin", "Failed to open input stream")
+            // Copy file to recycle bin
+            recycledFile.outputStream().use { output ->
+                inputStream.copyTo(output)
+            }
+            inputStream.close()
+
+            Log.d("MoveToRecycleBin", "File copied to recycle bin: ${recycledFile.absolutePath}")
+
+            // Delete from MediaStore
+            val deleteCount = contentResolver.delete(uri, null, null)
+            if (deleteCount > 0) {
+                Log.d("MoveToRecycleBin", "Original file deleted successfully")
+            } else {
+                Log.e("MoveToRecycleBin", "Failed to delete original file from MediaStore")
+                recycledFile.delete()
+                return false
             }
 
-            // 5. Delete original only if copy succeeded
-            if (destinationFile.exists()) {
-                val deleteSuccess = when {
-                    sourceUri.scheme == "content" -> contentResolver.delete(
-                        sourceUri,
-                        null,
-                        null
-                    ) > 0
-
-                    sourceUri.scheme == "file" -> File(sourceUri.path!!).delete()
-                    else -> false
-                }
-
-                if (deleteSuccess) {
-                    // Notify adapter about item removal
-                    // Notify MediaStore about changes
-                    MediaScannerConnection.scanFile(
-                        context,
-                        arrayOf(destinationFile.absolutePath),
-                        arrayOf(mimeType), null
+            // Insert into Room Database
+            CoroutineScope(Dispatchers.IO).launch {
+                deleteMediaModel?.let { model ->
+                    model.binPath = recycledFile.absolutePath
+                    deleteMediaDao?.insertMedia(model)
+                    Log.d(
+                        "MoveToRecycleBin",
+                        "Inserted into Room database: ${recycledFile.absolutePath}"
                     )
-                } else {
-                    Log.w("MoveToRecycleBin", "Original file deletion failed, but copy succeeded")
-                    return false
                 }
             }
 
             true
-        } catch (e: Exception) {
-            Log.e("MoveToRecycleBin", "Error: ${e.message}")
+        } catch (e: IOException) {
+            Log.e("MoveToRecycleBin", "IOException: ${e.message}")
+            e.printStackTrace()
+            recycledFile.delete()
             false
         }
     }
@@ -752,32 +826,49 @@ class ViewPagerActivity : BaseActivity() {
         }
     }
 
-    private fun getMediaStoreUriFromPath(context: Context, filePath: String): Uri? {
+    private fun getMediaStoreUriFromPath(filePath: String): Uri? {
         val file = File(filePath)
-        val fileName = file.name
-        val relativePath = filePath.substringAfterLast("/DCIM/").substringBeforeLast("/")
+        val mimeType =
+            contentResolver.getType(file.toUri()) ?: getMimeTypeFromExtension(file.extension)
 
-        // Supported media collections to search
-        val mediaCollections = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            listOf(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                MediaStore.Downloads.EXTERNAL_CONTENT_URI,
-                MediaStore.Files.getContentUri("external")
-            )
-        } else {
-            TODO("VERSION.SDK_INT < Q")
+        // Determine the appropriate MediaStore collection based on MIME type or file extension
+        val collection = when {
+            mimeType?.startsWith("image/") == true -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            mimeType?.startsWith("video/") == true -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+            file.extension.lowercase() in listOf(
+                "mp4",
+                "mkv",
+                "avi",
+                "mov"
+            ) -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+
+            else -> MediaStore.Files.getContentUri("external") // Fallback for other file types
         }
 
-        // Try each media collection
-        for (contentUri in mediaCollections) {
-            findInMediaStore(context, contentUri, fileName, "DCIM/$relativePath/")?.let {
-                return it
+        val projection = arrayOf(MediaStore.MediaColumns._ID)
+        val selection = "${MediaStore.MediaColumns.DATA} = ?"
+        val selectionArgs = arrayOf(filePath)
+
+        return contentResolver.query(collection, projection, selection, selectionArgs, null)
+            ?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val id =
+                        cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
+                    ContentUris.withAppendedId(collection, id)
+                } else {
+                    Log.w("MediaStoreQuery", "No entry found in $collection for $filePath")
+                    null
+                }
             }
-        }
+    }
 
-        // Fallback to search by absolute path
-        return findInMediaStoreByData(context, filePath)
+    // Helper to infer MIME type from file extension if contentResolver fails
+    private fun getMimeTypeFromExtension(extension: String): String? {
+        return when (extension.lowercase()) {
+            "jpg", "jpeg", "png", "gif" -> "image/$extension"
+            "mp4", "mkv", "avi", "mov" -> "video/$extension"
+            else -> null
+        }
     }
 
     private fun findInMediaStoreByData(context: Context, filePath: String): Uri? {
@@ -813,45 +904,6 @@ class ViewPagerActivity : BaseActivity() {
             }
         }
         return null
-    }
-
-    // Enhanced file information extractor with extension support
-    private fun getFileInfo(
-        context: Context, uri: Uri, originalPath: String
-    ): Pair<String, String> {
-        // Get original filename or generate one
-        val originalName = getFileNameFromUri(context, uri) ?: originalPath.substringAfterLast('/')
-
-        // Determine extension from filename or path
-        val fileExt = when {
-            originalName.contains('.') -> originalName.substringAfterLast('.')
-            originalPath.contains('.') -> originalPath.substringAfterLast('.')
-            else -> "dat"
-        }.lowercase()
-
-        // Generate proper filename
-        val fileName = if (originalName.contains('.')) {
-            originalName
-        } else {
-            "deleted_${System.currentTimeMillis()}.$fileExt"
-        }
-
-        // Determine MIME type
-        val mimeType = when (fileExt) {
-            "jpg", "jpeg" -> "image/jpeg"
-            "png" -> "image/png"
-            "gif" -> "image/gif"
-            "heic", "heif" -> "image/heif"
-            "mp4", "m4v" -> "video/mp4"
-            "mov" -> "video/quicktime"
-            "ts" -> "video/mp2t"
-            "webp" -> "image/webp"
-            "bmp" -> "image/bmp"
-            "svg" -> "image/svg+xml"
-            else -> contentResolver.getType(uri) ?: "application/octet-stream"
-        }
-
-        return Pair(fileName, mimeType)
     }
 
     // ✅ Android 10 and Below - Uses Direct File Access
@@ -978,39 +1030,18 @@ class ViewPagerActivity : BaseActivity() {
         return Pair(fileName, mimeType)
     }
 
-    // ✅ Helper Function: Save to Room Database
-    fun saveToDatabase(binPath: String) {
-        CoroutineScope(Dispatchers.IO).launch {
-            deleteMediaModel!!.binPath = binPath
-            deleteMediaModel!!.mediaDateAdded = imageList[viewpagerselectedPosition].mediaDateAdded
-
-            deleteMediaDao!!.insertMedia(deleteMediaModel!!)  // Save path for restoration
-
-            runOnUiThread {
-                imageList.removeAt(viewpagerselectedPosition)
-                if (imageList.isEmpty()) {
-                    finish()
-                } else setupViewPager(imageList, viewpagerselectedPosition)
-            }
-            Log.d("MoveToRecycleBin", "Media record inserted into Room database.")
-        }
-    }
-
-    private fun getFileNameFromUri(context: Context, uri: Uri): String? {
-        return when (uri.scheme) {
-            "content" -> {
-                context.contentResolver.query(
-                    uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null
-                )?.use { cursor ->
-                    if (cursor.moveToFirst()) {
-                        cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME))
-                    } else null
+    // Get file name from Uri
+    private fun getFileNameFromUri(uri: Uri): String? {
+        var name: String? = null
+        contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                if (nameIndex != -1) {
+                    name = cursor.getString(nameIndex)
                 }
             }
-
-            "file" -> uri.lastPathSegment
-            else -> uri.lastPathSegment
         }
+        return name
     }
 
     var isOneTimeVisibleTools = false

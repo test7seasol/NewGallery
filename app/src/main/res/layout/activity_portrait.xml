@@ -39,8 +39,6 @@
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-
-
     <com.gallery.photos.editpic.ImageEDITModule.edit.views.SquareLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

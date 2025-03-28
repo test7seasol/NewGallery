@@ -32,9 +32,9 @@ public class ToolsEffectAdapter extends RecyclerView.Adapter<ToolsEffectAdapter.
         this.toolLists.add(new ToolModel(R.string.overlay, R.drawable.ic_overlay, ToolEditor.EFFECT));
         this.toolLists.add(new ToolModel(R.string.neon, R.drawable.ic_neon, ToolEditor.NEON));
 //        this.toolLists.add(new ToolModel(R.string.doube, R.drawable.ic_motion, ToolEditor.DOUBLE));
-        this.toolLists.add(new ToolModel(R.string.splash, R.drawable.ic_splash, ToolEditor.SPLASH));
+//        this.toolLists.add(new ToolModel(R.string.splash, R.drawable.ic_splash, ToolEditor.SPLASH));
 //        this.toolLists.add(new ToolModel(R.string.bg_change, R.drawable.ic_bg, ToolEditor.BG_CHANGE));
-        this.toolLists.add(new ToolModel(R.string.body, R.drawable.ic_body, ToolEditor.BODY));
+//        this.toolLists.add(new ToolModel(R.string.body, R.drawable.ic_body, ToolEditor.BODY));
 //        this.toolLists.add(new ToolModel(R.string.portrait, R.drawable.ic_art, ToolEditor.ART));
         this.toolLists.add(new ToolModel(R.string.blur, R.drawable.ic_blur, ToolEditor.BLUR));
         this.toolLists.add(new ToolModel(R.string.frame, R.drawable.ic_frame, ToolEditor.FRAME));

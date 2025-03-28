@@ -22,6 +22,7 @@
             android:layout_gravity="center"
             android:padding="@dimen/_6sdp"
             android:src="@drawable/backicon"
+            android:background="?selectableItemBackground"
             android:tint="@color/black"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

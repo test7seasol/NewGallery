@@ -18,7 +18,7 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_centerVertical="true"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:background="?selectableItemBackground"
             android:padding="8dp"
             android:scaleType="centerInside"
             android:src="@drawable/baseline_arrow_back_24"
@@ -45,7 +45,7 @@
             android:layout_height="48dp"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:background="?selectableItemBackground"
             android:padding="8dp"
             android:scaleType="centerInside"
             android:src="@drawable/baseline_more_vert_24"
@@ -54,7 +54,6 @@
             app:tint="@color/white" />
 
     </RelativeLayout>
-
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"

@@ -6,10 +6,12 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.gallery.photos.editpic.ImageEDITModule.edit.tools.ToolEditor;
 import com.gallery.photos.editpic.R;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,10 +37,10 @@ public class ToolsAdapter extends RecyclerView.Adapter<ToolsAdapter.ViewHolder> 
         this.toolLists.add(new ToolModel(R.string.sticker, R.drawable.ic_sticker, ToolEditor.STICKER));
         this.toolLists.add(new ToolModel(R.string.text, R.drawable.ic_text, ToolEditor.TEXT));
         this.toolLists.add(new ToolModel(R.string.adjust, R.drawable.ic_set, ToolEditor.ADJUST));
-        this.toolLists.add(new ToolModel(R.string.mirror, R.drawable.ic_mirror, ToolEditor.MIRROR));
+//        this.toolLists.add(new ToolModel(R.string.mirror, R.drawable.ic_mirror, ToolEditor.MIRROR));
         this.toolLists.add(new ToolModel(R.string.paint, R.drawable.ic_paint, ToolEditor.PAINT));
         this.toolLists.add(new ToolModel(R.string.ratio, R.drawable.ic_ratio, ToolEditor.RATIO));
-        this.toolLists.add(new ToolModel(R.string.square, R.drawable.ic_blur_bg, ToolEditor.SQUARE));
+//        this.toolLists.add(new ToolModel(R.string.square, R.drawable.ic_blur_bg, ToolEditor.SQUARE));
 //        this.toolLists.add(new ToolModel(R.string.splas, R.drawable.ic_splash_bg, ToolEditor.SPLASHING));
     }
 
