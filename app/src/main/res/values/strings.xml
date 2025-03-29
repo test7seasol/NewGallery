@@ -1118,5 +1118,9 @@
     <string name="message_pattern_started">Pattern drawing started</string>
     <string name="message_pattern_detected">Pattern drawing completed</string>
     <string name="message_pattern_cleared">Pattern cleared</string>
+    <string name="saved_scessfully">Save Successfully</string>
+
+    <string name="saveimagetitle">Save Image?</string>
+    <string name="saveimagemsg">Do you want to save the image before exiting?</string>
 
 </resources>

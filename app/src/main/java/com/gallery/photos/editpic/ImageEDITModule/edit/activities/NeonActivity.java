@@ -405,7 +405,7 @@ public class NeonActivity extends BaseActivity implements LayoutItemListener, Wi
         public void onPostExecute(Bitmap bitmap) {
             super.onPostExecute(bitmap);
             if (bitmap != null) {
-                BitmapTransfer.bitmap = bitmap;
+                BitmapTransfer.setBitmap(bitmap);
             }
             Intent intent = new Intent(NeonActivity.this, (Class<?>) PhotoEditorActivity.class);
             intent.putExtra("MESSAGE", "done");

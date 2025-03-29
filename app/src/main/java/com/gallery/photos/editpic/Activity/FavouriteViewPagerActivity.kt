@@ -873,24 +873,6 @@ class FavouriteViewPagerActivity : BaseActivity() {
         return Pair(fileName, mimeType)
     }
 
-    fun saveToDatabase(binPath: String) {
-        CoroutineScope(Dispatchers.IO).launch {
-            deleteMediaModel!!.binPath = binPath
-            deleteMediaModel!!.mediaDateAdded =
-                imageListFavourite[viewpagerselectedPosition].mediaDateAdded
-
-            deleteMediaDao!!.insertMedia(deleteMediaModel!!)  // Save path for restoration
-
-            runOnUiThread {
-                imageListFavourite.removeAt(viewpagerselectedPosition)
-                if (imageListFavourite.isEmpty()) {
-                    finish()
-                } else setupViewPager(imageListFavourite, viewpagerselectedPosition)
-            }
-            Log.d("MoveToRecycleBin", "Media record inserted into Room database.")
-        }
-    }
-
     private fun setupViewPager(favimageList: ArrayList<FavouriteMediaModel>, currentPosition: Int) {
         viewPagerAdapter = FavouriteViewPagerAdapter(this, favimageList) {
             isOneTimeVisibleTools = !isOneTimeVisibleTools

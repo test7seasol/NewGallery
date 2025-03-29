@@ -216,7 +216,7 @@ public class DoubleActivity extends BaseActivity {
         public void onPostExecute(Bitmap bitmap) {
             super.onPostExecute(bitmap);
             if (bitmap != null) {
-                BitmapTransfer.bitmap = bitmap;
+                BitmapTransfer.setBitmap(bitmap);
             }
             Intent intent = new Intent(DoubleActivity.this, (Class<?>) PhotoEditorActivity.class);
             intent.putExtra("MESSAGE", "done");

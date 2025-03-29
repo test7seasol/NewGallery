@@ -617,6 +617,7 @@ class ViewPagerActivity : BaseActivity() {
             override fun run() {
                 handler.post {
                     val position = binding.viewPager.currentItem
+                    ("Slide end: $position").log("Slider")
                     if (position < imageList.size - 1) {
                         binding.viewPager.currentItem = (position + 1)
                         updateImageTitle(position + 1)

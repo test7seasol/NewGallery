@@ -16,8 +16,8 @@ android {
         applicationId = "com.gallery.photos.editpic"
         minSdk = 24
         targetSdk = 34
-        versionCode = 6
-        versionName = "6.0"
+        versionCode = 7
+        versionName = "7.0"
     }
 
     buildTypes {
@@ -144,5 +144,4 @@ dependencies {
 
     //Call Doraado
     implementation("org.lsposed.hiddenapibypass:hiddenapibypass:4.3")
-
 }

@@ -256,12 +256,14 @@ class MainActivity : BaseActivity() {
         ExitDialog(this) {}
     }
 
-
     fun setLinearClickListeners() {
         binding.apply {
 
             tvpicture.setTextColor(Color.BLACK)
             picview.visible()
+
+            tvpicture.text = resources.getString(R.string.pictures)
+            tvalbum.text = resources.getString(R.string.albums)
 
             tvalbum.setTextColor(getColor(R.color.hint_black))
             albumview.invisible()

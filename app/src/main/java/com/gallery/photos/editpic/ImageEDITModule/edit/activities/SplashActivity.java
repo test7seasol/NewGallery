@@ -99,9 +99,18 @@ public class SplashActivity extends BaseActivity implements SeekBar.OnSeekBarCha
         displayWidth = point.x;
         displayHight = point.y;
         splashView = (SplashView) findViewById(R.id.drawingImageView);
-        if (BitmapTransfer.bitmap != null) {
-            colorBitmap = BitmapTransfer.bitmap;
+//        if (BitmapTransfer.getBitmap() != null) {
+//            colorBitmap = BitmapTransfer.getBitmap();
+//        }
+        Bitmap transferredBitmap = BitmapTransfer.getBitmap();
+        if (transferredBitmap != null && !transferredBitmap.isRecycled()) {
+            colorBitmap = transferredBitmap.copy(Bitmap.Config.ARGB_8888, true);
+        } else {
+            // Handle error case - maybe finish activity or show error
+            finish();
+            return;
         }
+
         grayBitmap = grayScaleBitmap(colorBitmap);
         this.textViewColor = (TextView) findViewById(R.id.textViewColor);
         this.textViewGray = (TextView) findViewById(R.id.textViewGray);
@@ -294,7 +303,7 @@ public class SplashActivity extends BaseActivity implements SeekBar.OnSeekBarCha
     /* JADX INFO: Access modifiers changed from: private */
     public void SaveView() {
         if (splashView.drawingBitmap != null) {
-            BitmapTransfer.bitmap = splashView.drawingBitmap;
+            BitmapTransfer.setBitmap(splashView.drawingBitmap);
         }
         Intent intent = new Intent(this, (Class<?>) PhotoEditorActivity.class);
         intent.putExtra("MESSAGE", "done");
@@ -308,21 +317,24 @@ public class SplashActivity extends BaseActivity implements SeekBar.OnSeekBarCha
     }
 
     public Bitmap grayScaleBitmap(Bitmap bitmap) {
-        if (bitmap == null) {
-            // Handle the null case gracefully, e.g., return null or a default bitmap
-            return null; // Or throw an exception if that's preferred
+        if (bitmap == null || bitmap.isRecycled()) {
+            return null;
         }
 
-        Bitmap createBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_4444);
-        Canvas canvas = new Canvas(createBitmap);
-        Paint paint = new Paint();
-        ColorMatrix colorMatrix = new ColorMatrix();
-        colorMatrix.setSaturation(0.0f);
-        paint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
-        canvas.drawBitmap(bitmap, 0.0f, 0.0f, paint);
-        return createBitmap;
+        try {
+            Bitmap createBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(createBitmap);
+            Paint paint = new Paint();
+            ColorMatrix colorMatrix = new ColorMatrix();
+            colorMatrix.setSaturation(0.0f);
+            paint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
+            canvas.drawBitmap(bitmap, 0.0f, 0.0f, paint);
+            return createBitmap;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
-
 
     @Override // android.widget.SeekBar.OnSeekBarChangeListener
     public void onProgressChanged(SeekBar seekBar, int i, boolean z) {
@@ -388,18 +400,46 @@ public class SplashActivity extends BaseActivity implements SeekBar.OnSeekBarCha
     }
 
     public void onPhotoTakenApp() {
-        this.relativeLayoutContainer.post(new Runnable() { // from class: com.gallery.photos.editphotovideo.activities.SplashActivity.11
-            @Override // java.lang.Runnable
+        this.relativeLayoutContainer.post(new Runnable() {
+            @Override
             public void run() {
-                SplashActivity.grayBitmap = SplashActivity.this.grayScaleBitmap(SplashActivity.colorBitmap);
-                SplashActivity.splashView.initDrawing();
-                SplashActivity.splashView.saveScale = 1.0f;
-                SplashActivity.splashView.fitScreen();
-                SplashActivity.splashView.updatePreviewPaint();
-                SplashActivity.splashView.updatePaintBrush();
-                SplashActivity.vector.clear();
+                // Add null/recycled checks
+                if (colorBitmap == null || colorBitmap.isRecycled()) {
+                    return;
+                }
+
+                Bitmap newGrayBitmap = grayScaleBitmap(colorBitmap);
+                if (newGrayBitmap != null) {
+                    // Clean up old bitmap if exists
+                    safeRecycle(grayBitmap);
+                    grayBitmap = newGrayBitmap;
+
+                    if (splashView != null) {
+                        splashView.initDrawing();
+                        splashView.saveScale = 1.0f;
+                        splashView.fitScreen();
+                        splashView.updatePreviewPaint();
+                        splashView.updatePaintBrush();
+                    }
+
+                    if (vector != null) {
+                        vector.clear();
+                    }
+                }
             }
         });
+    }
+
+    private void recycleBitmaps() {
+        safeRecycle(colorBitmap);
+        safeRecycle(grayBitmap);
+        // Add any other bitmaps you use
+    }
+
+    private void safeRecycle(Bitmap bitmap) {
+        if (bitmap != null && !bitmap.isRecycled()) {
+            bitmap.recycle();
+        }
     }
 
     private boolean isConnectedNetwork() {
@@ -437,6 +477,7 @@ public class SplashActivity extends BaseActivity implements SeekBar.OnSeekBarCha
     // androidx.appcompat.app.AppCompatActivity, androidx.fragment.app.FragmentActivity, android.app.Activity
     public void onDestroy() {
         super.onDestroy();
+        recycleBitmaps();
     }
 
 

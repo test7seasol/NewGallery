@@ -20,8 +20,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.gallery.photos.editpic.Activity.ViewPagerActivity
 import com.gallery.photos.editpic.Extensions.beGone
-import com.gallery.photos.editpic.Extensions.gone
-import com.gallery.photos.editpic.Extensions.onClick
 import com.gallery.photos.editpic.Model.MediaListItem
 import com.gallery.photos.editpic.Model.MediaModel
 import com.gallery.photos.editpic.Repository.RecentPictureRepository
@@ -31,7 +29,7 @@ import com.gallery.photos.editpic.ViewModel.RecentPictureViewModelFactory
 import com.gallery.photos.editpic.databinding.FragmentRecentCallPictureBinding
 import kotlinx.coroutines.launch
 
-class RecentsPictureFragmentCall : Fragment() {
+class ResentsPictureFragmentCall : Fragment() {
 
     private lateinit var binding: FragmentRecentCallPictureBinding
     private val viewModel: RecentPictureViewModel by viewModels {

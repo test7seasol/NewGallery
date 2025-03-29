@@ -660,7 +660,7 @@ public class RemoveBgActivity extends AppCompatActivity implements LayoutItemLis
         public void onPostExecute(Bitmap bitmap) {
             super.onPostExecute(bitmap);
             if (bitmap != null) {
-                BitmapTransfer.bitmap = bitmap;
+                BitmapTransfer.setBitmap(bitmap);
             }
             Intent intent = new Intent(RemoveBgActivity.this, (Class<?>) PhotoEditorActivity.class);
             intent.putExtra("MESSAGE", "done");

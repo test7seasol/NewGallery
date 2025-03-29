@@ -373,7 +373,7 @@ public class BorderActivity extends BaseActivity implements LayoutItemListener, 
         public void onPostExecute(Bitmap bitmap) {
             super.onPostExecute(bitmap);
             if (bitmap != null) {
-                BitmapTransfer.bitmap = bitmap;
+                BitmapTransfer.setBitmap(bitmap);
             }
             Intent intent = new Intent(BorderActivity.this, (Class<?>) PhotoEditorActivity.class);
             intent.putExtra("MESSAGE", "done");

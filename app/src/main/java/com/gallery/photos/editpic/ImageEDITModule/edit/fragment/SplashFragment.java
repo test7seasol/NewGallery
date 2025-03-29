@@ -21,6 +21,7 @@ import com.gallery.photos.editpic.ImageEDITModule.edit.resource.StickerFile;
 import com.gallery.photos.editpic.ImageEDITModule.edit.sticker.SplashSticker;
 import com.gallery.photos.editpic.R;
 
+
 /* loaded from: classes.dex */
 public class SplashFragment extends DialogFragment implements SquareAdapter.SplashChangeListener {
     private static final String TAG = "SplashFragment";

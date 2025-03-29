@@ -13,6 +13,7 @@ import android.renderscript.Allocation;
 import android.renderscript.Element;
 import android.renderscript.RenderScript;
 import android.renderscript.ScriptIntrinsicBlur;
+import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.widget.ImageView;
@@ -53,40 +54,44 @@ public class BlurActivity extends BaseActivity implements SeekBar.OnSeekBarChang
     private TextView textViewEraser;
     private TextView textViewZoom;
 
-
-
     public static Bitmap blur(Context context, Bitmap bitmap, int radius) {
-        // Ensure the bitmap is valid before copying
-        try {
-
-        if (bitmap == null || bitmap.isRecycled()) {
-            throw new IllegalStateException("Bitmap is null or already recycled");
+        if (context == null || bitmap == null || bitmap.isRecycled()) {
+            return null; // Return null instead of throwing exception
         }
 
-        Bitmap copy = bitmap.copy(Bitmap.Config.ARGB_8888, true);
-        Bitmap createBitmap = Bitmap.createBitmap(copy);
+        try {
+            // Create a working copy of the bitmap
+            Bitmap workingBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+            if (workingBitmap == null) {
+                return null;
+            }
 
-        RenderScript rs = RenderScript.create(context);
-        ScriptIntrinsicBlur blurScript = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs));
+            Bitmap outputBitmap = Bitmap.createBitmap(workingBitmap.getWidth(),
+                    workingBitmap.getHeight(),
+                    Bitmap.Config.ARGB_8888);
 
-        Allocation input = Allocation.createFromBitmap(rs, copy);
-        Allocation output = Allocation.createFromBitmap(rs, createBitmap);
+            RenderScript rs = RenderScript.create(context);
+            ScriptIntrinsicBlur blurScript = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs));
 
-        blurScript.setRadius(radius);
-        blurScript.setInput(input);
-        blurScript.forEach(output);
+            Allocation input = Allocation.createFromBitmap(rs, workingBitmap);
+            Allocation output = Allocation.createFromBitmap(rs, outputBitmap);
 
-        output.copyTo(createBitmap);
+            blurScript.setRadius(Math.min(radius, 25)); // Max radius is 25
+            blurScript.setInput(input);
+            blurScript.forEach(output);
 
-        // Clean up RenderScript resources
-        input.destroy();
-        output.destroy();
-        blurScript.destroy();
-        rs.destroy();
+            output.copyTo(outputBitmap);
 
-        return createBitmap;
+            // Clean up resources
+            input.destroy();
+            output.destroy();
+            blurScript.destroy();
+            rs.destroy();
+            workingBitmap.recycle(); // Recycle our working copy
 
+            return outputBitmap;
         } catch (Exception e) {
+            Log.e("BlurUtil", "Blur failed", e);
             return null;
         }
     }
@@ -105,9 +110,10 @@ public class BlurActivity extends BaseActivity implements SeekBar.OnSeekBarChang
         displayHight = point.y;
         this.imageViewContainer = (RelativeLayout) findViewById(R.id.relativeLayoutContainer);
         blurView = (BlurView) findViewById(R.id.drawingImageView);
-        if (BitmapTransfer.bitmap != null) {
-            bitmapClear = BitmapTransfer.bitmap;
+        if (BitmapTransfer.getBitmap() != null) {
+            bitmapClear = BitmapTransfer.getBitmap();
         }
+
         bitmapBlur = blur(this, bitmapClear, blurView.opacity);
         this.linearLayoutEraser = (LinearLayout) findViewById(R.id.linearLayoutEraser);
         this.linearLayoutBlur = (LinearLayout) findViewById(R.id.linearLayoutBlur);
@@ -228,7 +234,7 @@ public class BlurActivity extends BaseActivity implements SeekBar.OnSeekBarChang
     /* JADX INFO: Access modifiers changed from: private */
     public void SaveView() {
         if (blurView.drawingBitmap != null) {
-            BitmapTransfer.bitmap = blurView.drawingBitmap;
+            BitmapTransfer.setBitmap(blurView.drawingBitmap);
         }
         Intent intent = new Intent(this, (Class<?>) PhotoEditorActivity.class);
         intent.putExtra("MESSAGE", "done");

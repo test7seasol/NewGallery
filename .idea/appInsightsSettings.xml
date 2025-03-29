@@ -22,20 +22,6 @@
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
               <option name="timeIntervalDays" value="SEVEN_DAYS" />
-              <option name="versions">
-                <list>
-                  <VersionSetting>
-                    <option name="buildVersion" value="6" />
-                    <option name="displayName" value="6.0 (6)" />
-                    <option name="displayVersion" value="6.0" />
-                  </VersionSetting>
-                  <VersionSetting>
-                    <option name="buildVersion" value="5" />
-                    <option name="displayName" value="5.0 (5)" />
-                    <option name="displayVersion" value="5.0" />
-                  </VersionSetting>
-                </list>
-              </option>
               <option name="visibilityType" value="ALL" />
             </InsightsFilterSettings>
           </value>

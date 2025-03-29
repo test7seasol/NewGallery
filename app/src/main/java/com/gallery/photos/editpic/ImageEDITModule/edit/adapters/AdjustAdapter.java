@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -19,11 +20,11 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-/* loaded from: classes.dex */
+
 public class AdjustAdapter extends RecyclerView.Adapter<AdjustAdapter.ViewHolder> {
     public AdjustListener adjustListener;
     public List<AdjustModel> adjustModelList;
-    private Context context;
+    private final Context context;
     public String ADJUST = " @adjust brightness 0 @adjust contrast 1 @adjust saturation 1 @adjust sharpen 0 @adjust exposure 0 @adjust hue 0 ";
     public int selectedFilterIndex = 0;
 
@@ -38,7 +39,7 @@ public class AdjustAdapter extends RecyclerView.Adapter<AdjustAdapter.ViewHolder
         public float originValue;
         public float seekbarIntensity = 0.5f;
 
-        AdjustModel(int i, String str, String str2, Drawable drawable, float f, float f2, float f3) {
+        AdjustModel(int i, String str, String str2, Drawable drawable,float f, float f2, float f3) {
             this.index = i;
             this.name = str;
             this.code = str2;
@@ -48,6 +49,29 @@ public class AdjustAdapter extends RecyclerView.Adapter<AdjustAdapter.ViewHolder
             this.maxValue = f3;
         }
 
+       /* public void setSeekBarIntensity(PhotoEditor photoEditor, float f, boolean z) {
+            if (photoEditor != null) {
+                this.seekbarIntensity = f;
+                intensity = calcIntensity(seekbarIntensity);
+                photoEditor.setFilterIntensityForIndex(intensity, this.index, z);
+            }
+        }
+
+        public float calcIntensity(float f) {
+            if (f <= 0.0f) {
+                return this.minValue;
+            }
+            if (f >= 1.0f) {
+                return this.maxValue;
+            }
+            if (f <= 0.5f) {
+                float f2 = this.minValue;
+                return f2 + ((this.originValue - f2) * f * 2.0f);
+            }
+            float f3 = this.maxValue;
+            return f3 + ((this.originValue - f3) * (1.0f - f) * 2.0f);
+        }*/
+
         public void setSeekBarIntensity(PhotoEditor photoEditor, float progress, boolean z) {
             if (photoEditor != null) {
                 this.seekbarIntensity = progress;
@@ -56,16 +80,33 @@ public class AdjustAdapter extends RecyclerView.Adapter<AdjustAdapter.ViewHolder
             }
         }
 
-        public float calcIntensity(float progress) {
+      /*  public float calcIntensity(float progress) {
             // Ensure progress is between 0 and 1
             progress = Math.max(0f, Math.min(1f, progress));
             // Linear mapping from [0,1] to [minValue, maxValue]
             return minValue + (maxValue - minValue) * progress;
             // OR if you need a more complex mapping:
-            // return minValue + (originValue - minValue)  progress  2f;  // For first half
-            // return originValue + (maxValue - originValue)  (progress - 0.5f)  2f; // For second half
+            // return minValue + (originValue - minValue) * progress * 2f;  // For first half
+            // return originValue + (maxValue - originValue) * (progress - 0.5f) * 2f; // For second half
+        }*/
+
+        public float calcIntensity(float progress) {
+            if (progress <= 0.0f) {
+                return this.minValue;
+            }
+            if (progress >= 1.0f) {
+                return this.maxValue;
+            }
+            if (progress <= 0.5f) {
+                float f2 = this.minValue;
+                return f2 + ((this.originValue - f2) * progress * 2.0f);
+            }
+            float f3 = this.maxValue;
+            return f3 + ((this.originValue - f3) * (1.0f - progress) * 2.0f);
         }
+
     }
+
 
     public AdjustAdapter(Context context, AdjustListener adjustListener) {
         this.context = context;
@@ -95,6 +136,7 @@ public class AdjustAdapter extends RecyclerView.Adapter<AdjustAdapter.ViewHolder
             viewHolder.image_view_adjust_icon.setColorFilter(this.context.getResources().getColor(R.color.iconColor));
             viewHolder.text_view_adjust_name.setTextColor(this.context.getResources().getColor(R.color.iconColor));
         }
+
     }
 
     @Override // androidx.recyclerview.widget.RecyclerView.Adapter
@@ -113,11 +155,11 @@ public class AdjustAdapter extends RecyclerView.Adapter<AdjustAdapter.ViewHolder
 
         ViewHolder(View view) {
             super(view);
-            this.image_view_adjust_icon = (ImageView) view.findViewById(R.id.image_view_adjust_icon);
-            this.text_view_adjust_name = (TextView) view.findViewById(R.id.text_view_adjust_name);
-            RelativeLayout relativeLayout = (RelativeLayout) view.findViewById(R.id.relativeLayoutEdit);
+            this.image_view_adjust_icon = view.findViewById(R.id.image_view_adjust_icon);
+            this.text_view_adjust_name = view.findViewById(R.id.text_view_adjust_name);
+            RelativeLayout relativeLayout = view.findViewById(R.id.relativeLayoutEdit);
             this.relativeLayoutEdit = relativeLayout;
-            relativeLayout.setOnClickListener(new View.OnClickListener() { // from class: com.gallery.photos.editphotovideo.adapters.AdjustAdapter.ViewHolder.1
+            relativeLayout.setOnClickListener(new View.OnClickListener() {
                 @Override // android.view.View.OnClickListener
                 public void onClick(View view2) {
                     AdjustAdapter.this.selectedFilterIndex = ViewHolder.this.getLayoutPosition();
@@ -131,6 +173,8 @@ public class AdjustAdapter extends RecyclerView.Adapter<AdjustAdapter.ViewHolder
     public AdjustModel getCurrentAdjustModel() {
         return this.adjustModelList.get(this.selectedFilterIndex);
     }
+
+
 
     private void init() {
         ArrayList arrayList = new ArrayList();

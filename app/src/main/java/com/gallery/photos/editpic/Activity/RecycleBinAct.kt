@@ -286,7 +286,6 @@ class RecycleBinAct : AppCompatActivity() {
         }
     }
 
-
     fun restoreSelectedFilesFromRecycleBin(
         selectedList: List<DeleteMediaModel>,
         isFromRestoreAll: Boolean = false

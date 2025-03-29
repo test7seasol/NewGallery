@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION
 import android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION
 import android.util.Log
 import android.view.animation.Animation
@@ -104,7 +105,8 @@ class AllFilePermissionActivity : AppCompatActivity() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 if (!isAllFilesAccessGranted()) {
                     try {
-                        val intent = Intent(ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                        val intent =
+                            Intent(ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
                         intent.data = Uri.parse("package:$packageName")
                         mPermissionForResult?.launch(intent)
                         startPermissionCheckTimer()

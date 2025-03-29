@@ -18,7 +18,6 @@ import androidx.core.content.ContextCompat
 import com.gallery.photos.editpic.Activity.MyApplicationClass.Companion.ctx
 import com.gallery.photos.editpic.Extensions.ISONETIME
 import com.gallery.photos.editpic.Extensions.PREF_LANGUAGE_CODE
-import com.gallery.photos.editpic.Extensions.beGone
 import com.gallery.photos.editpic.Extensions.beVisible
 import com.gallery.photos.editpic.Extensions.setLanguageCode
 import com.gallery.photos.editpic.Extensions.viewBinding

@@ -29,17 +29,13 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
-
 val DATE_LIMIT = 10000000
 var FOLDER_MAKER_NAME = ""
-
 var PIN_LOCK = "PIN_LOCK"
 var SECURITY_ADD = "SECURITY_ADD"
 var QUESATION = "QUESATION"
 var ANSWER = "ANSWER"
 var isDialogShowing = false
-
 
 fun isVideoFile(filePath: String): Boolean {
     val videoExtensions = listOf("mp4", "mkv", "avi", "mov", "wmv", "flv", "3gp", "webm")

@@ -1,6 +1,7 @@
 package com.gallery.photos.editpic.ImageEDITModule.edit.fragment;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Point;
@@ -19,6 +20,7 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
@@ -316,18 +318,46 @@ public class RatioFragment extends DialogFragment implements AspectAdapter.OnNew
 
         @Override // android.os.AsyncTask
         public Bitmap doInBackground(Bitmap... bitmapArr) {
-            Bitmap cloneBitmap = FilterFile.cloneBitmap(bitmapArr[0]);
-            bitmapArr[0].recycle();
-            bitmapArr[0] = null;
-            return cloneBitmap;
+            try {
+                Bitmap cloneBitmap = FilterFile.cloneBitmap(bitmapArr[0]);
+                bitmapArr[0].recycle();
+                bitmapArr[0] = null;
+                return cloneBitmap;
+            } catch (Exception e) {
+                return null;
+            }
         }
 
         @Override // android.os.AsyncTask
         public void onPostExecute(Bitmap bitmap) {
-            RatioFragment.this.mLoading(false);
-            RatioFragment.this.ratioSaveListener.ratioSavedBitmap(bitmap);
-            RatioFragment.this.dismiss();
+            try {
+                if (isAdded() && ratioSaveListener != null && bitmap != null) {
+                    RatioFragment.this.mLoading(false);
+                    RatioFragment.this.ratioSaveListener.ratioSavedBitmap(bitmap);
+                    RatioFragment.this.dismiss();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            dismissAllowingStateLoss();
+
         }
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        try {
+            ratioSaveListener = (RatioSaveListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString() + " must implement RatioSaveListener");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        ratioSaveListener = null;
     }
 
     @Override

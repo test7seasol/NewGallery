@@ -493,7 +493,7 @@ public class BodyActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.imageViewSave /* 2131362304 */:
                 Bitmap bitmap = this.mCurrentBitmap;
                 if (bitmap != null) {
-                    BitmapTransfer.bitmap = bitmap;
+                    BitmapTransfer.setBitmap(bitmap);
                 }
                 Intent intent = new Intent(this, (Class<?>) PhotoEditorActivity.class);
                 intent.putExtra("MESSAGE", "done");

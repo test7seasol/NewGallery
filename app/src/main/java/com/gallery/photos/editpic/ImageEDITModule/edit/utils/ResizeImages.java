@@ -28,8 +28,8 @@ public class ResizeImages extends AppCompatActivity {
         this.maxResolution = i;
         this.orientation = getImageOrientation(str);
         getAspectRatio(str);
-        if (BitmapTransfer.bitmap != null) {
-            this.originalbm = BitmapTransfer.bitmap;
+        if (BitmapTransfer.getBitmap() != null) {
+            this.originalbm = BitmapTransfer.getBitmap();
         }
         Bitmap resizedOriginalBitmap = getResizedOriginalBitmap(str);
         this.originalbm = resizedOriginalBitmap;

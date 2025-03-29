@@ -1,5 +1,6 @@
 package com.gallery.photos.editpic.Activity
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
@@ -44,7 +45,7 @@ class MyApplicationClass : ArtRoom() {
             }
         }
 
-
+        @SuppressLint("StaticFieldLeak")
         lateinit var ctx: MyApplicationClass
 
         var sharedPreferences: SharedPreferences? = null

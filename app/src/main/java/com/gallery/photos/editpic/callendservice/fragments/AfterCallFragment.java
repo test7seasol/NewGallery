@@ -1,7 +1,5 @@
 package com.gallery.photos.editpic.callendservice.fragments;
 
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,7 +9,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.gallery.photos.editphotovideo.callendservice.fragments.RecentsPictureFragmentCall;
+import com.gallery.photos.editphotovideo.callendservice.fragments.ResentsPictureFragmentCall;
 import com.gallery.photos.editpic.Fragment.AllVideosFragmentcall;
 import com.gallery.photos.editpic.R;
 import com.gallery.photos.editpic.callendservice.model.ContactCDO;
@@ -82,7 +80,7 @@ public final class AfterCallFragment extends Fragment {
         binding.tvVideo.setTextColor(getResources().getColor(R.color.appgrey));
         binding.ivPhoto.setColorFilter(getResources().getColor(R.color.appcolor));
         binding.ivVideo.setColorFilter(getResources().getColor(R.color.appgrey));
-        loadFragment(new RecentsPictureFragmentCall());
+        loadFragment(new ResentsPictureFragmentCall());
 
 
         binding.cvPhotos.setOnClickListener(new View.OnClickListener() {
@@ -95,7 +93,7 @@ public final class AfterCallFragment extends Fragment {
                 binding.ivPhoto.setColorFilter(getResources().getColor(R.color.appcolor));
                 binding.ivVideo.setColorFilter(getResources().getColor(R.color.appgrey));
 
-                loadFragment(new RecentsPictureFragmentCall());
+                loadFragment(new ResentsPictureFragmentCall());
                /* startActivity(new Intent(getActivity(), MainActivity.class));
                 getActivity().finish();*/
 

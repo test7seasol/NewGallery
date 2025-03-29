@@ -472,40 +472,44 @@ public class SplashView extends ImageView {
         updatePreviewPaint();
     }
 
-    @Override // android.widget.ImageView, android.view.View
-    public void onMeasure(int i, int i2) {
+    @Override
+    public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         try {
-            int width = MeasureSpec.getSize(i2);
-            int height = MeasureSpec.getSize(i2);
+            int width = MeasureSpec.getSize(widthMeasureSpec);
+            int height = MeasureSpec.getSize(heightMeasureSpec);
+
+            // Always set default dimensions first
+            setMeasuredDimension(width, height);
 
             // Skip if dimensions are invalid
             if (width <= 0 || height <= 0) {
-                super.onMeasure(i2, i2);
                 return;
             }
 
-        if (this.onMeasureCalled) {
-            return;
-        }
-        Log.wtf("OnMeasured Call :", "OnMeasured Call");
-        this.viewWidth = MeasureSpec.getSize(i);
-        int size = MeasureSpec.getSize(i2);
-        this.viewHeight = size;
-        int i3 = this.oldMeasuredHeight;
-        int i4 = this.viewWidth;
-        if ((i3 == i4 && i3 == size) || i4 == 0 || size == 0) {
-            return;
-        }
-        this.oldMeasuredHeight = size;
-        this.oldMeasuredWidth = i4;
-        if (this.saveScale == 1.0f) {
-            fitScreen();
-        }
-        this.onMeasureCalled = true;
+            if (this.onMeasureCalled) {
+                return;
+            }
+
+            Log.wtf("OnMeasured Call :", "OnMeasured Call");
+            this.viewWidth = width;
+            this.viewHeight = height;
+            int i3 = this.oldMeasuredHeight;
+            int i4 = this.viewWidth;
+
+            if ((i3 == i4 && i3 == height) || i4 == 0 || height == 0) {
+                return;
+            }
+
+            this.oldMeasuredHeight = height;
+            this.oldMeasuredWidth = i4;
+            if (this.saveScale == 1.0f) {
+                fitScreen();
+            }
+            this.onMeasureCalled = true;
 
         } catch (Exception e) {
             e.printStackTrace();
-            super.onMeasure(i, i2);
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         }
     }
 

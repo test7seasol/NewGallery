@@ -9,19 +9,19 @@
     tools:context=".Activity.SplashActivity">
 
     <androidx.constraintlayout.utils.widget.ImageFilterView
-        android:id="@+id/ivIconid"
+        android:id="@+id/logo"
         android:layout_width="@dimen/_90sdp"
         android:layout_height="@dimen/_90sdp"
         android:layout_centerInParent="true"
         android:adjustViewBounds="true"
         android:scaleType="fitCenter"
-        android:src="@drawable/applogo"
+        android:src="@mipmap/ic_launcher"
         app:round="@dimen/_10sdp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/ivIconid"
+        android:layout_below="@+id/logo"
         android:layout_centerHorizontal="true"
         android:layout_gravity="center"
         android:layout_marginTop="@dimen/_10sdp"

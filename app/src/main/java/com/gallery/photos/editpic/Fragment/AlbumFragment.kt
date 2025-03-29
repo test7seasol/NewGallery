@@ -164,7 +164,6 @@ class AlbumFragment : Fragment() {
         return folder.exists() && folder.isDirectory
     }
 
-
     fun copyFiles(list: ArrayList<MediaModelItem>, fromWhere: String, folderName: String) {
         progressDialog?.show()
 
@@ -386,141 +385,6 @@ class AlbumFragment : Fragment() {
             else -> URLConnection.guessContentTypeFromName(path) ?: "*/*"
         }
     }
-
-    // Fallback method for Android 7-9
-
-    fun logAllBucketIds() {
-        val projection = arrayOf(
-            MediaStore.Images.Media.BUCKET_ID, MediaStore.Images.Media.BUCKET_DISPLAY_NAME
-        )
-
-        val cursor = requireActivity().contentResolver.query(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, null, null, null
-        )
-
-        cursor?.use {
-            while (it.moveToNext()) {
-                val bucketId =
-                    it.getString(it.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_ID))
-                val bucketName =
-                    it.getString(it.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME))
-                Log.d("BucketDebug", "BucketId: $bucketId -> $bucketName")
-            }
-        }
-    }
-
-    fun getFolderPathByBucketId(bucketId: String): String? {
-        val projection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // Android 10+ (Q) can use relative_path
-            arrayOf(
-                MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
-                MediaStore.Images.Media.DATA,
-                MediaStore.Images.Media.RELATIVE_PATH
-            )
-        } else {
-            // Android 7-9 (Nougat-Oreo-Pie) fallback
-            arrayOf(
-                MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
-                MediaStore.Images.Media.DATA
-            )
-        }
-
-        val selection = "${MediaStore.Images.Media.BUCKET_ID} = ? AND " +
-                "(is_drm = 0 OR is_drm IS NULL)"
-        val selectionArgs = arrayOf(bucketId)
-
-        return requireActivity().contentResolver.query(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            projection,
-            selection,
-            selectionArgs,
-            null
-        )?.use { cursor ->
-            if (cursor.moveToFirst()) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    // Try to use relative_path first
-                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.RELATIVE_PATH))
-                        ?.let { Environment.getExternalStorageDirectory().path + "/" + it }
-                        ?: cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA))
-                            ?.substringBeforeLast("/")
-                } else {
-                    // Android 7-9 fallback - use DATA column only
-                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA))
-                        ?.substringBeforeLast("/")
-                }
-            } else {
-                null
-            }
-        }
-    }
-//    fun getFolderPathByBucketId(bucketId: String): String? {
-//        Log.d("BucketDebug", "Searching for bucketId: $bucketId") // Log bucketId for debugging
-//
-//        val projection = arrayOf(
-//            MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
-//            MediaStore.Images.Media.DATA,
-//            MediaStore.Images.Media.RELATIVE_PATH
-//        )
-//
-//        val selection = "${MediaStore.Images.Media.BUCKET_ID} = ?"
-//        val selectionArgs = arrayOf(bucketId)
-//
-//        requireActivity().contentResolver.query(
-//            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, selection, selectionArgs, null
-//        )?.use { cursor ->
-//            if (cursor.moveToFirst()) {
-//                val bucketName =
-//                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME))
-//                Log.d("BucketDebug", "Found folder: $bucketName")
-//
-//                return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-//                    val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
-//                    File(cursor.getString(dataColumn)).parent // Returns actual file directory
-//                } else {
-//                    val relativePathColumn =
-//                        cursor.getColumnIndexOrThrow(MediaStore.Images.Media.RELATIVE_PATH)
-//                    val fullPath = "${Environment.getExternalStorageDirectory()}/${
-//                        cursor.getString(relativePathColumn)
-//                    }".removeSuffix("/")
-//                    Log.d("BucketDebug", "Resolved path: $fullPath")
-//                    fullPath
-//                }
-//            } else {
-//                Log.e("BucketDebug", "No folder found for bucketId: $bucketId")
-//            }
-//        }
-//
-////        logAllBucketIds()
-//
-//        return null
-//    }
-
-
-    fun moveFile(sourceFile: File, destinationFile: File): Boolean {
-        return try {
-            sourceFile.copyTo(destinationFile, overwrite = true)
-            sourceFile.delete()
-            true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
-        }
-    }
-
-    fun copyFile(sourceFile: File, destinationFile: File): Boolean {
-        return try {
-            sourceFile.inputStream().use { input ->
-                destinationFile.outputStream().use { output ->
-                    input.copyTo(output)
-                }
-            }
-            true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
-        }
-    }
-
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -775,7 +639,6 @@ class AlbumFragment : Fragment() {
             }
         }
     }
-
     // Helper function to delete from MediaStore
 // Replace the deleteFromMediaStore function with this corrected version
     private fun deleteFromMediaStore(media: DeleteMediaModel) {
@@ -814,7 +677,6 @@ class AlbumFragment : Fragment() {
             }
         }
     }
-
     // New helper function to refresh MediaStore
     private fun refreshMediaStore(filePath: String) {
         val mediaFile = File(filePath)
@@ -895,7 +757,6 @@ class AlbumFragment : Fragment() {
         Log.d("DeleteMedia", "Refreshing album list...")
         mediaViewModel.refreshFolders()  // Refresh folders when user returns
     }
-
 
     fun observeFolders() {
         mediaViewModel.folderLiveData.observe(viewLifecycleOwner) { folders ->

@@ -726,7 +726,7 @@ public class MirrorActivity extends AppCompatActivity {
             }
             if (this.resultPath != null) {
                 // In MirrorActivity, after saving:
-                BitmapTransfer.bitmap =  this.bitmapPath;; // Set the edited result
+                BitmapTransfer.setBitmap(this.bitmapPath);; // Set the edited result
                 Intent resultIntent = new Intent();
                 resultIntent.putExtra("MESSAGE", "done");
                 setResult(RESULT_OK, resultIntent);
@@ -743,8 +743,8 @@ public class MirrorActivity extends AppCompatActivity {
         super.onCreate(bundle);
         getWindow().addFlags(1024);
         getIntent().getExtras();
-        if (BitmapTransfer.bitmap != null) {
-            this.sourceBitmap = BitmapTransfer.bitmap;
+        if (BitmapTransfer.getBitmap() != null) {
+            this.sourceBitmap = BitmapTransfer.getBitmap();
         }
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);

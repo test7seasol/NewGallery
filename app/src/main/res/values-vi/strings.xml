@@ -1,4 +1,33 @@
 <resources>
+
+    <string-array name="WheelArrayDefault">
+        <item>AigeStudio</item>
+        <item>Aige</item>
+        <item>爱哥</item>
+        <item>الحب  اخي</item>
+        <item>jeg elsker</item>
+        <item>사랑해요 형</item>
+        <item>Amor de irmão</item>
+        <item>armastan</item>
+        <item>愛の兄</item>
+        <item>обичам те</item>
+        <item>любовь - братa</item>
+        <item>miłość bracie</item>
+        <item>Liebe</item>
+        <item>Lamour</item>
+        <item>rakastan sinua</item>
+        <item>láska..</item>
+        <item>dragostea.</item>
+        <item>jag älskar</item>
+        <item>ljubezen, brat.</item>
+        <item>愛哥</item>
+        <item>ชอบพี่</item>
+        <item>αγάπη μου</item>
+        <item>a szerelem.</item>
+        <item>Amore, fratello.</item>
+    </string-array>
+
+
     <string-array name="photo_editor_emoji">
 
         <!-- Smiles -->
@@ -405,113 +434,127 @@
         <item>u+1f4cd</item>
         <item>u+1f6a9</item>
     </string-array>
-    <string name="app_name">Gallery</string>
-    <string name="image">kuva</string>
 
-    <string name="photos">Kuvat</string>
-    <string name="folders">Kansiot</string>
-    <string name="videos">Videot</string>
+    <string name="image">hình ảnh</string>
+    <string name="photos">Ảnh</string>
+    <string name="folders">Thư mục</string>
+    <string name="videos">Video</string>
 
-    <string name="app_name1">#Galleria</string>
-    <string name="allow_overlay_access">Salli peittokuva</string>
-    <string name="find_messages_and_allow_permission">Etsi viestejä ja anna lupa</string>
+    <string name="app_name1">#Thư viện</string>
+    <string name="allow_overlay_access">Cho phép truy cập lớp phủ</string>
+    <string name="find_messages_and_allow_permission">Tìm tin nhắn và cấp quyền</string>
 
-    <string name="select_all">Valitse kaikki</string>
-    <string name="copy_to_folder">Kopioi kansioon</string>
-    <string name="move_to_folder">Siirrä kansioon</string>
-    <string name="albums">Albumit</string>
-    <string name="pictures">Kuvat</string>
-    <string name="favorites">Suosikit</string>
-    <string name="recent">Viimeisimmät</string>
-    <string name="recycle_bin">Roskakori</string>
-    <string name="settings">Asetukset</string>
-    <string name="language">Kieli</string>
-    <string name="delete">Poista</string>
-    <string name="brightness">Kirkkaus</string>
-    <string name="volume">Äänenvoimakkuus</string>
+    <string name="select_all">Chọn tất cả</string>
+    <string name="copy_to_folder">Sao chép vào thư mục</string>
+    <string name="move_to_folder">Di chuyển vào thư mục</string>
+    <string name="albums">Album</string>
+    <string name="pictures">Hình ảnh</string>
+    <string name="favorites">Yêu thích</string>
+    <string name="recent">Gần đây</string>
+    <string name="recycle_bin">Thùng rác</string>
+    <string name="settings">Cài đặt</string>
+    <string name="language">Ngôn ngữ</string>
+    <string name="delete">Xóa</string>
+    <string name="brightness">Độ sáng</string>
+    <string name="volume">Âm lượng</string>
 
-    <string name="privacy_policy">Tietosuojakäytäntö</string>
+    <string name="privacy_policy">Chính sách quyền riêng tư</string>
 
-    <string name="label_brush">Sivellin</string>
-    <string name="label_shape">Muoto</string>
-    <string name="label_oval">Soikio</string>
-    <string name="label_rectangle">Suorakulmio</string>
-    <string name="label_line">Viiva</string>
-    <string name="label_arrow">Nuoli</string>
-    <string name="label_emoji">Emoji</string>
-    <string name="label_sticker">Tarra</string>
-    <string name="label_eraser">Pyyhekumi</string>
-    <string name="label_eraser_mode">Pyyhekumitila</string>
-    <string name="label_text">Teksti</string>
-    <string name="label_filter">Suodatin</string>
-    <string name="label_adjust">Säädä</string>
-    <string name="msg_save_image">Haluatko poistua tallentamatta kuvaa?</string>
-    <string name="app_intent_name">Kuvamuokkain</string>
-    <string name="msg_save_image_to_share">Tallenna kuva jakaaksesi sen</string>
-    <string name="msg_share_image">Jaa kuva</string>
-    <string name="access_to_nfiles_permission">Pääsy tiedostoihin</string>
+    <string name="label_brush">Cọ vẽ</string>
+    <string name="label_shape">Hình dạng</string>
+    <string name="label_oval">Hình bầu dục</string>
+    <string name="label_rectangle">Hình chữ nhật</string>
+    <string name="label_line">Đường kẻ</string>
+    <string name="label_arrow">Mũi tên</string>
+    <string name="label_emoji">Biểu tượng cảm xúc</string>
+    <string name="label_sticker">Nhãn dán</string>
+    <string name="label_eraser">Tẩy</string>
+    <string name="label_eraser_mode">Chế độ tẩy</string>
+    <string name="label_text">Văn bản</string>
+    <string name="label_filter">Bộ lọc</string>
+    <string name="label_adjust">Điều chỉnh</string>
+    <string name="msg_save_image">Bạn có chắc muốn thoát mà không lưu ảnh không?</string>
+    <string name="app_intent_name">Trình chỉnh sửa ảnh</string>
+    <string name="msg_save_image_to_share">Vui lòng lưu ảnh để chia sẻ</string>
+    <string name="msg_share_image">Chia sẻ ảnh</string>
+    <string name="access_to_nfiles_permission">Quyền truy cập vào\ncác tệp</string>
     <string name="grant_permission_to_the_app_to_access_nmodify_and_manage_files_on_your_ndevice_to_streamline_content_organization">
-        Anna sovellukselle lupa käyttää,
-muokata ja hallita tiedostoja laitteellasi
-sisällön järjestämiseksi
+        Cấp quyền cho ứng dụng truy cập,\nchỉnh sửa và quản lý tệp trên thiết bị của bạn\ngiúp tổ chức nội dung dễ dàng hơn
     </string>
-    <string name="grant_access">Anna pääsy</string>
-    <string name="loading">Ladataan...</string>
-    <string name="recyclebin">Roskakori</string>
-    <string name="select_files">Valitse tiedostot</string>
-    <string name="create">Luo</string>
-    <string name="no_items_selected">Ei valittuja kohteita</string>
-    <string name="mimport">Tuo</string>
-    <string name="favourite_data_not_found">Suosikkitietoja ei löydy</string>
-    <string name="hide_data_not_found">Piilotettuja tietoja ei löydy</string>
-    <string name="hide">Piilota</string>
-    <string name="enter_your_pattern">Syötä kuvio</string>
-    <string name="reseat_password">Nollaa salasana</string>
-    <string name="data_not_found">Tietoja ei löydy</string>
-    <string name="gallery_setting">Gallerian asetukset</string>
-    <string name="share_app">Jaa sovellus</string>
-    <string name="hide_loker">Piilota kaappi</string>
-    <string name="done">Valmis</string>
-    <string name="copy_to_album">Kopioi albumiin</string>
-    <string name="move_to_album">Siirrä albumiin</string>
-    <string name="hide_items">Piilota kohteet</string>
-    <string name="locations">Sijainnit</string>
-    <string name="copy_or_move_1_image">Kopioi tai siirrä 1 kuva?</string>
-    <string name="cancel">Peruuta</string>
-    <string name="copy">Kopioi</string>
-    <string name="move">Siirrä</string>
-    <string name="create_album">Luo albumi</string>
-    <string name="move_to_recycle_bin">Siirrä roskakoriin?</string>
+    <string name="grant_access">Cấp quyền truy cập</string>
+    <string name="loading">Đang tải...</string>
+    <string name="recyclebin">Thùng rác</string>
+    <string name="select_files">Chọn tệp</string>
+    <string name="create">Tạo</string>
+    <string name="no_items_selected">Không có mục nào được chọn</string>
+    <string name="mimport">Nhập khẩu</string>
+    <string name="favourite_data_not_found">Không tìm thấy dữ liệu yêu thích</string>
+    <string name="hide_data_not_found">Không tìm thấy dữ liệu ẩn</string>
+    <string name="hide">Ẩn</string>
+    <string name="enter_your_pattern">Nhập mẫu của bạn</string>
+    <string name="reseat_password">Đặt lại mật khẩu</string>
+    <string name="data_not_found">Không tìm thấy dữ liệu</string>
+    <string name="gallery_setting">Cài đặt thư viện</string>
+    <string name="share_app">Chia sẻ ứng dụng</string>
+    <string name="hide_loker">Ẩn kho</string>
+    <string name="done">Xong</string>
+    <string name="copy_to_album">Sao chép vào album</string>
+    <string name="move_to_album">Di chuyển vào album</string>
+    <string name="hide_items">Ẩn mục</string>
+    <string name="locations">Vị trí</string>
+    <string name="copy_or_move_1_image">Sao chép hoặc di chuyển 1 ảnh?</string>
+    <string name="cancel">Hủy</string>
+    <string name="copy">Sao chép</string>
+    <string name="move">Di chuyển</string>
+    <string name="create_album">Tạo album</string>
+    <string name="move_to_recycle_bin">Di chuyển vào thùng rác?</string>
     <string name="all_files_will_be_deleted_are_you_sure_you_want_n_to_delete_selected_files">
-        Kaikki tiedostot poistetaan. Oletko varma, että haluat poistaa valitut tiedostot?
+        Tất cả tệp sẽ bị xóa.\nBạn có chắc chắn muốn xóa các tệp đã chọn không?
     </string>
-    <string name="properties">Ominaisuudet</string>
-    <string name="name">Nimi</string>
-    <string name="path">Polku</string>
-    <string name="size">Koko</string>
-    <string name="resolution">Resoluutio</string>
-    <string name="last_modified">Viimeksi muokattu</string>
+    <string name="properties">Thuộc tính</string>
+    <string name="name">Tên</string>
+    <string name="path">Đường dẫn</string>
+    <string name="size">Kích thước</string>
+    <string name="resolution">Độ phân giải</string>
+    <string name="last_modified">Chỉnh sửa lần cuối</string>
     <string name="ok">OK</string>
-    <string name="unfavourite">Poista suosikeista</string>
-    <string name="unhide">Näytä</string>
-    <string name="failed_to_load_media">Mediatiedostoa ei voitu ladata</string>
-    <string name="favourite">Suosikki</string>
-    <string name="add_to_hide">Lisää piilotettuihin</string>
-    <string name="set_security_question">Aseta turvakysymys</string>
+    <string name="unfavourite">Xóa khỏi yêu thích</string>
+    <string name="unhide">Hiện</string>
+    <string name="failed_to_load_media">Không thể tải phương tiện</string>
+    <string name="favourite">Yêu thích</string>
+    <string name="add_to_hide">Thêm vào ẩn</string>
+    <string name="set_security_question">Đặt câu hỏi bảo mật</string>
     <string name="help_you_reset_your_password_when_you_forget_it">
-        Auttaa sinua palauttamaan salasanasi,
-kun unohdat sen
+        Giúp bạn đặt lại mật khẩu\nkhi bạn quên nó
     </string>
-    <string name="what_s_your_favorite_color">Mikä on lempivärisi?</string>
-    <string name="save">Tallenna</string>
-    <string name="loading_ads">Ladataan mainoksia...</string>
-    <string name="select_interval">Valitse aikaväli</string>
-    <string name="group_by">Ryhmittely</string>
-    <string name="change_view_type">Vaihda näkymätyyppi</string>
-    <string name="column_count">Sarakemäärä</string>
-    <string name="start_slideshow">Aloita diaesitys</string>
-    <string name="restore_all_files">Palauta kaikki tiedostot</string>
-    <string name="slide_show">Diaesitys</string>
-    <string name="empty_recycle_bin">Tyhjennä roskakori</string>
+    <string name="what_s_your_favorite_color">Màu yêu thích của bạn là gì?</string>
+    <string name="save">Lưu</string>
+    <string name="loading_ads">Đang tải quảng cáo...</string>
+    <string name="select_interval">Chọn khoảng thời gian</string>
+    <string name="group_by">Nhóm theo</string>
+    <string name="change_view_type">Thay đổi kiểu xem</string>
+    <string name="column_count">Số cột</string>
+    <string name="start_slideshow">Bắt đầu trình chiếu</string>
+    <string name="restore_all_files">Khôi phục tất cả tệp</string>
+    <string name="slide_show">Trình chiếu</string>
+    <string name="empty_recycle_bin">Dọn sạch thùng rác</string>
+
+    <string name="duration">Thời lượng</string>
+    <string name="remind_me_about">Nhắc tôi về</string>
+    <string name="quick_messages">Tin nhắn nhanh</string>
+    <string name="send_a_message">Gửi tin nhắn</string>
+    <string name="schedule_message">Lên lịch tin nhắn</string>
+    <string name="no_title">Không có tiêu đề</string>
+    <string name="can_not_talk_right_now">Hiện tại tôi không thể nói chuyện</string>
+    <string name="can_call_you_later">Tôi có thể gọi lại sau không?</string>
+    <string name="i_am_on_my_way">Tôi đang trên đường</string>
+    <string name="write_personal_message">Viết tin nhắn cá nhân</string>
+    <string name="title_add_contact">Thêm liên hệ</string>
+    <string name="messages">Tin nhắn</string>
+    <string name="send_mail">Gửi email</string>
+    <string name="calendar">Lịch</string>
+    <string name="web">Web</string>
+    <string name="processing_files">Đang xử lý tệp...</string>
+    <string name="max_selection_limit_is_100">Giới hạn chọn tối đa là 100</string>
 
 </resources>

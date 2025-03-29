@@ -4,6 +4,7 @@ import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -18,6 +19,8 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Display;
@@ -36,6 +39,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.constraintlayout.widget.Guideline;
@@ -110,6 +114,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import yuku.ambilwarna.AmbilWarnaDialog;
 
@@ -190,7 +196,7 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
 
         @Override // org.wysaid.nativePort.CGENativeLibrary.LoadImageCallback
         public void loadImageOK(Bitmap bitmap, Object obj) {
-            bitmap.recycle();
+//            bitmap.recycle();
         }
     };
     View.OnTouchListener onCompareTouchListener = new View.OnTouchListener() { // from class: com.gallery.photos.editphotovideo.activities.PhotoEditorActivity$$ExternalSyntheticLambda8
@@ -246,6 +252,86 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
         window.setNavigationBarColor(getResources().getColor(android.R.color.black, getTheme())); // Set black navigation bar
     }
 
+    private void handleBackPress() {
+//        recycler_view_tools_effect.setVisibility(View.GONE);
+        if (recycler_view_tools_effect.getVisibility() == VISIBLE) {
+            recycler_view_tools_effect.setVisibility(View.GONE);
+            return;
+        }
+        // Close text editor if visible
+        if (relativeLayoutText.getVisibility() == View.VISIBLE) {
+            relativeLayoutText.setVisibility(View.GONE);
+            slideUp(recycler_view_tools);
+            slideDown(relativeLayoutSaveText);
+            constraint_save_control.setVisibility(VISIBLE);
+            return;
+        }
+        if (constraint_layout_sticker.getVisibility() == View.VISIBLE) {
+            constraint_layout_sticker.setVisibility(View.GONE);
+            slideDown(relativeLayoutSaveSticker);
+            slideUp(recycler_view_tools);
+            constraint_save_control.setVisibility(VISIBLE);
+            return;
+        }
+        if (constraint_layout_confirmP.getVisibility() == VISIBLE) {
+            if (photoEditor.isBrushDrawingMode()) {
+                photoEditor.setBrushDrawingMode(false); // Disable painting mode
+                toogleDrawBottomToolbar(false); // Hide brush toolbar
+                slideDown(constraint_layout_brush); // Hide brush settings
+                slideUp(recycler_view_tools); // Show main tools
+                this.constraint_layout_confirmP.setVisibility(GONE);
+                this.recycler_view_tools_effect.setVisibility(GONE);
+                slideDown(this.constraint_layout_brush);
+                slideUp(this.recycler_view_tools);
+                constraint_save_control.setVisibility(VISIBLE);
+                return;
+            }
+        }
+        if (constraint_layout_adjust.getVisibility() == View.VISIBLE) {
+            Log.e(TAG, "onBackPressed: 111 ");
+            constraint_layout_adjust.setVisibility(View.GONE);
+            findViewById(R.id.constraint_layout_confirm_adjust).setVisibility(GONE);
+            constraint_save_control.setVisibility(VISIBLE);
+            slideDown(constraint_layout_adjust);
+            slideUp(recycler_view_tools);
+            return;
+        }
+        if (constraint_layout_filter.getVisibility() == View.VISIBLE) {
+            Log.e(TAG, "onBackPressed: 111 ");
+            constraint_layout_filter.setVisibility(View.GONE);
+            constraint_save_control.setVisibility(VISIBLE);
+            findViewById(R.id.constraint_layout_confirm_filter).setVisibility(GONE);
+            slideDown(constraint_layout_adjust);
+            slideUp(recycler_view_tools);
+            return;
+        }
+
+        if (constraint_layout_overlay.getVisibility() == VISIBLE) {
+            Log.e(TAG, "handleBackPress: 122222");
+            constraint_layout_overlay.setVisibility(View.GONE);
+            constraint_save_control.setVisibility(VISIBLE);
+            slideDown(constraint_layout_overlay);
+            slideUp(recycler_view_tools);
+            slideUp(recycler_view_tools_effect);
+            return;
+        }
+
+        new AlertDialog.Builder(this)
+                .setMessage(getResources().getString(R.string.saveimagemsg))
+                .setPositiveButton(getResources().getString(R.string.save), (dialog, which) -> {
+                    saveBitmap();  // Call your save function
+                })
+                .setNegativeButton(getResources().getString(R.string.discard), (dialog, which) -> {
+                    finish();
+                })
+                .setNeutralButton(getResources().getString(R.string.cancel), (dialog, which) -> {
+                    dialog.dismiss();
+                })
+                .setCancelable(false)
+                .show();
+//        finish(); // Finish the activity
+    }
+
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -256,6 +342,13 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
         setContentView(R.layout.activity_photo_editor);
 
         applyStatusBarColor();
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                handleBackPress();
+            }
+        });
 
         MyAllAdCommonClass.showAdmobBanner(
                 PhotoEditorActivity.this,
@@ -326,8 +419,8 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
         Bundle extras = getIntent().getExtras();
         if (extras != null && extras.getString(PhotoPicker.KEY_SELECTED_PHOTOS) != null) {
             new OnLoadBitmapFromUri().execute(extras.getString(PhotoPicker.KEY_SELECTED_PHOTOS));
-        } else if (extras != null && extras.getString("MESSAGE").equals("done") && BitmapTransfer.bitmap != null) {
-            new loadBitmap().execute(BitmapTransfer.bitmap);
+        } else if (extras != null && extras.getString("MESSAGE").equals("done") && BitmapTransfer.getBitmap() != null) {
+            new loadBitmap().execute(BitmapTransfer.getBitmap());
         }
 
         findViewById(R.id.imageViewSavePaint).setOnClickListener(new View.OnClickListener() {
@@ -614,21 +707,22 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
         });
         SeekBar seekBar2 = (SeekBar) findViewById(R.id.seekbar_adjust);
         this.seekbar_adjust = seekBar2;
-        seekbar_adjust.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() { // from class: com.gallery.photos.editphotovideo.activities.PhotoEditorActivity.11
-            @Override // android.widget.SeekBar.OnSeekBarChangeListener
+        seekbar_adjust.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() { // from class: com.gallery.album.photomanager.activities.PhotoEditorActivity.11
+            @Override
             public void onStartTrackingTouch(SeekBar seekBar3) {
             }
 
-            @Override // android.widget.SeekBar.OnSeekBarChangeListener
+            @Override
             public void onStopTrackingTouch(SeekBar seekBar3) {
             }
 
-            @Override // android.widget.SeekBar.OnSeekBarChangeListener
-            public void onProgressChanged(SeekBar seekBar3, int i, boolean z) {
-                PhotoEditorActivity.this.mAdjustAdapter.getCurrentAdjustModel().setSeekBarIntensity(PhotoEditorActivity.this.photoEditor, i / seekBar3.getMax(), true);
+            @Override
+            public void onProgressChanged(SeekBar seekBar3, int progress, boolean z) {
+                float normalizedProgress = (float) progress / (float) seekBar.getMax();
+                mAdjustAdapter.getCurrentAdjustModel().setSeekBarIntensity(photoEditor, normalizedProgress, true);
+//                mAdjustAdapter.getCurrentAdjustModel().setSeekBarIntensity(photoEditor, progress / seekBar3.getMax(), true);
             }
         });
-
 
         BitmapStickerIcon bitmapStickerIcon = new BitmapStickerIcon(ContextCompat.getDrawable(this, R.drawable.ic_outline_close), 0, BitmapStickerIcon.REMOVE);
         bitmapStickerIcon.setIconEvent(new DeleteIconEvent());
@@ -642,7 +736,6 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
 //        bitmapStickerIcon5.setIconEvent(new EditTextIconEvent());
         BitmapStickerIcon bitmapStickerIcon6 = new BitmapStickerIcon(ContextCompat.getDrawable(this, R.drawable.ic_outline_scale), 1, BitmapStickerIcon.ALIGN_HORIZONTALLY);
         bitmapStickerIcon6.setIconEvent(new ZoomIconEvent());
-
 
         this.photo_editor_view.setIcons(Arrays.asList(bitmapStickerIcon/*, bitmapStickerIcon2, bitmapStickerIcon3, bitmapStickerIcon5, bitmapStickerIcon4*/, bitmapStickerIcon6));
         this.photo_editor_view.setBackgroundColor(ViewCompat.MEASURED_STATE_MASK);
@@ -874,7 +967,8 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
 
     /* renamed from: lambda$initViews$4$com-artRoom-photo-editor-activities-PhotoEditorActivity, reason: not valid java name */
     void m263x9f08e105(View view) {
-        onBackPressed();
+//        onBackPressed();
+        getOnBackPressedDispatcher().onBackPressed();
     }
 
     /* renamed from: lambda$initViews$5$com-artRoom-photo-editor-activities-PhotoEditorActivity, reason: not valid java name */
@@ -892,7 +986,7 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
     /* JADX INFO: Access modifiers changed from: private */
     public void SaveView1() {
         if (PermissionsUtils.checkWriteStoragePermission(this)) {
-            new SaveBitmap().execute(new Void[0]);
+            saveBitmap();
         }
     }
 
@@ -1147,7 +1241,8 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
             @Override // com.gallery.photos.editphotovideo.fragment.TextFragment.TextEditor
             public void onBackButton() {
                 if (PhotoEditorActivity.this.photo_editor_view.getStickers().isEmpty()) {
-                    PhotoEditorActivity.this.onBackPressed();
+//                    PhotoEditorActivity.this.onBackPressed();
+                    getOnBackPressedDispatcher().onBackPressed();
                 }
             }
         };
@@ -1303,7 +1398,7 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
             case MIRROR:
                 Log.e(TAG, "onToolSelected: RATIO");
 
-                BitmapTransfer.bitmap = this.photo_editor_view.getCurrentBitmap();
+                BitmapTransfer.setBitmap(this.photo_editor_view.getCurrentBitmap());
                 startActivityForResult(new Intent(this, (Class<?>) MirrorActivity.class), 900);
                 overridePendingTransition(R.anim.enter, R.anim.exit);
                 this.recycler_view_tools_effect.setVisibility(GONE);
@@ -1343,17 +1438,43 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
                 this.recycler_view_tools_effect.setVisibility(GONE);
                 break;
             case SPLASH:
-                BitmapTransfer.bitmap = this.photo_editor_view.getCurrentBitmap();
+                BitmapTransfer.setBitmap(this.photo_editor_view.getCurrentBitmap());
                 startActivityForResult(new Intent(this, (Class<?>) SplashActivity.class), 900);
                 overridePendingTransition(R.anim.enter, R.anim.exit);
                 this.recycler_view_tools_effect.setVisibility(GONE);
                 break;
             case BLUR:
-                BitmapTransfer.bitmap = this.photo_editor_view.getCurrentBitmap();
-                startActivityForResult(new Intent(this, (Class<?>) BlurActivity.class), 900);
-                overridePendingTransition(R.anim.enter, R.anim.exit);
-                this.recycler_view_tools_effect.setVisibility(GONE);
+                try {
+                    // Get current bitmap safely
+                    Bitmap currentBitmap = this.photo_editor_view.getCurrentBitmap();
+
+                    // Validate the bitmap
+                    if (currentBitmap == null || currentBitmap.isRecycled()) {
+                        Toast.makeText(this, "Invalid image", Toast.LENGTH_SHORT).show();
+                        break;
+                    }
+
+                    // Create a safe copy for transfer
+                    Bitmap bitmapCopy = currentBitmap.copy(Bitmap.Config.ARGB_8888, true);
+                    if (bitmapCopy == null) {
+                        Toast.makeText(this, "Failed to process image", Toast.LENGTH_SHORT).show();
+                        break;
+                    }
+
+                    // Transfer the copy
+                    BitmapTransfer.setBitmap(bitmapCopy);
+
+                    // Start the blur activity
+                    startActivityForResult(new Intent(this, BlurActivity.class), 900);
+                    overridePendingTransition(R.anim.enter, R.anim.exit);
+                    this.recycler_view_tools_effect.setVisibility(GONE);
+
+                } catch (Exception e) {
+                    Toast.makeText(this, "Error preparing image", Toast.LENGTH_SHORT).show();
+                    Log.e("PhotoEditor", "Blur preparation error", e);
+                }
                 break;
+
             case BODY:
                 this.selectedFeatures = FEATURES.BODY;
                 new dripEffect().execute(new Void[0]);
@@ -1427,7 +1548,7 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
         this.constraint_save_control.setVisibility(VISIBLE);
     }
 
-    @Override // androidx.activity.ComponentActivity, android.app.Activity
+  /*  @Override // androidx.activity.ComponentActivity, android.app.Activity
     public void onBackPressed() {
         super.onBackPressed();
         this.recycler_view_tools_effect.setVisibility(GONE);
@@ -1443,7 +1564,7 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
         }
 
 //      onBackPressed();
-    }
+    }*/
 
     private void setOnBackPressDialog() {
         final Dialog dialog = new Dialog(this, R.style.Theme_Dialog);
@@ -1479,12 +1600,6 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
         this.currentMode = null;
         finish();
         finish();
-    }
-
-    @Override
-    // androidx.appcompat.app.AppCompatActivity, androidx.fragment.app.FragmentActivity, android.app.Activity
-    public void onDestroy() {
-        super.onDestroy();
     }
 
     @Override // com.gallery.photos.editphotovideo.listener.AdjustListener
@@ -1523,11 +1638,14 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
         this.currentMode = ToolEditor.NONE;
     }
 
-    @Override // com.gallery.photos.editphotovideo.fragment.RatioFragment.RatioSaveListener
     public void ratioSavedBitmap(Bitmap bitmap) {
-        this.photo_editor_view.setImageSource(bitmap);
-        this.currentMode = ToolEditor.NONE;
-        updateLayout();
+        if (photo_editor_view != null && bitmap != null) {
+            photo_editor_view.setImageSource(bitmap);
+            currentMode = ToolEditor.NONE;
+            updateLayout();
+        } else {
+            // Log warning or handle error case
+        }
     }
 
     public void onBeautySave(Bitmap bitmap) {
@@ -2036,10 +2154,10 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
     public void onActivityResult(int i, int i2, Intent intent) {
         super.onActivityResult(i, i2, intent);
         if (i != 123) {
-            if (i != 900 || intent == null || !intent.getStringExtra("MESSAGE").equals("done") || BitmapTransfer.bitmap == null) {
+            if (i != 900 || intent == null || !intent.getStringExtra("MESSAGE").equals("done") || BitmapTransfer.getBitmap() == null) {
                 return;
             }
-            new loadBitmap().execute(BitmapTransfer.bitmap);
+            new loadBitmap().execute(BitmapTransfer.getBitmap());
             return;
         }
         if (i2 == -1) {
@@ -2070,8 +2188,12 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
 
     @Override // com.gallery.photos.editphotovideo.activities.BaseActivity
     public void isPermissionGranted(boolean z, String str) {
+        try {
         if (z) {
-            new SaveBitmap().execute(new Void[0]);
+            saveBitmap();
+        }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -2237,6 +2359,49 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
         mLoading(false);
     }
 
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+
+    private void saveBitmap() {
+        try {
+            mLoading(true); // Show loading indicator
+            executorService.execute(() -> {
+                try {
+                    PhotoEditorActivity photoEditorActivity = PhotoEditorActivity.this;
+                    String filePath = SaveFileUtils.saveBitmapFileRemoveBg(
+                            photoEditorActivity,
+                            photoEditorActivity.photo_editor_view.getCurrentBitmap(),
+                            new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.ENGLISH).format(new Date()),
+                            null
+                    ).getAbsolutePath();
+
+                    mainHandler.post(() -> {
+                        mLoading(false);
+                        if (filePath == null) {
+                            Toast.makeText(getApplicationContext(), "Oop! Something went wrong", Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(getApplicationContext(), getResources().getString(R.string.saved_scessfully), Toast.LENGTH_LONG).show();
+                            finish();
+                            // Open Share Activity if needed
+                    /* Intent intent = new Intent(PhotoEditorActivity.this, ShareActivity.class);
+                    intent.putExtra("path", filePath);
+                    startActivity(intent); */
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    mainHandler.post(() -> {
+                        mLoading(false);
+                        Toast.makeText(getApplicationContext(), "Failed to save image", Toast.LENGTH_LONG).show();
+                    });
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+/*
     class SaveBitmap extends AsyncTask<Void, String, String> {
         SaveBitmap() {
         }
@@ -2265,11 +2430,14 @@ public class PhotoEditorActivity extends BaseActivity implements OnPhotoEditorLi
                 return;
             }
             finish();
-           /* Intent intent = new Intent(PhotoEditorActivity.this, (Class<?>) ShareActivity.class);
+           */
+/* Intent intent = new Intent(PhotoEditorActivity.this, (Class<?>) ShareActivity.class);
             intent.putExtra("path", str);
-            PhotoEditorActivity.this.startActivity(intent);*/
+            PhotoEditorActivity.this.startActivity(intent);*//*
+
         }
     }
+*/
 
     public void mLoading(boolean z) {
         if (z) {

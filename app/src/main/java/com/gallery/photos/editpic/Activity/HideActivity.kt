@@ -20,7 +20,6 @@ import com.gallery.photos.editpic.Extensions.name.getMediaDatabase
 import com.gallery.photos.editpic.Extensions.onClick
 import com.gallery.photos.editpic.Extensions.setLanguageCode
 import com.gallery.photos.editpic.Extensions.shareMultipleFilesHide
-import com.gallery.photos.editpic.Extensions.startActivityWithBundle
 import com.gallery.photos.editpic.Extensions.tos
 import com.gallery.photos.editpic.Extensions.visible
 import com.gallery.photos.editpic.Model.DeleteMediaModel
@@ -211,7 +210,7 @@ class HideActivity : AppCompatActivity() {
                             withContext(Dispatchers.IO) {
                                 val deletionJobs = hideadapter!!.selectedItems.map {
                                     async {
-                                        permanentlyDeleteFile(
+                                        deleteFilePermanently(
                                             it
                                         )
                                     }
@@ -304,28 +303,43 @@ class HideActivity : AppCompatActivity() {
             }
         }
     }
+    fun deleteFilePermanently(fileModel: HideMediaModel): Boolean {
+        val file = File(fileModel.mediaPath)
 
+        return if (!file.exists()) {
+            Log.e(
+                "DeleteFile",
+                "File does not exist: ${fileModel.mediaPath}, removing from database."
+            )
 
-    fun permanentlyDeleteFile(mediaItem: HideMediaModel) {
-        Log.d("PermanentlyDelete", "Bin Path: ${mediaItem.mediaPath}")
-        CoroutineScope(Dispatchers.IO).launch {
-            val binFile = File(mediaItem.mediaPath)
-            if (binFile.exists()) {
-                if (binFile.delete()) {
-                    Log.d("PermanentlyDelete", "File deleted: ${binFile.absolutePath}")
-                    hideMediaDao.deleteMedia(mediaItem)  // Remove from Room database
-
-                    runOnUiThread {
-                        (getString(R.string.file_permanently_deleted)).tos(this@HideActivity)
-                        hideList.remove(mediaItem)
-                    }
-                } else {
-                    Log.e("PermanentlyDelete", "Failed to delete file: ${binFile.absolutePath}")
+            CoroutineScope(Dispatchers.IO).launch {
+                hideMediaDao?.getMediaById(fileModel.mediaId)?.let {
+                    hideMediaDao?.deleteMedia(it)
                 }
-            } else {
-                hideMediaDao.deleteMedia(mediaItem)  // Remove from Room database
-                hideList.remove(mediaItem)
-                Log.e("PermanentlyDelete", "File not found: ${binFile.absolutePath}")
+            }
+            true
+        } else {
+            try {
+                if (file.delete()) {
+                    Log.d(
+                        "DeleteFile",
+                        getString(R.string.file_deleted_successfully, file.absolutePath)
+                    )
+
+                    CoroutineScope(Dispatchers.IO).launch {
+                        hideMediaDao?.getMediaById(fileModel.mediaId)?.let {
+                            hideMediaDao?.deleteMedia(it)
+                        }
+                    }
+                    true
+                } else {
+                    Log.e("DeleteFile", "Failed to delete file: ${file.absolutePath}")
+                    false
+                }
+            } catch (e: Exception) {
+                Log.e("DeleteFile", "Error deleting file: ${e.message}")
+                e.printStackTrace()
+                false
             }
         }
     }

@@ -16,7 +16,6 @@ import androidx.core.view.ViewCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.gallery.photos.editpic.ImageEDITModule.edit.adapters.SquareAdapter;
 import com.gallery.photos.editpic.ImageEDITModule.edit.resource.FilterFile;
 import com.gallery.photos.editpic.ImageEDITModule.edit.resource.StickerFile;
@@ -24,7 +23,7 @@ import com.gallery.photos.editpic.ImageEDITModule.edit.square.SquareView;
 import com.gallery.photos.editpic.ImageEDITModule.edit.sticker.SplashSticker;
 import com.gallery.photos.editpic.R;
 
-/* loaded from: classes.dex */
+
 public class SquareFragment extends DialogFragment implements SquareAdapter.SplashChangeListener {
     private static final String TAG = "SquareFragment";
     private Bitmap BlurBitmap;
@@ -88,7 +87,7 @@ public class SquareFragment extends DialogFragment implements SquareAdapter.Spla
         }
         RecyclerView recyclerView = (RecyclerView) inflate.findViewById(R.id.recycler_view_splash);
         this.recyclerViewBlur = recyclerView;
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.HORIZONTAL, false));
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), 0, false));
         this.recyclerViewBlur.setHasFixedSize(true);
         this.recyclerViewBlur.setAdapter(new SquareAdapter(getContext(), this, this.isSplashView));
         if (this.isSplashView) {
@@ -98,7 +97,7 @@ public class SquareFragment extends DialogFragment implements SquareAdapter.Spla
         }
         SeekBar seekBar = (SeekBar) inflate.findViewById(R.id.seekbar_brush);
         this.seekbar_brush = seekBar;
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() { // from class: com.gallery.photos.editphotovideo.fragment.SquareFragment.1
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() { // from class: com.gallery.album.photomanager.fragment.SquareFragment.1
             @Override // android.widget.SeekBar.OnSeekBarChangeListener
             public void onStartTrackingTouch(SeekBar seekBar2) {
             }
@@ -114,15 +113,15 @@ public class SquareFragment extends DialogFragment implements SquareAdapter.Spla
         });
         this.polishSplashView.refreshDrawableState();
         this.polishSplashView.setLayerType(2, null);
-        inflate.findViewById(R.id.image_view_save).setOnClickListener(new View.OnClickListener() { // from class: com.gallery.photos.editphotovideo.fragment.SquareFragment.2
-            @Override // android.view.View.OnClickListener
+        inflate.findViewById(R.id.image_view_save).setOnClickListener(new View.OnClickListener() { // from class: com.gallery.album.photomanager.fragment.SquareFragment.2
+            @Override
             public void onClick(View view) {
                 SquareFragment.this.blurSquareBgListener.onSaveBlurBackground(SquareFragment.this.polishSplashView.getBitmap(SquareFragment.this.bitmap));
                 SquareFragment.this.dismiss();
             }
         });
-        inflate.findViewById(R.id.image_view_close).setOnClickListener(new View.OnClickListener() { // from class: com.gallery.photos.editphotovideo.fragment.SquareFragment.3
-            @Override // android.view.View.OnClickListener
+        inflate.findViewById(R.id.image_view_close).setOnClickListener(new View.OnClickListener() { // from class: com.gallery.album.photomanager.fragment.SquareFragment.3
+            @Override
             public void onClick(View view) {
                 SquareFragment.this.dismiss();
             }
@@ -163,13 +162,15 @@ public class SquareFragment extends DialogFragment implements SquareAdapter.Spla
         }
     }
 
-    @Override // androidx.fragment.app.DialogFragment, androidx.fragment.app.Fragment
+    @Override
     public void onStart() {
         super.onStart();
         Dialog dialog = getDialog();
-        if (dialog != null) {
-            dialog.getWindow().setLayout(-1, -1);
-            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(ViewCompat.MEASURED_STATE_MASK));
+        if (dialog != null)
+        {
+            int width = ViewGroup.LayoutParams.MATCH_PARENT;
+            int height = ViewGroup.LayoutParams.MATCH_PARENT;
+            dialog.getWindow().setLayout(width, height);
         }
     }
 
@@ -185,7 +186,7 @@ public class SquareFragment extends DialogFragment implements SquareAdapter.Spla
         this.bitmap = null;
     }
 
-    @Override // com.gallery.photos.editphotovideo.adapters.SquareAdapter.SplashChangeListener
+    @Override // com.gallery.album.photomanager.adapters.SquareAdapter.SplashChangeListener
     public void onSelected(SplashSticker splashSticker) {
         this.polishSplashView.addSticker(splashSticker);
     }
